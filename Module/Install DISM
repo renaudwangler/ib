@@ -1,0 +1,2 @@
+ADK pour DISM : https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx
+Lancer l'installation locale et choisir d'installer les outils d'installation (Deployment Tools) comprenant DISM () avant de redémarrer

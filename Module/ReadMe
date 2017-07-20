@@ -1,0 +1,10 @@
+Moduel powershell ib1
+
+Pour installer, sur machine < Windows Server 2016,
+télécharger et installer http://go.microsoft.com/fwlink/?LinkID=746217&clcid=0x409
+
+Puis dans une commande powershell En administrateur: install-module ib1 -force
+**Attention** Pour que le changement de clavier fonctionne, il faudra installer la dernière version de DISM sur la machine hôte dans le répertoire par défaut (C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM)
+(Installation ici: https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx).
+
+Pour mise à jour dans la Gallery Powershell : publish-module -path c:\ib1 -nugetapikey ....

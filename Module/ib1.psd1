@@ -11,24 +11,24 @@
 # Module de script ou fichier de module binaire associ√© √† ce manifeste
 RootModule = 'ib1.psm1'
 
-# Num√©ro de version de ce module.
-ModuleVersion = '1.0.1.3'
+# NumÈro de version de ce module.
+ModuleVersion = '1.0.1.5'
 
-# ID utilis√© pour identifier de mani√®re unique ce module
+# ID utilisÈ pour identifier de maniËre unique ce module
 GUID = '369b9a24-09ce-4df3-840f-80315b499bd4'
 
 # Auteur de ce module
 Author = 'renaud.wangler'
 
-# Soci√©t√© ou fournisseur de ce module
+# SociÈtÈ ou fournisseur de ce module
 CompanyName = 'ib'
 
-# D√©claration de copyright pour ce module
-Copyright = '(c) 2017 ib. Tous droits r√©serv√©s.'
+# DÈclaration de copyright pour ce module
+Copyright = '(c) 2017 ib. Tous droits reserves.'
 
-# Description de la fonctionnalit√© fournie par ce module
+# Description de la fonctionnalitÈ fournie par ce module
 Description = 'Commandes pour installation et gestion des machines de stages ib.
-Utiliser get-command -module ib1 pour la liste des commandes impl√©ment√©es.'
+Utiliser get-command -module ib1 pour la liste des commandes implÈmentÈes.'
 
 # Version minimale du moteur Windows PowerShell requise par ce module
 PowerShellVersion = '3.0'

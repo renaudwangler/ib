@@ -193,7 +193,7 @@ foreach ($VM2switch in $VMs2switch) {
       Start-Sleep 1}
     if (-not $noCheckpoint) {
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Creation du checkpoint ib1SwitchFR-Apres."
-      Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Apres"}
+      Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Après"}
     write-progress -Activity "Traitement de $($VM2switch.name)" -complete}}
 }}
 

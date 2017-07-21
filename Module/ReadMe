@@ -8,3 +8,14 @@ Puis dans une commande powershell En administrateur: install-module ib1 -force
 (Installation ici: https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx).
 
 Pour mise à jour dans la Gallery Powershell : publish-module -path c:\ib1 -nugetapikey ....
+
+Fonctions contenues dans le mdoule en version 1.0.1.5:
+- **reset-ib1VM**
+- **set-ib1VhdBoot**
+- **remove-ib1VhdBoot**
+- **switch-ib1VMFr**
+- **test-ib1VMNet**
+- **connect-ib1VMNet**
+- **set-ib1TSSecondScreen**
+- **import-ib1trustedCertificate**
+

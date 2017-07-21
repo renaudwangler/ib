@@ -1,42 +1,42 @@
 #
-# Manifeste de module pour le module « PSGet_ib1 »
+# Manifeste de module pour le module Â«Â PSGet_ib1Â Â»
 #
-# Généré par : renaud.wangler
+# GÃ©nÃ©rÃ© parÂ : renaud.wangler
 #
-# Généré le : 19/07/2017
+# GÃ©nÃ©rÃ© leÂ : 19/07/2017
 #
 
 @{
 
-# Module de script ou fichier de module binaire associé à ce manifeste
+# Module de script ou fichier de module binaire associÃ© Ã  ce manifeste
 RootModule = 'ib1.psm1'
 
-# Numéro de version de ce module.
-ModuleVersion = '1.0.1.2'
+# NumÃ©ro de version de ce module.
+ModuleVersion = '1.0.1.3'
 
-# ID utilisé pour identifier de manière unique ce module
+# ID utilisÃ© pour identifier de maniÃ¨re unique ce module
 GUID = '369b9a24-09ce-4df3-840f-80315b499bd4'
 
 # Auteur de ce module
 Author = 'renaud.wangler'
 
-# Société ou fournisseur de ce module
+# SociÃ©tÃ© ou fournisseur de ce module
 CompanyName = 'ib'
 
-# Déclaration de copyright pour ce module
-Copyright = '(c) 2017 ib. Tous droits réservés.'
+# DÃ©claration de copyright pour ce module
+Copyright = '(c) 2017 ib. Tous droits rÃ©servÃ©s.'
 
-# Description de la fonctionnalité fournie par ce module
+# Description de la fonctionnalitÃ© fournie par ce module
 Description = 'Commandes pour installation et gestion des machines de stages ib.
-Utiliser get-command -module ib1 pour la liste des commandes implémentées.'
+Utiliser get-command -module ib1 pour la liste des commandes implÃ©mentÃ©es.'
 
 # Version minimale du moteur Windows PowerShell requise par ce module
 PowerShellVersion = '3.0'
 
-# Nom de l'hôte Windows PowerShell requis par ce module
+# Nom de l'hÃ´te Windows PowerShell requis par ce module
 # PowerShellHostName = ''
 
-# Version minimale de l'hôte Windows PowerShell requise par ce module
+# Version minimale de l'hÃ´te Windows PowerShell requise par ce module
 # PowerShellHostVersion = ''
 
 # Version minimale du Microsoft .NET Framework requise par ce module
@@ -48,43 +48,43 @@ PowerShellVersion = '3.0'
 # Architecture de processeur (None, X86, Amd64) requise par ce module
 # ProcessorArchitecture = ''
 
-# Modules qui doivent être importés dans l'environnement global préalablement à l'importation de ce module
+# Modules qui doivent Ãªtre importÃ©s dans l'environnement global prÃ©alablement Ã  l'importation de ce module
 # RequiredModules = @()
 
-# Assemblys qui doivent être chargés préalablement à l'importation de ce module
+# Assemblys qui doivent Ãªtre chargÃ©s prÃ©alablement Ã  l'importation de ce module
 # RequiredAssemblies = @()
 
-# Fichiers de script (.ps1) exécutés dans l’environnement de l’appelant préalablement à l’importation de ce module
+# Fichiers de script (.ps1) exÃ©cutÃ©s dans lâ€™environnement de lâ€™appelant prÃ©alablement Ã  lâ€™importation de ce module
 # ScriptsToProcess = @()
 
-# Fichiers de types (.ps1xml) à charger lors de l'importation de ce module
+# Fichiers de types (.ps1xml) Ã  charger lors de l'importation de ce module
 # TypesToProcess = @()
 
-# Fichiers de format (.ps1xml) à charger lors de l'importation de ce module
+# Fichiers de format (.ps1xml) Ã  charger lors de l'importation de ce module
 # FormatsToProcess = @()
 
-# Modules à importer en tant que modules imbriqués du module spécifié dans RootModule/ModuleToProcess
+# Modules Ã  importer en tant que modules imbriquÃ©s du module spÃ©cifiÃ© dans RootModule/ModuleToProcess
 # NestedModules = @()
 
-# Fonctions à exporter à partir de ce module
+# Fonctions Ã  exporter Ã  partir de ce module
 FunctionsToExport = '*'
 
-# Applets de commande à exporter à partir de ce module
+# Applets de commande Ã  exporter Ã  partir de ce module
 # CmdletsToExport = @()
 
-# Variables à exporter à partir de ce module
+# Variables Ã  exporter Ã  partir de ce module
 VariablesToExport = '*'
 
-# Alias à exporter à partir de ce module
+# Alias Ã  exporter Ã  partir de ce module
 # AliasesToExport = @()
 
-# Liste de tous les modules empaquetés avec ce module
+# Liste de tous les modules empaquetÃ©s avec ce module
 # ModuleList = @()
 
-# Liste de tous les fichiers empaquetés avec ce module
+# Liste de tous les fichiers empaquetÃ©s avec ce module
 # FileList = @()
 
-# Données privées à transmettre au module spécifié dans RootModule/ModuleToProcess
+# DonnÃ©es privÃ©es Ã  transmettre au module spÃ©cifiÃ© dans RootModule/ModuleToProcess
 # PrivateData = ''
 PrivateData = @{ 
 
@@ -115,7 +115,7 @@ PrivateData = @{
 # URI HelpInfo de ce module
 # HelpInfoURI = ''
 
-# Le préfixe par défaut des commandes a été exporté à partir de ce module. Remplacez le préfixe par défaut à l’aide d’Import-Module -Prefix.
+# Le prÃ©fixe par dÃ©faut des commandes a Ã©tÃ© exportÃ© Ã  partir de ce module. Remplacez le prÃ©fixe par dÃ©faut Ã  lâ€™aide dâ€™Import-Module -Prefix.
 # DefaultCommandPrefix = ''
 
 }

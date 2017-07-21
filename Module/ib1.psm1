@@ -2,7 +2,7 @@
 #                      Variables globales                 #
 ###########################################################
 #
-$global:ib1Version='1.0.1.2'
+$global:ib1Version='1.0.1.3'
 $global:ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $global:ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
 

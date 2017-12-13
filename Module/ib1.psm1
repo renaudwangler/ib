@@ -2,7 +2,7 @@
 #                      Variables globales                 #
 ###########################################################
 #
-$global:ib1Version='1.0.1.5'
+$global:ib1Version='1.0.1.6'
 $global:ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $global:ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
 
@@ -22,9 +22,9 @@ function start-ib1VMWait ($SWVmname) {
   if ((get-vm $SWVmname).state -ne "Running") {
     Start-VM $SWVmname
     while ((get-vm $SWVmname).heartbeat -ne 'OKApplicationsHealthy') {
-      write-progress -Activity "DÃ©marrage de $SWVmname" -currentOperation "Attente de signal de dÃ©marrage rÃ©ussi de la VM"
+      write-progress -Activity "Démarrage de $SWVmname" -currentOperation "Attente de signal de démarrage réussi de la VM"
       start-sleep 2}
-    write-progress -Activity "DÃ©marrage de $SWVmname" -complete}}
+    write-progress -Activity "Démarrage de $SWVmname" -complete}}
 
 function get-ib1VM ($gVMName) {
   if ($gVMName -eq '') {
@@ -42,17 +42,17 @@ function get-ib1VM ($gVMName) {
 function global:reset-ib1VM {
 <#
 .SYNOPSIS
-Cette commande permet de rÃ©tablir les VMs du serveur Hyper-v Ã  leur dernier checkpoint.
+Cette commande permet de rétablir les VMs du serveur Hyper-v à  leur dernier checkpoint.
 .PARAMETER VMName
-Nom de la VMs Ã  retablir. si ce parametre est omis toutes les VMs seront rÃ©tablies
+Nom de la VMs à  retablir. si ce parametre est omis toutes les VMs seront rétablies
 .PARAMETER keepVMUp
-N'arrete pas les VMs allumee avant de les retablir
+N'arrete pas les VMs allumées avant de les rétablir
 .EXAMPLE
 reset-ib1VM -VMName 'lon-dc1'
-Retablit la VM 'lon-dc1' a son dernier point de controle.
+Rétablit la VM 'lon-dc1' à son dernier point de controle.
 .EXAMPLE
 reset-ib1VM -keepVMUp
-Retablir toutes les VMS a leur dernier point de controle, sans les eteindre.
+Rétablir toutes les VMS à leur dernier point de controle, sans les éteindre.
 #>
 [CmdletBinding(
 DefaultParameterSetName='keepVMUp')]
@@ -65,36 +65,36 @@ $VMs2Reset=get-ib1VM $VMName
 foreach ($VM2reset in $VMs2Reset) {
   if ($snapshot=Get-VMSnapshot -VMName $VM2reset.vmname|sort creationtime|select -last 1 -ErrorAction SilentlyContinue) {
     if (-not $keepVMUp -and $VM2reset.state -ieq 'running') {
-      Write-Debug "ArrÃªt de la VM $($VM2reset.vmname)."
+      Write-Debug "Arrêt de la VM $($VM2reset.vmname)."
       stop-vm -VMName $VM2reset.vmname -confirm:$false}
     Write-Debug "Restauration du snapshot $($snapshot.Name) sur la VM $($VM2reset.vmname)."
     Restore-VMSnapshot $snapshot -confirm:$false}
   else {write-debug "La VM $($VM2reset.vmname) n'a pas de snapshot"}}}
-  end {echo "Fin de l'operation"}}
+  end {echo "Fin de l'opération"}}
 
 function global:set-ib1VhdBoot {
 <#
 .SYNOPSIS
-Cette commande permet de monter le disque virtuel contenu dans le fichier VHD et de rajouter le demarrage sur la partition non reservee contenue au BCD.
+Cette commande permet de monter le disque virtuel contenu dans le fichier VHD et de rajouter le démarrage sur la partition non réservée contenue au BCD.
 .PARAMETER VHDFile
-Nom du fichier VHD contenant le disque virtuel a monter.
+Nom du fichier VHD contenant le disque virtuel à monter.
 .PARAMETER restart
-Redemarre l'ordinateur a la fin du script (inactif par defaut)
+Redémarre l'ordinateur à la fin du script (inactif par défaut)
 .EXAMPLE
 set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd
 Monte la partition contenue dans le fichier VHD fourni.
 .EXAMPLE
 set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd -restart
-Monte la partition contenue dans le fichier VHD fourni et redemarre dessus.
+Monte la partition contenue dans le fichier VHD fourni et redémarre dessus.
 #>
 [CmdletBinding(
 DefaultParameterSetName='VHDFile')]
 PARAM(
-[parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage='Fichier VHD contenant le disque virtuel a monter (avec une partition systeme)')]
+[parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage='Fichier VHD contenant le disque virtuel à monter (avec une partition système)')]
 [string]$VHDfile,
 [switch]$restart=$false)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
-# Attacher un VHD et le rajouter au menu de demarrage
+# Attacher un VHD et le rajouter au menu de démarrage
 process {
 write-debug "`$VHDfile=$VHDfile"
 try { Mount-VHD -Path $vhdFile -ErrorAction stop }
@@ -102,9 +102,9 @@ catch {
   write-error "Impossible de monter le disque virtuel contenu dans le fichier $VHDFile." -Category ObjectNotFound
   break}
 $dLetter=(get-disk|where friendlyname -ilike "*microsoft*"|Get-Partition|Get-Volume|where {$_.filesystemlabel -ine "system reserved" -and $_.filesystemlabel -ine "rï¿½servï¿½e au systï¿½me"}).driveletter+":"
-write-debug "Disque(s) de lecteur Windows trouve(s) : $dLetter"
+write-debug "Disque(s) de lecteur Windows trouvé(s) : $dLetter"
 if ($dLetter.Count -ne 1) {
- write-error 'Impossible de trouver un disque virtuel monte qui contienne une unique partition non reservee au systeme.' -Category ObjectNotFound
+ write-error 'Impossible de trouver un disque virtuel monté qui contienne une unique partition non réservée au systeme.' -Category ObjectNotFound
  break}
 bcdboot $dLetter\windows /l fr-FR >> $null
 bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) >> $null
@@ -115,12 +115,12 @@ if ($restart) {Restart-Computer}}}
 function global:remove-ib1VhdBoot {
 <#
 .SYNOPSIS
-Cette commande permet de supprimer l'entree par defaut du BCD et de demonter tous les disques virtuels montes sur la machine.
+Cette commande permet de supprimer l'entrée par defaut du BCD et de démonter tous les disques virtuels montés sur la machine.
 .PARAMETER restart
-Redemarre l'ordinateur Ã  la fin du script (inactif par defaut)
+Redémarre l'ordinateur à la fin du script (inactif par defaut)
 .EXAMPLE
 remove-ib1vhboot -restart
-supprimer l'entree par defaut du BCD et redemarre la machine.
+supprimer l'entrée par defaut du BCD et redémarre la machine.
 #>
 [CmdletBinding(
 DefaultParameterSetName='restart')]
@@ -129,7 +129,7 @@ PARAM(
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 get-disk|where FriendlyName -ilike "*microsoft*"|foreach {write-debug $_;get-partition|dismount-vhd -erroraction silentlycontinue}
-write-debug "Supression de l'entree {Default} du BCD"
+write-debug "Supression de l'entrée {Default} du BCD"
 bcdedit /delete '{default}' >> $null
 echo 'BCD modifie'
 if ($restart) {Restart-Computer}}}
@@ -138,14 +138,14 @@ function global:switch-ib1VMFr {
 <#
 .SYNOPSIS
 Cette commande permet de changer le clavier d'une marchine virtuelle en Francais.
-(Ne fonctionne que sur les VMs eteinte au moment ou la commande est lancee)
+(Ne fonctionne que sur les VMs éteintes au moment ou la commande est lancée)
 .PARAMETER VMName
-Nom de la VM sur laquelle agir (agit sur toutes les VMs si parametre non specifie)
+Nom de la VM sur laquelle agir (agit sur toutes les VMs si paramètre non spécifié)
 .PARAMETER noCheckpoint
-Ne cree pas les points de controle sur la VM avant et apres action
+Ne crée pas les points de contrôle sur la VM avant et après action
 .EXAMPLE
 switch-ib1VMFr
-Change le clavier de la VM en Francais.
+Change le clavier de toutes les VM en Français.
 #>
 [CmdletBinding(
 DefaultParameterSetName='VMName')]
@@ -156,9 +156,9 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 $VMs2switch=get-ib1VM $VMName
 foreach ($VM2switch in $VMs2switch) {
-  if ($VM2switch.state -ine 'off') {echo "La VM $($VM2switch.name) n'est pas eteinte et ne sera pas traitee"}
+  if ($VM2switch.state -ine 'off') {echo "La VM $($VM2switch.name) n'est pas éteinte et ne sera pas traitée"}
   else {
-    Write-Debug "Changement des parametres lingustiques de la VM $($VM2switch.name)"
+    Write-Debug "Changement des paramêtres lingustiques de la VM $($VM2switch.name)"
     write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Montage du disque virtuel."
     $vhdPath=($VM2switch|Get-VMHardDiskDrive|where {$_.ControllerNumber -eq 0 -and $_.controllerLocation -eq 0}).path
     $testMount=$null
@@ -166,7 +166,7 @@ foreach ($VM2switch in $VMs2switch) {
     if ($testMount -eq $null) {Write-Error "Impossible de monter le disque dur... de la VM $($VM2switch.name)" -Category invalidResult}
     else {
       if (-not $noCheckpoint) {
-        write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Creation du checkpoint ib1SwitchFR-Avant."
+        write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Avant."
         Dismount-VHD $vhdPath
         Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Avant"
         mount-vhd -path $vhdPath -NoDriveLetter -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where isactive -eq $false|Set-Partition -newdriveletter Z}
@@ -176,69 +176,69 @@ foreach ($VM2switch in $VMs2switch) {
         if (Test-Path $ib1DISMPath) {& $ib1DISMPath /image:z: /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$ $null} else {$LASTEXITCODE=50}}
       if ($LASTEXITCODE -eq 50) {
         Start-Process -FilePath $ib1DISMUrl
-        write-error "Si le probleme vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
+        write-error "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
         dismount-vhd $vhdpath
         if (-not $noCheckpoint) {
           Restore-VMSnapshot -VM $VM2switch -Name "ib1SwitchFR-Avant"
           Remove-VMSnapshot -VM $VM2switch -Name "ib1SwitchFR-Avant"}
         break}
       elseif ($LASTEXITCODE -ne 0) {
-        write-warning "Probleme pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de verifier!' (Detail de l'erreur ci-dessous)."
+        write-warning "Problème pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de vérifier!' (Détail de l'erreur ci-dessous)."
         write-output $error|select -last 1
         if (-not $noCheckpoint) {
           Restore-VMSnapshot -VM $VM2switch -Name "ib1SwitchFR-Avant"
           Remove-VMSnapshot -VM $VM2switch -Name "ib1SwitchFR-Avant"}}
-      write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Demontage du disque."
+      write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Démontage du disque."
       dismount-vhd $vhdpath
       Start-Sleep 1}
     if (-not $noCheckpoint) {
-      write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Creation du checkpoint ib1SwitchFR-Apres."
-      Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Aprï¿½s"}
+      write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Après."
+      Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Après"}
     write-progress -Activity "Traitement de $($VM2switch.name)" -complete}}
 }}
 
 function global:test-ib1VMNet {
 <#
 .SYNOPSIS
-Cette commande permet de tester si les VMs sont bien connectees aux reseaux virtuel de l'hote Hyper-V.
+Cette commande permet de tester si les VMs sont bien connectées aux réseaux virtuels de l'hôte Hyper-V.
 .EXAMPLE
 test-ib1VMNet
-Indiquera si des VMs sont branchees sur des switchs virtuels non declares.
+Indiquera si des VMs sont branchées sur des switchs virtuels non déclarés.
 #>
 $vSwitchs=(Get-VMSwitch).name
 $VMs=Get-VM
 foreach ($VM in $VMs) {
-  Write-progress -Activity "Verification de la configuration reseau de la VM $($VM.Name)."
+  Write-progress -Activity "Vérification de la configuration réseau de la VM $($VM.Name)."
   foreach ($VMnetwork in $VM.NetworkAdapters) {
-    Write-progress -Activity "Verification de la configuration reseau de la VM $($VM.Name)." -CurrentOperation "Verification de la presence du switch $($VMnetwork.name)"
-    if ($VMnetwork.SwitchName -notin $vSwitchs) {Write-Warning "La VM '$($VM.Name)' est branchee sur le switch virtuel '$($VMnetwork.SwitchName)' qui est introuvable. Merci de verifier !"}}
-  Write-progress -Activity "Verification de la configuration reseau de la VM $($VM.Name)." -Completed}}
+    Write-progress -Activity "Vérification de la configuration réseau de la VM $($VM.Name)." -CurrentOperation "Vérification de la présence du switch $($VMnetwork.name)"
+    if ($VMnetwork.SwitchName -notin $vSwitchs) {Write-Warning "La VM '$($VM.Name)' est branchée sur le switch virtuel '$($VMnetwork.SwitchName)' qui est introuvable. Merci de vérifier !"}}
+  Write-progress -Activity "Vérification de la configuration réseau de la VM $($VM.Name)." -Completed}}
 
 function global:connect-ib1VMNet {
 <#
 .SYNOPSIS
-Cette commande permet de mettre en place les prerequis reseau sur la machine Hyper-V Hote.
-(Une et une seule carte reseau physique doit etre connectee au reseau)
+Cette commande permet de mettre en place les prérequis réseau sur la machine Hyper-V Hôte.
+(Une et une seule carte réseau physique doit être connectée au réseau)
 .PARAMETER externalNetworkname
-Nom (obligatoire) du reseau virtuel qui sera connecte au reseau externe
+Nom (obligatoire) du réseau virtuel qui sera connecté au réseau externe
 .EXAMPLE
 connect-ib1VMNet "External Network"
-Creer un reseau virtuel nomme "External Network" et le connecte a la carte reseau physique branchee (ou Wi-Fi connectee).
+Creer un réseau virtuel nomme "External Network" et le connecte a la carte reseau physique branchée (ou Wi-Fi connectée).
 #>
 [CmdletBinding(
 DefaultParameterSetName='externalNetworkName')]
 PARAM(
-[parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage='Nom du reseau virtuel a connecter au reseau externe.')]
+[parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage='Nom du réseau virtuel a connecter au réseau externe.')]
 [string]$externalNetworkname='External Network')
 get-ib1elevated $true
 compare-ib1PSVersion "4.0"
 $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp|Get-NetAdapter
 if ($extNic.PhysicalMediaType -eq "Unspecified") {
   if ((Get-VMSwitch $externalNetworkname  -switchtype External -ErrorAction SilentlyContinue).NetAdapterInterfaceDescription -eq (Get-NetAdapter -Physical|where status -eq up).InterfaceDescription) {
-    Write-warning "La configuration reseau externe est deja correcte"
+    Write-warning "La configuration réseau externe est déjà correcte"
     break}
   else {
-    Write-Warning "La carte reseau est deja connectee a un switch virtuel. Suppression!"
+    Write-Warning "La carte réseau est déjà connectée a un switch virtuel. Suppression!"
     $switch2Remove=Get-VMSwitch -SwitchType External|where {$extNic.name -like '*'+$_.name+'*'}
     Write-Progress -Activity "Suppression de switch virtuel existant" -currentOperation "Attente pour suppression de '$($switch2Remove.name)'."
     Remove-VMSwitch -Force -VMSwitch $switch2Remove
@@ -248,24 +248,24 @@ if ($extNic.PhysicalMediaType -eq "Unspecified") {
     Write-Progress -Activity "Suppression de switch virtuel existant" -Completed}
     $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp|Get-NetAdapter}
   if (Get-VMSwitch $externalNetworkname -ErrorAction SilentlyContinue) {
-    Write-Warning "Le switch '$externalNetworkname' existe. Branchement sur la bonne carte reseau"
+    Write-Warning "Le switch '$externalNetworkname' existe. Branchement sur la bonne carte réseau"
     Get-VMSwitch $externalNetworkname|Set-VMSwitch -netadaptername $extNic.Name
     start-sleep 2}
   else {
-    Write-Progress -Activity "Creation du switch" -CurrentOperation "Creation du switch virtuel '$externalNetworkname' et branchement sur la carte reseau."
+    Write-Progress -Activity "Création du switch" -CurrentOperation "Création du switch virtuel '$externalNetworkname' et branchement sur la carte réseau."
     New-VMSwitch -Name $externalNetworkname -netadaptername $extNic.Name >> $null
-    Write-Progress -Activity "Creation du switch" -Completed}
+    Write-Progress -Activity "Création du switch" -Completed}
 test-ib1VMNet}
 
 function global:set-ib1TSSecondScreen {
 <#
 .SYNOPSIS
-Cette commande permet de basculer l'ecran distant d'une connexion RDP sur l'ecran secondaire (seuls 2 ecrans geres).
+Cette commande permet de basculer l'écran distant d'une connexion RDP sur l'écran secondaire (seuls 2 écrans gérés).
 .PARAMETER TSCFilename
-Nom (obligatoire) du fichier .rdp dont la configuration par la presente commande doit etre modifiee
+Nom (obligatoire) du fichier .rdp dont la configuration par la présente commande doit être modifiée
 .EXAMPLE
 set-ib1TSSecondScreen "c:\users\ib\desktop\myremoteVM.rdp"
-Modifiera le fichier indique pour que l'affichage de la machine distante se fasse sur le second ecran.
+Modifiera le fichier indiqué pour que l'affichage de la machine distante se fasse sur le second écran.
 #>
 [CmdletBinding(
 DefaultParameterSetName='TSCFilename')]
@@ -279,7 +279,7 @@ if (Test-Path $TSCFilename) {
   $newFile=@()
   Add-Type -AssemblyName System.Windows.Forms
   $Monitors = [System.Windows.Forms.Screen]::AllScreens
-  foreach ($fileLine in (get-content C:\Users\ib\Desktop\marsAdmin11.rdp)){
+  foreach ($fileLine in $oldFile){
     if ($fileLine -ilike '*winposstr*') {
       $newFile+="$($fileLine.split(",")[0]),$($fileLine.split(",")[1]),$($Monitors[1].WorkingArea.X),$($Monitors[1].WorkingArea.Y),$($Monitors[1].WorkingArea.X+$Monitors[1].Bounds.Width),$($Monitors[1].WorkingArea.Y+$Monitors[1].Bounds.Height)"}
     else {$newFile+=$fileLine}}
@@ -292,15 +292,15 @@ function global:import-ib1TrustedCertificate {
 .SYNOPSIS
 Cette commande permet d'importer un certificat depuis une URL afin de l'ajouter aux racines de confiance de l'utilisateur en cours.
 .PARAMETER CertificateUrl
-Chemin (obligatoire) complet du certificat .rdp ï¿½ tï¿½lï¿½charger
+Chemin (obligatoire, certificat plateformes Mars si omis) complet du certificat .cer à télécharger
 .EXAMPLE
 import-ib1TrustedCertificate "http://mars.ib-formation.fr/marsca.cer"
-Importera le certificat mentionnï¿½ dans le magasin des certificat de confiance de l'utilisateur actuel.
+Importera le certificat mentionné dans le magasin des certificat de confiance de l'utilisateur actuel.
 #>
 [CmdletBinding(
 DefaultParameterSetName='CertificateUrl')]
 PARAM(
-[parameter(ValueFromPipeLine=$false,HelpMessage='Url du certificat ï¿½ importer')]
+[parameter(ValueFromPipeLine=$false,HelpMessage='Url du certificat à importer')]
 [string]$CertificateUrl='')
 begin {compare-ib1PSVersion "4.0";get-ib1elevated $true}
 process {
@@ -312,3 +312,11 @@ catch {
   break}
 Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false
 }}
+
+#######################
+#  Gestion du module  #
+#######################
+Set-Alias reset reset-ib1VM
+Set-Alias vhdBoot set-ib1VhdBoot
+export-moduleMember -Function reset-ib1VM,set-ib1VhdBoot,remove-ib1VhdBoot,switch-ib1VMFr,test-ib1VMNet,connect-ib1VMNet,set-ib1TSSecondScreen,import-ib1TrustedCertificate
+Export-ModuleMember -Alias reset,vhdBoot

@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Numéro de version de ce module.
-ModuleVersion = '1.0.1.5'
+ModuleVersion = '1.0.1.6'
 
 # ID utilisé pour identifier de manière unique ce module
 GUID = '369b9a24-09ce-4df3-840f-80315b499bd4'
@@ -24,7 +24,7 @@ Author = 'renaud.wangler'
 CompanyName = 'ib'
 
 # Déclaration de copyright pour ce module
-Copyright = '(c) 2017 ib. Tous droits reserves.'
+Copyright = '(c) 2017 ib. Tous droits réservés.'
 
 # Description de la fonctionnalité fournie par ce module
 Description = 'Commandes pour installation et gestion des machines de stages ib.
@@ -76,7 +76,7 @@ FunctionsToExport = '*'
 VariablesToExport = '*'
 
 # Alias Ã  exporter Ã  partir de ce module
-# AliasesToExport = @()
+AliasesToExport = '*'
 
 # Liste de tous les modules empaquetÃ©s avec ce module
 # ModuleList = @()

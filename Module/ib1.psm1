@@ -22,9 +22,9 @@ function start-ib1VMWait ($SWVmname) {
   if ((get-vm $SWVmname).state -ne "Running") {
     Start-VM $SWVmname
     while ((get-vm $SWVmname).heartbeat -ne 'OKApplicationsHealthy') {
-      write-progress -Activity "demarrage de $SWVmname" -currentOperation "Attente de signal de demarrage reussi de la VM"
+      write-progress -Activity "D√©marrage de $SWVmname" -currentOperation "Attente de signal de d√©marrage r√©ussi de la VM"
       start-sleep 2}
-    write-progress -Activity "Demarrage de $SWVmname" -complete}}
+    write-progress -Activity "D√©marrage de $SWVmname" -complete}}
 
 function get-ib1VM ($gVMName) {
   if ($gVMName -eq '') {
@@ -42,9 +42,9 @@ function get-ib1VM ($gVMName) {
 function global:reset-ib1VM {
 <#
 .SYNOPSIS
-Cette commande permet de retablir les VMs du serveur Hyper-v a leur dernier checkpoint.
+Cette commande permet de r√©tablir les VMs du serveur Hyper-v √† leur dernier checkpoint.
 .PARAMETER VMName
-Nom de la VMs √† retablir. si ce parametre est omis toutes les VMs seront retablies
+Nom de la VMs √† retablir. si ce parametre est omis toutes les VMs seront r√©tablies
 .PARAMETER keepVMUp
 N'arrete pas les VMs allumee avant de les retablir
 .EXAMPLE
@@ -101,7 +101,7 @@ try { Mount-VHD -Path $vhdFile -ErrorAction stop }
 catch {
   write-error "Impossible de monter le disque virtuel contenu dans le fichier $VHDFile." -Category ObjectNotFound
   break}
-$dLetter=(get-disk|where friendlyname -ilike "*microsoft*"|Get-Partition|Get-Volume|where {$_.filesystemlabel -ine "system reserved" -and $_.filesystemlabel -ine "rÈservÈe au systËme"}).driveletter+":"
+$dLetter=(get-disk|where friendlyname -ilike "*microsoft*"|Get-Partition|Get-Volume|where {$_.filesystemlabel -ine "system reserved" -and $_.filesystemlabel -ine "rÔøΩservÔøΩe au systÔøΩme"}).driveletter+":"
 write-debug "Disque(s) de lecteur Windows trouve(s) : $dLetter"
 if ($dLetter.Count -ne 1) {
  write-error 'Impossible de trouver un disque virtuel monte qui contienne une unique partition non reservee au systeme.' -Category ObjectNotFound
@@ -193,7 +193,7 @@ foreach ($VM2switch in $VMs2switch) {
       Start-Sleep 1}
     if (-not $noCheckpoint) {
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Creation du checkpoint ib1SwitchFR-Apres."
-      Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-AprËs"}
+      Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-AprÔøΩs"}
     write-progress -Activity "Traitement de $($VM2switch.name)" -complete}}
 }}
 
@@ -292,15 +292,15 @@ function global:import-ib1TrustedCertificate {
 .SYNOPSIS
 Cette commande permet d'importer un certificat depuis une URL afin de l'ajouter aux racines de confiance de l'utilisateur en cours.
 .PARAMETER CertificateUrl
-Chemin (obligatoire) complet du certificat .rdp ‡ tÈlÈcharger
+Chemin (obligatoire) complet du certificat .rdp ÔøΩ tÔøΩlÔøΩcharger
 .EXAMPLE
 import-ib1TrustedCertificate "http://mars.ib-formation.fr/marsca.cer"
-Importera le certificat mentionnÈ dans le magasin des certificat de confiance de l'utilisateur actuel.
+Importera le certificat mentionnÔøΩ dans le magasin des certificat de confiance de l'utilisateur actuel.
 #>
 [CmdletBinding(
 DefaultParameterSetName='CertificateUrl')]
 PARAM(
-[parameter(ValueFromPipeLine=$false,HelpMessage='Url du certificat ‡ importer')]
+[parameter(ValueFromPipeLine=$false,HelpMessage='Url du certificat ÔøΩ importer')]
 [string]$CertificateUrl='')
 begin {compare-ib1PSVersion "4.0";get-ib1elevated $true}
 process {
@@ -310,5 +310,5 @@ try {invoke-webrequest $CertificateUrl -OutFile "$($env:USERPROFILE)\downloads\$
 catch {
   write-error "URL incrorrecte, le fichier '' est introuvable" -Category ObjectNotFound
   break}
-Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false 
+Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false
 }}

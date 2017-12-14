@@ -2,7 +2,7 @@
 #                      Variables globales                 #
 ###########################################################
 #
-$global:ib1Version='1.0.1.6'
+$global:ib1Version='1.0.1.8'
 $global:ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $global:ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
 
@@ -39,7 +39,7 @@ function get-ib1VM ($gVMName) {
     break}}
   return $gResult}
 
-function global:reset-ib1VM {
+function reset-ib1VM {
 <#
 .SYNOPSIS
 Cette commande permet de rétablir les VMs du serveur Hyper-v à  leur dernier checkpoint.
@@ -72,7 +72,7 @@ foreach ($VM2reset in $VMs2Reset) {
   else {write-debug "La VM $($VM2reset.vmname) n'a pas de snapshot"}}}
   end {echo "Fin de l'opération"}}
 
-function global:set-ib1VhdBoot {
+function set-ib1VhdBoot {
 <#
 .SYNOPSIS
 Cette commande permet de monter le disque virtuel contenu dans le fichier VHD et de rajouter le démarrage sur la partition non réservée contenue au BCD.
@@ -81,10 +81,10 @@ Nom du fichier VHD contenant le disque virtuel à monter.
 .PARAMETER restart
 Redémarre l'ordinateur à la fin du script (inactif par défaut)
 .EXAMPLE
-set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd
+set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd'
 Monte la partition contenue dans le fichier VHD fourni.
 .EXAMPLE
-set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd -restart
+set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd' -restart
 Monte la partition contenue dans le fichier VHD fourni et redémarre dessus.
 #>
 [CmdletBinding(
@@ -112,7 +112,7 @@ bcdedit /set '{default}' hypervisorlaunchtype auto
 echo 'BCD modifie'
 if ($restart) {Restart-Computer}}}
 
-function global:remove-ib1VhdBoot {
+function remove-ib1VhdBoot {
 <#
 .SYNOPSIS
 Cette commande permet de supprimer l'entrée par defaut du BCD et de démonter tous les disques virtuels montés sur la machine.
@@ -134,7 +134,7 @@ bcdedit /delete '{default}' >> $null
 echo 'BCD modifie'
 if ($restart) {Restart-Computer}}}
 
-function global:switch-ib1VMFr {
+function switch-ib1VMFr {
 <#
 .SYNOPSIS
 Cette commande permet de changer le clavier d'une marchine virtuelle en Francais.
@@ -197,7 +197,7 @@ foreach ($VM2switch in $VMs2switch) {
     write-progress -Activity "Traitement de $($VM2switch.name)" -complete}}
 }}
 
-function global:test-ib1VMNet {
+function test-ib1VMNet {
 <#
 .SYNOPSIS
 Cette commande permet de tester si les VMs sont bien connectées aux réseaux virtuels de l'hôte Hyper-V.
@@ -214,7 +214,7 @@ foreach ($VM in $VMs) {
     if ($VMnetwork.SwitchName -notin $vSwitchs) {Write-Warning "La VM '$($VM.Name)' est branchée sur le switch virtuel '$($VMnetwork.SwitchName)' qui est introuvable. Merci de vérifier !"}}
   Write-progress -Activity "Vérification de la configuration réseau de la VM $($VM.Name)." -Completed}}
 
-function global:connect-ib1VMNet {
+function connect-ib1VMNet {
 <#
 .SYNOPSIS
 Cette commande permet de mettre en place les prérequis réseau sur la machine Hyper-V Hôte.
@@ -257,7 +257,7 @@ if ($extNic.PhysicalMediaType -eq "Unspecified") {
     Write-Progress -Activity "Création du switch" -Completed}
 test-ib1VMNet}
 
-function global:set-ib1TSSecondScreen {
+function set-ib1TSSecondScreen {
 <#
 .SYNOPSIS
 Cette commande permet de basculer l'écran distant d'une connexion RDP sur l'écran secondaire (seuls 2 écrans gérés).
@@ -287,7 +287,7 @@ if (Test-Path $TSCFilename) {
 else {write-error "Le fichier '$TSCFilename' est introuvable" -Category ObjectNotFound;break}
 }}
 
-function global:import-ib1TrustedCertificate {
+function import-ib1TrustedCertificate {
 <#
 .SYNOPSIS
 Cette commande permet d'importer un certificat depuis une URL afin de l'ajouter aux racines de confiance de l'utilisateur en cours.
@@ -318,5 +318,6 @@ Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStor
 #######################
 Set-Alias reset reset-ib1VM
 Set-Alias vhdBoot set-ib1VhdBoot
-export-moduleMember -Function reset-ib1VM,set-ib1VhdBoot,remove-ib1VhdBoot,switch-ib1VMFr,test-ib1VMNet,connect-ib1VMNet,set-ib1TSSecondScreen,import-ib1TrustedCertificate
+Export-moduleMember -Function reset-ib1VM,set-ib1VhdBoot,remove-ib1VhdBoot,switch-ib1VMFr,test-ib1VMNet,connect-ib1VMNet,set-ib1TSSecondScreen,import-ib1TrustedCertificate
+Export-moduleMember -cmdLet reset-ib1VM,set-ib1VhdBoot,remove-ib1VhdBoot,switch-ib1VMFr,test-ib1VMNet,connect-ib1VMNet,set-ib1TSSecondScreen,import-ib1TrustedCertificate
 Export-ModuleMember -Alias reset,vhdBoot

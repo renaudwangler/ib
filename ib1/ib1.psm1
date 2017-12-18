@@ -38,6 +38,32 @@ function get-ib1VM ($gVMName) {
     break}}
   return $gResult}
 
+function set-ib1VMCheckpointType {
+<#
+.SYNOPSIS
+Cette commande permet de modifier le type de checkpoint sur les VMs pour le passer en "Standard".
+(pratique pour les environnement ou l'on souhaite (re)démarrer des VMs dans un était précis -enregistrées- )
+.PARAMETER VMName
+Nom de la VMs à modifier. si ce parametre est omis toutes les VMs qui sont en checkpoint "Production" seront passées en "standard".
+.EXAMPLE
+set-ib1VMCheckpointType -VMName 'lon-dc1'
+Modifie le type de checkpoint de la VM 'lon-dc1'.
+.EXAMPLE
+set-ib1VMCheckpointType
+Modifie le type de checkpoints pour toutes les VMs trouvées sur l'hyperviseur.
+#>
+[CmdletBinding(
+DefaultParameterSetName='VMName')]
+PARAM(
+[string]$VMName)
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+$VMs2Set=get-ib1VM $VMName
+foreach ($VM2Set in $VMs2Set) {
+  Get-VM -VMName $VM2reset.vmname|Set-VM -checkpointType Standard}}
+end {Write-Output "Fin de l'opération"}}
+
+
 function reset-ib1VM {
 <#
 .SYNOPSIS
@@ -314,5 +340,5 @@ Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStor
 #######################
 #Set-Alias reset reset-ib1VM
 #Set-Alias vhdBoot set-ib1VhdBoot
-Export-moduleMember -Function reset-ib1VM,set-ib1VhdBoot,remove-ib1VhdBoot,switch-ib1VMFr,test-ib1VMNet,connect-ib1VMNet,set-ib1TSSecondScreen,import-ib1TrustedCertificate
+Export-moduleMember -Function reset-ib1VM,set-ib1VhdBoot,remove-ib1VhdBoot,switch-ib1VMFr,test-ib1VMNet,connect-ib1VMNet,set-ib1TSSecondScreen,import-ib1TrustedCertificate, set-ib1VMCheckpointType
 #Export-ModuleMember -Alias reset,vhdBoot

@@ -165,8 +165,10 @@ foreach ($VM2switch in $VMs2switch) {
     if ($testMount -eq $null) {Write-Error "Impossible de monter le disque dur... de la VM $($VM2switch.name)" -Category invalidResult}
     else {
       if (-not $noCheckpoint) {
-        write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Avant."
         Dismount-VHD $vhdPath
+        $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Avant"
+        if ($prevSnap -ne $null) {write-error 'Un checkpoint nommé "ib1SwitchFR-Avant" existe déja sur la VM "$($VM2switch.name)"';break}
+        write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Avant." 
         Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Avant"
         mount-vhd -path $vhdPath -NoDriveLetter -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false|Set-Partition -newdriveletter Z}
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Changement des options linguistiques."
@@ -177,24 +179,19 @@ foreach ($VM2switch in $VMs2switch) {
         Start-Process -FilePath $ib1DISMUrl
         write-error "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
         dismount-vhd $vhdpath
-        if (-not $noCheckpoint) {
-          Restore-VMSnapshot -VM $VM2switch -Name "ib1SwitchFR-Avant"
-          Remove-VMSnapshot -VM $VM2switch -Name "ib1SwitchFR-Avant"}
         break}
       elseif ($LASTEXITCODE -ne 0) {
-        write-warning "Problème pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de vérifier!' (Détail de l'erreur ci-dessous)."
-        write-output $error|select-object -last 1
-        if (-not $noCheckpoint) {
-          Restore-VMSnapshot -VM $VM2switch -Name "ib1SwitchFR-Avant"
-          Remove-VMSnapshot -VM $VM2switch -Name "ib1SwitchFR-Avant"}}
+        write-warning "Problème pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de vérifier!' (Détail de l'erreur ci-dessous, utilisez éventuellement les checkpoint pour annuler complètement)."
+        write-output $error|select-object -last 1}
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Démontage du disque."
       dismount-vhd $vhdpath
       Start-Sleep 1}
     if (-not $noCheckpoint) {
+      $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Après"
+      if ($prevSnap -ne $null) {write-error 'Un checkpoint nommé "ib1SwitchFR-Après" existe déja sur la VM "$($VM2switch.name)"';break}
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Après."
       Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Après"}
-    write-progress -Activity "Traitement de $($VM2switch.name)" -complete}}
-}}
+    write-progress -Activity "Traitement de $($VM2switch.name)" -complete}}}}
 
 function test-ib1VMNet {
 <#

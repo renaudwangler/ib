@@ -60,7 +60,7 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 $VMs2Set=get-ib1VM $VMName
 foreach ($VM2Set in $VMs2Set) {
-  Get-VM -VMName $VM2reset.vmname|Set-VM -checkpointType Standard}}
+  Get-VM -VMName $VM2Set.vmname|Set-VM -checkpointType Standard}}
 end {Write-Output "Fin de l'opération"}}
 
 
@@ -72,6 +72,8 @@ Cette commande permet de rétablir les VMs du serveur Hyper-v à  leur dernier 
 Nom de la VMs à  retablir. si ce parametre est omis toutes les VMs seront rétablies
 .PARAMETER keepVMUp
 N'arrete pas les VMs allumées avant de les rétablir
+.PARAMETER poweroff
+Eteind la machine hôte après avoir rétabli toutes les VMs.
 .EXAMPLE
 reset-ib1VM -VMName 'lon-dc1'
 Rétablit la VM 'lon-dc1' à son dernier point de controle.
@@ -83,7 +85,8 @@ Rétablir toutes les VMS à leur dernier point de controle, sans les éteindre.
 DefaultParameterSetName='keepVMUp')]
 PARAM(
 [switch]$keepVMUp=$false,
-[string]$VMName)
+[string]$VMName,
+[switch]$powerOff=$false)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 $VMs2Reset=get-ib1VM $VMName
@@ -95,7 +98,9 @@ foreach ($VM2reset in $VMs2Reset) {
     Write-Debug "Restauration du snapshot $($snapshot.Name) sur la VM $($VM2reset.vmname)."
     Restore-VMSnapshot $snapshot -confirm:$false}
   else {write-debug "La VM $($VM2reset.vmname) n'a pas de snapshot"}}}
-  end {Write-Output "Fin de l'opération"}}
+  end {
+  Write-Output "Fin de l'opération"
+  if ($powerOff) {stop-computer -force}}}
 
 function set-ib1VhdBoot {
 <#
@@ -192,7 +197,7 @@ foreach ($VM2switch in $VMs2switch) {
     else {
       if (-not $noCheckpoint) {
         Dismount-VHD $vhdPath
-        $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Avant"
+        $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Avant" -erroraction silentlycontinue
         if ($prevSnap -ne $null) {write-error 'Un checkpoint nommé "ib1SwitchFR-Avant" existe déja sur la VM "$($VM2switch.name)"';break}
         write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Avant." 
         Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Avant"
@@ -213,7 +218,7 @@ foreach ($VM2switch in $VMs2switch) {
       dismount-vhd $vhdpath
       Start-Sleep 1}
     if (-not $noCheckpoint) {
-      $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Après"
+      $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Après"  -erroraction silentlycontinue
       if ($prevSnap -ne $null) {write-error 'Un checkpoint nommé "ib1SwitchFR-Après" existe déja sur la VM "$($VM2switch.name)"';break}
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Après."
       Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Après"}

@@ -11,10 +11,10 @@ if ($PSVersionTable.PSCompatibleVersions -notcontains $ibVersion) {
 
 function get-ib1elevated ($ibElevationNeeded=$false) {
 if ((New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
-{ if (-not $ibElevationNeeded) { return $true}}
+{ if (-not $ibElevationNeeded) { Set-PSRepositery PSGallery -InstallationPolicy Trusted;return $true}}
 else {
 if ($ibElevationNeeded) {
-  write-error "Attention, commande en tant qu'administrateur" -Category AuthenticationError; break}
+  write-error "Attention, commande à utiliser en tant qu'administrateur" -Category AuthenticationError; break}
 else { return $false}}}
 
 function start-ib1VMWait ($SWVmname) {
@@ -62,7 +62,6 @@ $VMs2Set=get-ib1VM $VMName
 foreach ($VM2Set in $VMs2Set) {
   Get-VM -VMName $VM2Set.vmname|Set-VM -checkpointType Standard}}
 end {Write-Output "Fin de l'opération"}}
-
 
 function reset-ib1VM {
 <#
@@ -340,10 +339,84 @@ catch {
 Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false
 }}
 
+function copy-ib1VM {
+<#
+.SYNOPSIS
+Cette commande permet de copier une machine virtuelle existante en en créant une nouvelle basée sur le disque de l'originale.
+(Ne fonctionne que sur les VMs éteintes au moment ou la commande est lancée)
+.PARAMETER VMName
+Nom de la VM à copier (agit sur toutes les VMs si paramêtre non spécifié)
+.PARAMETER VMsuffix
+suffixe à rajouter après le nom de la VM résultat (sera séparé du nom de la VM par un tiret "-")
+.PARAMETER VMprefix
+suffixe à rajouter avant le nom de la VM résultat (sera séparé du nom de la VM par un tiret "-")
+.PARAMETER NoCheckpoint
+Un Checkpoint Hyper-V sera créé à l'issue de la copie : utiliser le paramètre "-noCheckpoint" pour l'éviter
+.EXAMPLE
+copy-ib1VM lon-dc1 -VMsuffix '2'
+Crée une nouvelle instance de la VM qui sera nommée "lon-dc1-2"
+#>
+[CmdletBinding(
+DefaultParameterSetName='VMName')]
+PARAM(
+[string]$VMName='',
+[string]$VMsuffix='',
+[string]$VMprefix='',
+[switch]$noCheckpoint=$false)
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"; if ($VMsuffix -eq '' -and $VMprefix -eq '') {write-error "Attention, commande nécessitant soit un préfixe, soit un suffixe pour le nom de la VM clonée." -Category SyntaxError; break}}
+process {
+if ($VMsuffix -ne '') {$VMsuffix="-$VMsuffix"}
+if ($VMprefix -ne '') {$VMprefix="-$VMprefix"}
+$VMs2copy=get-ib1VM $VMName
+foreach ($VM2copy in $VMs2copy) {
+  if ($VM2copy.state -ine 'off') {echo "La VM $($VM2copy.name) n'est pas éteinte et ne sera pas traitée"}
+  else {
+    Write-Debug "Copie de la VM $($VM2copy.name)"
+    write-progress -Activity "Traitement de $($VM2copy.name)" -currentOperation "Création des dossiers."
+    $vmCopyName="$VMprefix$($VM2copy.name)$VMsuffix"
+    $vmCopyPath="$(split-path -path $VM2copy.path -parent)\$($vmCopyName)"
+    New-Item $vmCopyPath -ItemType directory -ErrorAction SilentlyContinue -ErrorVariable createDir >> $null
+    New-Item "$vmCopyPath\Virtual Hard Disks" -ItemType directory -ErrorAction SilentlyContinue >> $null
+    foreach ($VHD2copy in $VM2copy.HardDrives) {
+      write-progress -Activity "Traitement de $($VM2copy.name)" -currentOperation "Copie du dossier $(split-path -path $VHD2copy.path -parent)."
+      Copy-Item "$(split-path -path $VHD2copy.path -parent)\" $vmCopyPath -Recurse -ErrorAction SilentlyContinue}
+    $newVMdrive0 = "$vmCopyPath\$(split-path (split-path -path $vm2copy.HardDrives[0].path -parent) -leaf)\$(split-path -path $VM2copy.HardDrives[0].path -leaf)"
+    $newVM=new-vm -Name $vmCopyName -VHDPath $newVMdrive0 -MemoryStartupBytes ($VM2copy.MemoryMinimum*8) -Path $(split-path -path $vmCopyPath -Parent) 
+    if ($VM2copy.ProcessorCount -gt 1) {
+      Set-VMProcessor -VMName $vmCopyName -Count $VM2copy.ProcessorCount}
+    if ($VM2copy.DynamicMemoryEnabled) {
+      $VM2copyMemory=Get-VMMemory $VM2copy.name
+      Set-VMMemory $vmCopyName -DynamicMemoryEnabled $true -MinimumBytes $VM2copyMemory.Minimum -StartupBytes $VM2copyMemory.Startup -MaximumBytes $VM2copyMemory.Maximum -Buffer $VM2copyMemory.Buffer -Priority $VM2copyMemory.Priority}
+    $vm2copyDVD=(Get-VMDvdDrive -VMName $VM2copy.name)[0]
+    Set-VMDvdDrive $vmCopyName -Path $vm2copyDVD.Path -ControllerNumber $vm2copyDVD.ControllerNumber -ControllerLocation $vm2copyDVD.ControllerLocation
+    if ($VM2copy.DVDDrives.count -gt 1) {
+      $vm2copyDVDs=Get-VMDvdDrive -VMName $VM2copy.name
+      for ($i=1;$i -lt $VM2copy.DVDDrives.count;$i++) {
+        $vm2copyDVD=(Get-VMDvdDrive -VMName $VM2copy.name)[$i]
+        Add-VMDvdDrive $vmCopyName -Path $vm2copyDVD.Path -ControllerNumber $vm2copyDVD.ControllerNumber -ControllerLocation $vm2copyDVD.ControllerLocation}}
+    if ($VM2copy.HardDrives.Count -gt 1) {
+      for ($i=1;$i -lt $VM2copy.HardDrives.Count;$i++) {
+        $newVMdrive="$vmCopyPath\$(split-path (split-path -path $VM2copy.HardDrives[$i].path -parent) -leaf)\$(split-path -path $VM2copy.HardDrives[$i].path -leaf)"
+        Add-VMHardDiskDrive -VMName $vmCopyName -Path $newVMdrive -ControllerType $vm2copy.HardDrives[$i].ControllerType -ControllerNumber $vm2copy.HardDrives[$i].ControllerNumber -ControllerLocation $vm2copy.HardDrives[$i].ControllerLocation}}
+    if ($VM2copy.NetworkAdapters[0].Connected) {
+      Connect-VMNetworkAdapter -VMName $vmCopyName -SwitchName $VM2copy.NetworkAdapters[0].SwitchName}
+    else {
+      Disconnect-VMNetworkAdapter -VMName $vmCopyName}
+    if ($VM2copy.NetworkAdapters.Count -gt 1) {
+      for ($i=1;$i -lt $VM2copy.NetworkAdapters.Count;$i++) {
+        if ($VM2copy.NetworkAdapters[$i].connected) {
+          Add-VMNetworkAdapter -VMName $vmCopyName -SwitchName $VM2copy.NetworkAdapters[$i].SwitchName}
+        else {
+          Add-VMNetworkAdapter -VMName $vmCopyName}}
+          }}
+  if (-not $noCheckpoint) {
+      write-progress -Activity "Traitement de $($VM2copy.name)" -currentOperation "Création du checkpoint ib1Copy"
+      Checkpoint-VM -VM $newVM -SnapshotName "ib1Copy"}}}}
+
 #######################
 #  Gestion du module  #
 #######################
 #Set-Alias reset reset-ib1VM
 #Set-Alias vhdBoot set-ib1VhdBoot
-Export-moduleMember -Function reset-ib1VM,set-ib1VhdBoot,remove-ib1VhdBoot,switch-ib1VMFr,test-ib1VMNet,connect-ib1VMNet,set-ib1TSSecondScreen,import-ib1TrustedCertificate, set-ib1VMCheckpointType
+Export-moduleMember -Function Reset-ib1VM,Set-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM
 #Export-ModuleMember -Alias reset,vhdBoot

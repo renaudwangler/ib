@@ -411,7 +411,8 @@ foreach ($VM2copy in $VMs2copy) {
           }}
   if (-not $noCheckpoint) {
       write-progress -Activity "Traitement de $($VM2copy.name)" -currentOperation "Création du checkpoint ib1Copy"
-      Checkpoint-VM -VM $newVM -SnapshotName "ib1Copy"}}}}
+      Checkpoint-VM -VM $newVM -SnapshotName "ib1Copy"}
+  Write-Warning 'Pensez à mettre à jour la configuration IP des cartes réseau qui ont été créées dans la machine virtuelle.'}}}
 
 #######################
 #  Gestion du module  #

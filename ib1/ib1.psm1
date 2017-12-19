@@ -414,10 +414,53 @@ foreach ($VM2copy in $VMs2copy) {
       Checkpoint-VM -VM $newVM -SnapshotName "ib1Copy"}
   Write-Warning 'Pensez à mettre à jour la configuration IP des cartes réseau qui ont été créées dans la machine virtuelle.'}}}
 
+function repair-ib1VMNetwork {
+<#
+.SYNOPSIS
+Cette commande permet de vérifier l'état de la carte réseau d'une VM et, le cas échéant, de relancer cette carte.
+Cette commande est particulièrement utile sur un DC première machine virtuelle à démarrer.
+Prérequis : cette commande utilise du Powershell Direct et ne fonctionne que si la VM est en Windows version 8/2012 au minimum.
+.PARAMETER VMName
+Nom de la VMs à vérifier (si ce paramètre est omis, toutes les VMs allumées seront vérifiées - Attention à l'ordre).
+.PARAMETER userName
+Nom d'uitlisateur (sous la forme 'Domain\user' si nécessaire).
+.PARAMETER userPass
+Mot de passe de l'utilisateur, (sera demandé si non fourni dans la commande)
+.EXAMPLE
+repair-ib1VMNetwork -VMName 'lon-dc1' -username 'adatum\administrator' -userpass 'Pa55w.rd'
+Se connecte sur la VM lon-dc1 pour vérifier l'état de sa carte réseau et la relance si elle ne s'est pas découverte en réseau de domaine.
+#>
+[CmdletBinding(
+DefaultParameterSetName='VMName')]
+PARAM(
+[string]$VMName,
+[parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Nom de connexion de l'administrateur de la VM.")]
+[string]$userName,
+[string]$userPass='')
+begin{get-ib1elevated $true; compare-ib1PSVersion "5.0"}
+process {
+$VMs2Repair=get-ib1VM $VMName
+if ($userPass -eq '') {$userPass2=read-host "Mot de passe de '$userName'" -AsSecureString} else {$userPass2=ConvertTo-SecureString $userPass -AsPlainText -Force}
+$cred=New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName,$userPass2
+foreach ($VM2repair in $VMs2Repair) {
+  if ((get-vm $VM2repair.name).heartbeat -notlike '*OK*') {Write-Warning "La VM '$($VM2repair.name)' n'est pas dans un état démarré correct, son réseau ne sera pas vérifié."}
+  else {
+    $netStatus=''
+    $warningDisplay=$true
+    while ($netStatus -notlike '*domain*') {
+      $netStatus=(Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock {(Get-NetConnectionProfile).NetworkCategory}).value
+      if ($netStatus -notlike '*domain*') {
+        if ($warningDisplay) {
+          Write-Warning "Le réseau de la VM '$($VM2repair.name)' n'est pas en mode domaine, redémarrage de la(des) carte(s)."
+          $warningDisplay=$false}
+        Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock{get-netadapter|restart-netadapter}}}}}}
+  end {Write-Output "Fin de l'opération"}}
+
+
 #######################
 #  Gestion du module  #
 #######################
 #Set-Alias reset reset-ib1VM
 #Set-Alias vhdBoot set-ib1VhdBoot
-Export-moduleMember -Function Reset-ib1VM,Set-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM
+Export-moduleMember -Function Reset-ib1VM,Set-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork
 #Export-ModuleMember -Alias reset,vhdBoot

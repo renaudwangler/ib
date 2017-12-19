@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1'
+ModuleVersion = '1.1.11'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -72,7 +72,7 @@ PowerShellVersion = '3.0'
 FunctionsToExport = 'reset-ib1VM', 'set-ib1VhdBoot', 'remove-ib1VhdBoot', 'switch-ib1VMFr', 
                'test-ib1VMNet', 'connect-ib1VMNet', 'set-ib1TSSecondScreen', 
                'import-ib1TrustedCertificate', 'set-ib1VMCheckpointType', 
-               'Copy-ib1VM'
+               'repair-ib1VMNetwork', 'Copy-ib1VM'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

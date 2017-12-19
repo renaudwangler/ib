@@ -452,6 +452,7 @@ foreach ($VM2repair in $VMs2Repair) {
       if ($netStatus -notlike '*domain*') {
         if ($warningDisplay) {
           Write-Warning "Le réseau de la VM '$($VM2repair.name)' n'est pas en mode domaine, redémarrage de la(des) carte(s)."
+          Start-Sleep -s 10
           $warningDisplay=$false}
         Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock{get-netadapter|restart-netadapter}}}}}}
   end {Write-Output "Fin de l'opération"}}

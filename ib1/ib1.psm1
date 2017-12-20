@@ -20,8 +20,8 @@ else { return $false}}}
 function start-ib1VMWait ($SWVmname) {
   if ((get-vm $SWVmname).state -ne "Running") {
     Start-VM $SWVmname
-    while ((get-vm $SWVmname).heartbeat -ne 'OKApplicationsHealthy') {
-      write-progress -Activity "Démarrage de $SWVmname" -currentOperation "Attente de signal de démarrage réussi de la VM"
+    while ((get-vm $SWVmname).heartbeat -notlike '*ok*') {
+      write-progress -Activity "Démarrage de $SWVmname" -currentOperation "Attente de signal de démarrage réussi de la VM '$((get-vm $SWVmname).heartbeat)'"
       start-sleep 2}
     write-progress -Activity "Démarrage de $SWVmname" -complete}}
 
@@ -93,7 +93,7 @@ foreach ($VM2reset in $VMs2Reset) {
   if ($snapshot=Get-VMSnapshot -VMName $VM2reset.vmname|sort-object creationtime|select-object -last 1 -ErrorAction SilentlyContinue) {
     if (-not $keepVMUp -and $VM2reset.state -ieq 'running') {
       Write-Debug "Arrêt de la VM $($VM2reset.vmname)."
-      stop-vm -VMName $VM2reset.vmname -confirm:$false}
+      stop-vm -VMName $VM2reset.vmname -confirm:$false -turnOff}
     Write-Debug "Restauration du snapshot $($snapshot.Name) sur la VM $($VM2reset.vmname)."
     Restore-VMSnapshot $snapshot -confirm:$false}
   else {write-debug "La VM $($VM2reset.vmname) n'a pas de snapshot"}}}
@@ -457,11 +457,44 @@ foreach ($VM2repair in $VMs2Repair) {
         Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock{get-netadapter|restart-netadapter}}}}}}
   end {Write-Output "Fin de l'opération"}}
 
+  function start-ib1SavedVMs {
+<#
+.SYNOPSIS
+Cette commande permet de démarrer les VMs qui sont en état "Enregistré" sur un un serveur Hyper-V
+.PARAMETER First
+Nom de la première VMs à démarrer. si ce paramètre est fourni, la commande attendra que cette VM soit correctement démarrée avant de démarrer les suivantes.
+.PARAMETER FirstRepairNet
+Vérifie que le réseau de la première VM démarrée (spécifié par le paramètre "First") est bien en mode "Domaine" avant de démarrer les autres.
+.PARAMETER DontRevert
+Ne rétablit pas toutes les VMs de l'hôte avant de démarrer celles qui sont Enregistrées
+.EXAMPLE
+start-ib1SavedVMs -First lon-dc1 -FirstRepairNet
+Rétablit toutes les VMs avant de démarrer celles qui sont su un checkpoint actif, en commençant par 'lon-dc1'
+#>
+[CmdletBinding(
+DefaultParameterSetName='First')]
+PARAM(
+[switch]$DontRevert=$false,
+[string]$First='',
+[switch]$FirstRepairNet=$false)
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+if ($FirstRepairNet -and $First -eq $null) {Write-Error "Le paramètre '-FirstRepairNet' ne peut être passé sans le paramètre '-First'" -Category SyntaxError; break}
+if ($First -ne '') {$FirstVM2start=get-ib1VM $First}
+if ($DontRevert -eq $false) {
+  Write-Debug "Rétablissement des VMs avant démarrage"
+  reset-ib1VM}
+if ($First -ne '') {start-ib1VMWait ($First)}
+$VMs2Start=get-ib1VM ('')
+foreach ($VM2start in $VMs2start) {
+  if ($VM2Start.state -like '*saved*') {
+    write-debug "Démarrage de la VM '$($VM2Start.name)'."
+    start-VM $VM2start.name}}}}
 
 #######################
 #  Gestion du module  #
 #######################
 #Set-Alias reset reset-ib1VM
 #Set-Alias vhdBoot set-ib1VhdBoot
-Export-moduleMember -Function Reset-ib1VM,Set-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork
+Export-moduleMember -Function Reset-ib1VM,Set-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
 #Export-ModuleMember -Alias reset,vhdBoot

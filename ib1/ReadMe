@@ -9,15 +9,16 @@ Puis dans une commande powershell (En administrateur, avec executionPolicy en "B
 
 Pour mise à jour dans la Gallery Powershell : publish-module -path c:\ib1 -nugetapikey ....
 
-Fonctions contenues dans le mdoule en version 1.1.11
-- **Reset-ib1VM**
-- **Set-ib1VhdBoot**
-- **Remove-ib1VhdBoot**
-- **Switch-ib1VMFr**
-- **Test-ib1VMNet**
-- **Connect-ib1VMNet**
-- **Set-ib1TSSecondScreen**
-- **Import-ib1trustedCertificate**
-- **Set-ib1VMCheckpointType**
-- **Copy-ib1VM**
-- **Repair-ib1VMNetwork**
+Fonctions contenues dans le mdoule en version 1.1.25
+- Reset-ib1VM
+- Set-ib1VhdBoot
+- Remove-ib1VhdBoot
+- Switch-ib1VMFr
+- Test-ib1VMNet
+- Connect-ib1VMNet
+- Set-ib1TSSecondScreen
+- Import-ib1trustedCertificate
+- Set-ib1VMCheckpointType
+- Copy-ib1VM
+- Repair-ib1VMNetwork
+- Start-ib1SavedVMs

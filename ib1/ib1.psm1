@@ -133,7 +133,7 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 # Attacher un VHD et le rajouter au menu de démarrage
 process {
 write-debug "`$VHDfile=$VHDfile"
-if ($copyFolder -ne '' -and -not (test-path $copyFolder)) {
+if (($copyFolder -ne '') -and -not (test-path $copyFolder)) {
   write-error "Le dossier '$copyFolder' n'existe pas, merci de vérifier !"
   break}
 try { Mount-VHD -Path $vhdFile -ErrorAction stop }
@@ -146,7 +146,7 @@ if (($dLetter.Count -ne 1) -or ($dLetter -eq ':')) {
  write-error 'Impossible de trouver un (et un seul) disque virtuel monté qui contienne une unique partition non réservée au systeme.' -Category ObjectNotFound
  break}
 bcdboot $dLetter\windows /l fr-FR >> $null
-if (Test-Path $driverFolder -and -not $noDrivers) {dism /image:$dLetter\ /add-driver /driver:$driverFolder /recurse}
+if ((Test-Path $driverFolder) -and -not $noDrivers) {dism /image:$dLetter\ /add-driver /driver:$driverFolder /recurse}
 if ($copyFolder -ne '') {Copy-Item $copyFolder\* $dLetter\ib}
 bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) >> $null
 bcdedit /set '{default}' hypervisorlaunchtype auto

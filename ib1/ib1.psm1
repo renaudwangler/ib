@@ -110,9 +110,13 @@ Cette commande permet de monter le disque virtuel contenu dans le fichier VHD et
 Nom du fichier VHD contenant le disque virtuel à monter.
 .PARAMETER restart
 Redémarre l'ordinateur à la fin du script (inactif par défaut)
+.PARAMETER noDrivers
+N'installe pas les drivers présents dans le dossier de référence dans le disque virtuel
+.PARAMETER copyFolder
+Chemin d'un dossier de la machine hôte à copier dans le VHD pendant l'opération (sera copié dans un dossier \ib)
 .EXAMPLE
-set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd'
-Monte la partition contenue dans le fichier VHD fourni.
+set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd' -copyFolder c:\ib
+Monte la partition contenue dans le fichier VHD fourni. et y copie le contenu du dossier c:\ib
 .EXAMPLE
 set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd' -restart
 Monte la partition contenue dans le fichier VHD fourni et redémarre dessus.
@@ -122,11 +126,16 @@ DefaultParameterSetName='VHDFile')]
 PARAM(
 [parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage='Fichier VHD contenant le disque virtuel à monter (avec une partition système)')]
 [string]$VHDfile,
-[switch]$restart=$false)
+[switch]$restart=$false,
+[switch]$noDrivers=$false,
+[string]$copyFolder='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 # Attacher un VHD et le rajouter au menu de démarrage
 process {
 write-debug "`$VHDfile=$VHDfile"
+if ($copyFolder -ne '' -and -not (test-path $copyFolder)) {
+  write-error "Le dossier '$copyFolder' n'existe pas, merci de vérifier !"
+  break}
 try { Mount-VHD -Path $vhdFile -ErrorAction stop }
 catch {
   write-error "Impossible de monter le disque virtuel contenu dans le fichier $VHDFile." -Category ObjectNotFound
@@ -137,10 +146,11 @@ if (($dLetter.Count -ne 1) -or ($dLetter -eq ':')) {
  write-error 'Impossible de trouver un (et un seul) disque virtuel monté qui contienne une unique partition non réservée au systeme.' -Category ObjectNotFound
  break}
 bcdboot $dLetter\windows /l fr-FR >> $null
-if (Test-Path $driverFolder) {dism /image:$dLetter\ /add-driver /driver:$driverFolder /recurse}
+if (Test-Path $driverFolder -and -not $noDrivers) {dism /image:$dLetter\ /add-driver /driver:$driverFolder /recurse}
+if ($copyFolder -ne '') {Copy-Item $copyFolder\* $dLetter\ib}
 bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) >> $null
 bcdedit /set '{default}' hypervisorlaunchtype auto
-Write-Output 'BCD modifie'
+Write-Output 'BCD modifié'
 if ($restart) {Restart-Computer}}}
 
 function remove-ib1VhdBoot {
@@ -159,7 +169,7 @@ PARAM(
 [switch]$restart=$false)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
-get-disk|where-object FriendlyName -ilike "*microsoft*"|foreach-object {write-debug $_;get-partition|dismount-vhd -erroraction silentlycontinue}
+get-disk|where-object Model -like "*virtual*"|foreach-object {write-debug $_;get-partition|dismount-vhd -erroraction silentlycontinue}
 write-debug "Supression de l'entrée {Default} du BCD"
 bcdedit /delete '{default}' >> $null
 Write-Output 'BCD modifie'
@@ -172,6 +182,8 @@ Cette commande permet de changer le clavier d'une marchine virtuelle en Francais
 (Ne fonctionne que sur les VMs éteintes au moment ou la commande est lancée)
 .PARAMETER VMName
 Nom de la VM sur laquelle agir (agit sur toutes les VMs si paramètre non spécifié)
+.PARAMETER VHDFile
+Nom du fichier VHD de disque Virtuel sur lequel agir (permet de changer la langue même si le VHD n'est pas monté dans une VM)
 .PARAMETER noCheckpoint
 Ne crée pas les points de contrôle sur la VM avant et après action
 .EXAMPLE
@@ -182,9 +194,32 @@ Change le clavier de toutes les VM en Français.
 DefaultParameterSetName='VMName')]
 PARAM(
 [string]$VMName='',
+[string]$VHDFile='',
 [switch]$noCheckpoint=$false)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
+if ($VHDFile -ne '') {
+  if ($VMName -ne '') {
+    write-Error "Les paramètres '-VHDFile' et '-VMName' ne peuvent être utilisés ensemble, merci de lancer 2 commandes distinctes"
+    break}
+  $testMount=$null
+  mount-vhd -path $VHDFile -NoDriveLetter -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false|Set-Partition -newdriveletter Z
+  if ($testMount -eq $null) {
+    Write-Error "Impossible de monter le disque dur... $VHDFile, merci de vérifier!"
+    break}
+  DISM /image:z: /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$ $null
+  if ($LASTEXITCODE -eq 50) {
+    if (Test-Path $ib1DISMPath) {& $ib1DISMPath /image:z: /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$ $null} else {$LASTEXITCODE=50}}
+  if ($LASTEXITCODE -eq 50) {
+    Start-Process -FilePath $ib1DISMUrl
+    write-error "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
+    dismount-vhd $vhdpath
+    break}
+  elseif ($LASTEXITCODE -ne 0) {
+    write-warning "Problème pendant le changemement de langue du disque '$VHDFile'. Merci de vérifier!' (Détail de l'erreur ci-dessous)."
+    write-output $error|select-object -last 1}
+  dismount-vhd $VHDFile
+  break}
 $VMs2switch=get-ib1VM $VMName
 foreach ($VM2switch in $VMs2switch) {
   if ($VM2switch.state -ine 'off') {Write-Output "La VM $($VM2switch.name) n'est pas éteinte et ne sera pas traitée"}

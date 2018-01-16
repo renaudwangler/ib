@@ -4,6 +4,7 @@
 #
 $ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
+$driverFolder='C:\Dell'
 
 function compare-ib1PSVersion ($ibVersion='4.0') {
 if ($PSVersionTable.PSCompatibleVersions -notcontains $ibVersion) {
@@ -130,12 +131,13 @@ try { Mount-VHD -Path $vhdFile -ErrorAction stop }
 catch {
   write-error "Impossible de monter le disque virtuel contenu dans le fichier $VHDFile." -Category ObjectNotFound
   break}
-$dLetter=(get-disk|where-object friendlyname -ilike "*microsoft*"|Get-Partition|Get-Volume|where-object {$_.filesystemlabel -ine "system reserved" -and $_.filesystemlabel -ine "réservé au système"}).driveletter+":"
+$dLetter=(get-disk|where-object Model -like "*virtual*"|Get-Partition|Get-Volume|where-object {$_.filesystemlabel -ine "system reserved" -and $_.filesystemlabel -ine "réservé au système"}).driveletter+":"
 write-debug "Disque(s) de lecteur Windows trouvé(s) : $dLetter"
-if ($dLetter.Count -ne 1) {
- write-error 'Impossible de trouver un disque virtuel monté qui contienne une unique partition non réservée au systeme.' -Category ObjectNotFound
+if (($dLetter.Count -ne 1) -or ($dLetter -eq ':')) {
+ write-error 'Impossible de trouver un (et un seul) disque virtuel monté qui contienne une unique partition non réservée au systeme.' -Category ObjectNotFound
  break}
 bcdboot $dLetter\windows /l fr-FR >> $null
+if (Test-Path $driverFolder) {dism /image:$dLetter\ /add-driver /driver:$driverFolder /recurse}
 bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) >> $null
 bcdedit /set '{default}' hypervisorlaunchtype auto
 Write-Output 'BCD modifie'

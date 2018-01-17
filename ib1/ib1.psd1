@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.40'
+ModuleVersion = '1.1.41'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,10 +69,11 @@ PowerShellVersion = '3.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'reset-ib1VM', 'set-ib1VhdBoot', 'remove-ib1VhdBoot', 'switch-ib1VMFr', 
-               'test-ib1VMNet', 'connect-ib1VMNet', 'set-ib1TSSecondScreen', 
-               'import-ib1TrustedCertificate', 'set-ib1VMCheckpointType', 
-               'repair-ib1VMNetwork', 'Copy-ib1VM', 'start-ib1SavedVMs'
+FunctionsToExport = 'reset-ib1VM', 'mount-ib1VhdBoot', 'remove-ib1VhdBoot', 
+               'switch-ib1VMFr', 'test-ib1VMNet', 'connect-ib1VMNet', 
+               'set-ib1TSSecondScreen', 'import-ib1TrustedCertificate', 
+               'set-ib1VMCheckpointType', 'repair-ib1VMNetwork', 'Copy-ib1VM', 
+               'start-ib1SavedVMs'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -81,7 +82,7 @@ CmdletsToExport = @()
 # VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+AliasesToExport = 'set-ib1VhdBoot', 'ibreset'
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()

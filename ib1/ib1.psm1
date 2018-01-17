@@ -531,7 +531,7 @@ foreach ($VM2start in $VMs2start) {
 #######################
 #  Gestion du module  #
 #######################
-#Set-Alias reset reset-ib1VM
-#Set-Alias vhdBoot set-ib1VhdBoot
+Set-Alias ibreset reset-ib1VM
+Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Export-moduleMember -Function Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
-#Export-ModuleMember -Alias reset,vhdBoot
+Export-ModuleMember -Alias set-ib1VhdBoot,ibreset

@@ -102,7 +102,7 @@ foreach ($VM2reset in $VMs2Reset) {
   Write-Output "Fin de l'opération"
   if ($powerOff) {stop-computer -force}}}
 
-function set-ib1VhdBoot {
+function mount-ib1VhdBoot {
 <#
 .SYNOPSIS
 Cette commande permet de monter le disque virtuel contenu dans le fichier VHD et de rajouter le démarrage sur la partition non réservée contenue au BCD.
@@ -115,10 +115,10 @@ N'installe pas les drivers présents dans le dossier de référence dans le disq
 .PARAMETER copyFolder
 Chemin d'un dossier de la machine hôte à copier dans le VHD pendant l'opération (sera copié dans un dossier \ib)
 .EXAMPLE
-set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd' -copyFolder c:\ib
+mount-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd' -copyFolder c:\ib
 Monte la partition contenue dans le fichier VHD fourni. et y copie le contenu du dossier c:\ib
 .EXAMPLE
-set-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd' -restart
+mount-ib1vhboot -VHDFile 'c:\program files\microsoft learning\base\20470b-lon-host1.vhd' -restart
 Monte la partition contenue dans le fichier VHD fourni et redémarre dessus.
 #>
 [CmdletBinding(
@@ -533,5 +533,5 @@ foreach ($VM2start in $VMs2start) {
 #######################
 #Set-Alias reset reset-ib1VM
 #Set-Alias vhdBoot set-ib1VhdBoot
-Export-moduleMember -Function Reset-ib1VM,Set-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
+Export-moduleMember -Function Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
 #Export-ModuleMember -Alias reset,vhdBoot

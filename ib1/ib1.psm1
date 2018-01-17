@@ -542,8 +542,6 @@ Titre du raccourci (si non mentionné, prendra le titre du site web pointé ou l
 new-ib1Shortcut -URL 'https://www.ib-formation.fr'
 Crée un raccourci sur le bureau qui sera nommé en fonction du titre du site web
 #>
-[CmdletBinding(
-DefaultParameterSetName='URL')]
 PARAM(
 [string]$File='',
 [uri]$URL='',
@@ -553,23 +551,20 @@ process {
 if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {Write-Error "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -Category SyntaxError; break}
 if ($URL -ne '') {
   if ($title -eq '') {
-    write-debug "Recherche du titre du site Web pou nommer le raccourci"
-    $title=((Invoke-WebRequest $targetUrl).parsedHtML.getElementsByTagName('title')[0].text) -replace ':','-' -replace '\\','-'}
+    write-debug "Recherche du titre du site Web pour nommer le raccourci"
+    $title=((Invoke-WebRequest $URL).parsedHtML.getElementsByTagName('title')[0].text) -replace ':','-' -replace '\\','-'}
   $title=$title+'.url'
-  $target=$URL.ToString}  
-if ($File -ne '') {
+  $target=$URL.ToString()}  
+else {
   if ($title -eq '') {
     write-debug "Récupération du nom du fichier pour nommer le raccourci"
-    
-    
-    
-    $title='test'}
+    $title=([io.path]::GetFileNameWithoutExtension($File))}
   $title=$title+'.lnk'
   $target=$File}
 $WScriptShell=new-object -ComObject WScript.Shell
 $shortcut=$WScriptShell.createShortCut("$env:Public\Desktop\$title")
 $shortcut.TargetPath=$target
-$shortcut.save()}    
+$shortcut.save()}}
 
 #######################
 #  Gestion du module  #

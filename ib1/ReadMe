@@ -11,7 +11,7 @@ Pour mise à jour dans la Gallery Powershell : publish-module -path c:\ib1 -nuge
 
 Fonctions contenues dans le mdoule en version 1.1.25
 - Reset-ib1VM
-- Set-ib1VhdBoot
+- Mount-ib1VhdBoot
 - Remove-ib1VhdBoot
 - Switch-ib1VMFr
 - Test-ib1VMNet

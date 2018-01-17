@@ -494,7 +494,7 @@ foreach ($VM2repair in $VMs2Repair) {
         Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock{get-netadapter|restart-netadapter}}}}}}
   end {Write-Output "Fin de l'opération"}}
 
-  function start-ib1SavedVMs {
+function start-ib1SavedVMs {
 <#
 .SYNOPSIS
 Cette commande permet de démarrer les VMs qui sont en état "Enregistré" sur un un serveur Hyper-V
@@ -527,11 +527,54 @@ foreach ($VM2start in $VMs2start) {
   if ($VM2Start.state -like '*saved*') {
     write-debug "Démarrage de la VM '$($VM2Start.name)'."
     start-VM $VM2start.name}}}}
+    
+function new-ib1Shortcut {
+<#
+.SYNOPSIS
+Cette commande permet de créer un raccourci sur le bureau.
+.PARAMETER File
+Nom et chemin complet du fichier pointé par le raccourci créé
+.PARAMETER URL
+Adresse Internet pointée par le raccourci créé
+.PARAMETER Title
+Titre du raccourci (si non mentionné, prendra le titre du site web pointé ou le nom du fichier)
+.EXAMPLE
+new-ib1Shortcut -URL 'https://www.ib-formation.fr'
+Crée un raccourci sur le bureau qui sera nommé en fonction du titre du site web
+#>
+[CmdletBinding(
+DefaultParameterSetName='URL')]
+PARAM(
+[string]$File='',
+[uri]$URL='',
+[string]$title='')
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {Write-Error "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -Category SyntaxError; break}
+if ($URL -ne '') {
+  if ($title -eq '') {
+    write-debug "Recherche du titre du site Web pou nommer le raccourci"
+    $title=((Invoke-WebRequest $targetUrl).parsedHtML.getElementsByTagName('title')[0].text) -replace ':','-' -replace '\\','-'}
+  $title=$title+'.url'
+  $target=$URL.ToString}  
+if ($File -ne '') {
+  if ($title -eq '') {
+    write-debug "Récupération du nom du fichier pour nommer le raccourci"
+    
+    
+    
+    $title='test'}
+  $title=$title+'.lnk'
+  $target=$File}
+$WScriptShell=new-object -ComObject WScript.Shell
+$shortcut=$WScriptShell.createShortCut("$env:Public\Desktop\$title")
+$shortcut.TargetPath=$target
+$shortcut.save()}    
 
 #######################
 #  Gestion du module  #
 #######################
 Set-Alias ibreset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
-Export-moduleMember -Function Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
+Export-moduleMember -Function new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset

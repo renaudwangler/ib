@@ -538,6 +538,8 @@ Nom et chemin complet du fichier pointé par le raccourci créé
 Adresse Internet pointée par le raccourci créé
 .PARAMETER Title
 Titre du raccourci (si non mentionné, prendra le titre du site web pointé ou le nom du fichier)
+.PARAMETER TaskBar
+Si cette option est renseignée, le raccourci sera épinglé sur la barre des tâches.
 .EXAMPLE
 new-ib1Shortcut -URL 'https://www.ib-formation.fr'
 Crée un raccourci sur le bureau qui sera nommé en fonction du titre du site web
@@ -545,7 +547,8 @@ Crée un raccourci sur le bureau qui sera nommé en fonction du titre du site we
 PARAM(
 [string]$File='',
 [uri]$URL='',
-[string]$title='')
+[string]$title='',
+[switch]$TaskBar=$false
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {Write-Error "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -Category SyntaxError; break}
@@ -562,14 +565,49 @@ else {
   $title=$title+'.lnk'
   $target=$File}
 $WScriptShell=new-object -ComObject WScript.Shell
-$shortcut=$WScriptShell.createShortCut("$env:Public\Desktop\$title")
+if ($TaskBar) { $Folder="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$Folder="$env:Public\Desktop" }
+$shortcut=$WScriptShell.createShortCut("$Folder\$title")
 $shortcut.TargetPath=$target
 $shortcut.save()}}
+
+function invoke-ib1netCommand {
+param(
+[parameter(Mandatory=$true)]
+[string]$Command,
+[switch]$NoLocal=$false)
+workflow get-ib1remotecomputers {
+param([boolean]$NoLocal2)
+  $computers=@()
+  $ipConfiguration=inlinescript {Get-NetIPConfiguration|where {$_.NetAdapter.Status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*hyper-v*'}}
+  $ipAddress=($ipConfiguration|Get-NetIPAddress -AddressFamily ipv4).IPAddress.split('.')
+  $localipAddress=$ipAddress[0]+'.'+$ipAddress[1]+'.'+$ipAddress[2]+'.'+$ipAddress[3]
+  $localGateway=$ipConfiguration.ipv4defaultgateway.nexthop.ToString()
+  $ipAddress=$ipAddress[0]+'.'+$ipAddress[1]+'.'+$ipAddress[2]+'.'
+  for ($i=1;$i -lt 255;$i++) {
+    $newAddress="$ipAddress$i"
+    if ((($newAddress -notlike $localipAddress) -and -not $noLocal2) -and ($newAddress -notlike $localGateway)) {
+    $computers+="$ipAddress$i"}}
+  $computersOK=@()
+  foreach -parallel ($computer in $computers) {
+    if (Test-Connection -ComputerName $computer -Count 1 -ErrorAction SilentlyContinue -Quiet) {
+    $WORKFLOW:computersOK+=$computer   
+    }}
+  return($computersOK)}
+Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private
+Enable-PSRemoting -Force >>$null
+Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
+Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
+Restart-Service winrm -Force
+$remoteComputers=get-ib1remotecomputers
+$cred=Get-Credential
+$remoteComputers|foreach-object {
+  write-host " - Lancement de la commande sur la machine '$_'." -ForegroundColor Yellow
+  invoke-command -ComputerName $_ -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred}}
 
 #######################
 #  Gestion du module  #
 #######################
 Set-Alias ibreset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
-Export-moduleMember -Function new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
+Export-moduleMember -Function invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset

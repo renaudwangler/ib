@@ -548,7 +548,7 @@ PARAM(
 [string]$File='',
 [uri]$URL='',
 [string]$title='',
-[switch]$TaskBar=$false
+[switch]$TaskBar=$false)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {Write-Error "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -Category SyntaxError; break}

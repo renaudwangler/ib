@@ -542,6 +542,8 @@ Titre du raccourci (si non mentionné, prendra le titre du site web pointé ou l
 Si cette option est renseignée, le raccourci sera épinglé sur la barre des tâches.
 .PARAMETER Params
 Cette option permet de rajouter des paramètres spécifiques après le fichier appelé
+.PARAMETER Icon
+Cette option permet de rajouter la référence de l'icône si nécessaire
 .EXAMPLE
 new-ib1Shortcut -URL 'https://www.ib-formation.fr'
 Crée un raccourci sur le bureau qui sera nommé en fonction du titre du site web
@@ -551,7 +553,8 @@ PARAM(
 [uri]$URL='',
 [string]$title='',
 [switch]$TaskBar=$false,
-[string]$Params='')
+[string]$Params='',
+[string]$icon='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {Write-Error "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -Category SyntaxError; break}
@@ -572,6 +575,7 @@ if ($TaskBar) { $Folder="$env:userprofile\AppData\Roaming\Microsoft\Internet Exp
 $shortcut=$WScriptShell.createShortCut("$Folder\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}
+if ($icon -ne '') {$shortcut.IconLocation=$Icon}
 $shortcut.save()}}
 
 function invoke-ib1netCommand {
@@ -633,6 +637,8 @@ Enable-PSRemoting -Force >>$null
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 Restart-Service winrm -Force
+write-debug 'Activation de Hyper-v'
+enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V -All
 if (-not (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0)) {
   write-Debug 'Création de la tâche de lancement de ibInit'
   $CMDTask=New-ScheduledTaskAction -Execute "$env:SystemRoot\ibInit.cmd"
@@ -643,13 +649,16 @@ write-debug 'Création du fichier c:\windows\ibInit.cmd'
 echo '@echo off' > $env:SystemRoot\ibInit.cmd
 echo 'powershell.exe -command "& set-executionpolicy bypass -force; $secondsToWait=5; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force}"' >> $env:SystemRoot\ibInit.cmd
 write-debug 'Création des raccourcis'
-new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager'
+new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'
 new-ib1Shortcut -File '%SystemRoot%\System32\WindowsPowershell\v1.0\powershell.exe' -title 'Windows PowerShell'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Mi-Parcours'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com'
 write-debug 'Activation de la connexion RDP'
 set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminal Server' -name 'fDenyTSConnections' -Value 0
-Enable-netFireWallRule -DisplayGroup 'Remote Desktop'
+Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction 0
+Enable-netFirewallRule -DisplayGroup 'File and Printer Sharing' -erroraction 0
+Enable-netFirewallRule -DisplayGroup "Partage de fichiers et d'imprimantes" -erroraction 0
+Enable-netFirewallRule -DisplayGroup 'Bureau à distance' -erroraction 0
 set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
 write-debug 'Changement du mot de passe utilisateur'
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')

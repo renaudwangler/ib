@@ -1,4 +1,4 @@
-﻿Module powershell ib1
+-﻿Module powershell ib1
 
 Pour installer, sur machine < Windows Server 2016,
 télécharger et installer http://go.microsoft.com/fwlink/?LinkID=746217&clcid=0x409
@@ -23,3 +23,5 @@ Fonctions contenues dans le mdoule en version 1.1.40
 - Repair-ib1VMNetwork
 - Start-ib1SavedVMs
 - New-ib1Shortcut
+- invoke-ib1NetCommand
+- complete-ib1Install

@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.55'
+ModuleVersion = '1.1.57'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()

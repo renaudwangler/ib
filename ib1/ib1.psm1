@@ -460,7 +460,7 @@ Prérequis : cette commande utilise du Powershell Direct et ne fonctionne que si
 .PARAMETER VMName
 Nom de la VMs à vérifier (si ce paramètre est omis, toutes les VMs allumées seront vérifiées - Attention à l'ordre).
 .PARAMETER userName
-Nom d'uitlisateur (sous la forme 'Domain\user' si nécessaire).
+Nom d'utilisateur (sous la forme 'Domain\user' si nécessaire).
 .PARAMETER userPass
 Mot de passe de l'utilisateur, (sera demandé si non fourni dans la commande)
 .EXAMPLE
@@ -571,13 +571,28 @@ $shortcut.TargetPath=$target
 $shortcut.save()}}
 
 function invoke-ib1netCommand {
+<#
+.SYNOPSIS
+Cette commande permet de lancer une commande/un programme sur toutes les machines du réseau local
+.PARAMETER Command
+Syntaxe complète de la commande à lancer
+.PARAMETER NoLocal
+Ce switch permet de ne pas lancer la commande cible sur la machine locale.
+.EXAMPLE
+invoke-ib1netCommand -NoLocal -Command 'stop-computer -force'
+Eteind toutes les machines du réseau local dont l'accès est permis.
+#>
+[CmdletBinding(
+DefaultParameterSetName='Command')]
 param(
-[parameter(Mandatory=$true)]
+[parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Commande à lancer sur les machines accessibles sur le réseau local.")]
 [string]$Command,
 [switch]$NoLocal=$false)
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 workflow get-ib1remotecomputers {
 param([boolean]$NoLocal2)
   $computers=@()
+  write-progress -Activity 'Récupération des machines joignables sur le réseau local' -currentOperation 'Détection des paramètres du réseau local'
   $ipConfiguration=inlinescript {Get-NetIPConfiguration|where {$_.NetAdapter.Status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*hyper-v*'}}
   $ipAddress=($ipConfiguration|Get-NetIPAddress -AddressFamily ipv4).IPAddress.split('.')
   $localipAddress=$ipAddress[0]+'.'+$ipAddress[1]+'.'+$ipAddress[2]+'.'+$ipAddress[3]
@@ -589,20 +604,52 @@ param([boolean]$NoLocal2)
     $computers+="$ipAddress$i"}}
   $computersOK=@()
   foreach -parallel ($computer in $computers) {
+    write-progress -Activity 'Récupération des machines joignables sur le réseau local' -currentOperation "Ping sur la machine '$computer'"
     if (Test-Connection -ComputerName $computer -Count 1 -ErrorAction SilentlyContinue -Quiet) {
     $WORKFLOW:computersOK+=$computer   
     }}
+  write-progress -Activity 'Récupération des machines joignables sur le réseau local' -complete  
   return($computersOK)}
-Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private
+process {
+  $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
+  Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
+  Enable-PSRemoting -Force >>$null
+  Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
+  Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
+  Restart-Service winrm -Force
+  $remoteComputers=get-ib1remotecomputers
+ 
+  $remoteComputers|foreach-object {
+    write-host " - Lancement de la commande sur la machine '$_'." -ForegroundColor Yellow
+    invoke-command -ComputerName $_ -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred}}}
+  
+function complete-ib1Install{
+write-debug 'Mise en place des paramètres de WinRM'
+Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 Enable-PSRemoting -Force >>$null
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 Restart-Service winrm -Force
-$remoteComputers=get-ib1remotecomputers
-$cred=Get-Credential
-$remoteComputers|foreach-object {
-  write-host " - Lancement de la commande sur la machine '$_'." -ForegroundColor Yellow
-  invoke-command -ComputerName $_ -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred}}
+if (-not (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0)) {
+  write-Debug 'Création de la tâche de lancement de ibInit'
+  $CMDTask=New-ScheduledTaskAction -Execute "$env:SystemRoot\ibInit.cmd"
+  $PSTask= New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& $env:SystemRoot\ibInit.ps1"'
+  $trigger=New-ScheduledTaskTrigger -AtStartup
+  Register-ScheduledTask -Action $CMDTask,$PSTask -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest}
+write-debug 'Création du fichier c:\windows\ibInit.cmd'
+echo '@echo off' > $env:SystemRoot\ibInit.cmd
+echo 'powershell.exe -command "& set-executionpolicy bypass -force; $secondsToWait=5; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force}"' >> $env:SystemRoot\ibInit.cmd
+write-debug 'Création des raccourcis'
+new-ib1Shortcut -File '
+new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Mi-Parcours'
+new-ib1Shortcut -URL 'https://eval.ib-formation.com'
+write-debug 'Activation de la connexion RDP'
+set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminalServer' -name 'fDenyTSConnections' -Value 0
+Enable-netFireWallRule -DisplayGroup 'Remote Desktop'
+set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\TerminalServer\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
+write-debug 'Changement du mot de passe utilisateur'
+([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
+}
 
 #######################
 #  Gestion du module  #

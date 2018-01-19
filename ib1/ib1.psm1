@@ -631,14 +631,42 @@ $remoteComputers|foreach-object {
   invoke-command -ComputerName $_ -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred}}
   
 function complete-ib1Install{
+<#
+.SYNOPSIS
+Cette commande permet de finaliser/réparer l'installation de la machine hôte ib
+.PARAMETER GatewayIP
+Adresse IP de la passerelle par défaut (pour le switch virtuel NAT). Valeur par défaut : 172.16.0.1
+.PARAMETER GatewaySubnet
+Adresse de sous-réseau pour le sous-réseau local du NAT. Valeur par défaut : 172.16.0.0/24
+.PARAMETER GatewayMask
+Longeur du masque de sous-réseau de la passerelle pour le NAT. valeur par défaut : 24
+#>
+param(
+[string]$GatewayIP='172.16.0.1',
+[string]$GatewaySubnet='172.16.0.0',
+[string]$GatewayMask=24)
 write-debug 'Mise en place des paramètres de WinRM'
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 Enable-PSRemoting -Force >>$null
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 Restart-Service winrm -Force
-write-debug 'Activation de Hyper-v'
-enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V -All
+write-debug 'Activation/Paramètrage de Hyper-v'
+if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
+  if (get-VMSwitch|where-object {($_.switchname -like "*default*") -or ($_.switchname -like "*défaut*")}) {
+    write-debug 'Suppression du réseau virtuel par défaut'
+    get-VMSwitch|where-object {($_.switchname -like "*default*") -or ($_.switchname -like "*défaut*")}|Remove-VMSwitch}
+  if (get-VMSwitch|where-object {$_.switchname -like 'ibNat'}) {
+    $ibNat=get-VMSwitch|where-object {$_.switchname -like 'ibNat'}}
+  else {
+    $ibNat=New-VMSwitch -SwitchName 'ibNat' -switchType Internal}
+  $ibNatAdapter=(get-NetAdapter|where-object {$_.Name -like '*ibNat*'}).ifIndex
+  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter
+  new-NetNat -name ibNat -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"}
+else {
+  write-debug 'Installation de Hyper-V'
+  enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All
+  write-warning "Relancer la commande après redémarrage pour finaliser la confirguration d'Hyper-V"}
 if (-not (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0)) {
   write-Debug 'Création de la tâche de lancement de ibInit'
   $CMDTask=New-ScheduledTaskAction -Execute "$env:SystemRoot\ibInit.cmd"
@@ -671,4 +699,4 @@ Set-Alias ibreset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
 Export-moduleMember -Function complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
-Export-ModuleMember -Alias set-ib1VhdBoot,ibreset
+Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

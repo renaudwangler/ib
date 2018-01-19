@@ -540,6 +540,8 @@ Adresse Internet pointée par le raccourci créé
 Titre du raccourci (si non mentionné, prendra le titre du site web pointé ou le nom du fichier)
 .PARAMETER TaskBar
 Si cette option est renseignée, le raccourci sera épinglé sur la barre des tâches.
+.PARAMETER Params
+Cette option permet de rajouter des paramètres spécifiques après le fichier appelé
 .EXAMPLE
 new-ib1Shortcut -URL 'https://www.ib-formation.fr'
 Crée un raccourci sur le bureau qui sera nommé en fonction du titre du site web
@@ -548,7 +550,8 @@ PARAM(
 [string]$File='',
 [uri]$URL='',
 [string]$title='',
-[switch]$TaskBar=$false)
+[switch]$TaskBar=$false,
+[string]$Params='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {Write-Error "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -Category SyntaxError; break}
@@ -568,6 +571,7 @@ $WScriptShell=new-object -ComObject WScript.Shell
 if ($TaskBar) { $Folder="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$Folder="$env:Public\Desktop" }
 $shortcut=$WScriptShell.createShortCut("$Folder\$title")
 $shortcut.TargetPath=$target
+if ($Params -ne '') {$shortcut.Arguments=$Params}
 $shortcut.save()}}
 
 function invoke-ib1netCommand {
@@ -639,14 +643,14 @@ write-debug 'Création du fichier c:\windows\ibInit.cmd'
 echo '@echo off' > $env:SystemRoot\ibInit.cmd
 echo 'powershell.exe -command "& set-executionpolicy bypass -force; $secondsToWait=5; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force}"' >> $env:SystemRoot\ibInit.cmd
 write-debug 'Création des raccourcis'
-new-ib1Shortcut -File '%windir%\System32\mm.exe "%windir%\System32\virtmgmt.msc"' -title 'Hyper-V Manager'
+new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager'
 new-ib1Shortcut -File '%SystemRoot%\System32\WindowsPowershell\v1.0\powershell.exe' -title 'Windows PowerShell'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Mi-Parcours'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com'
 write-debug 'Activation de la connexion RDP'
-set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminalServer' -name 'fDenyTSConnections' -Value 0
+set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminal Server' -name 'fDenyTSConnections' -Value 0
 Enable-netFireWallRule -DisplayGroup 'Remote Desktop'
-set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\TerminalServer\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
+set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
 write-debug 'Changement du mot de passe utilisateur'
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
 }

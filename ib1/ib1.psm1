@@ -672,10 +672,10 @@ else {
 write-Debug 'Création de la tâche de lancement de ibInit'
 if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {Get-ScheduledTask -TaskName 'Lancement ibInit'|unregister-scheduledTask -confirm:0}
 $moduleVersion=(get-Module -ListAvailable -Name ib1|sort-object|select-object -last 1).version.tostring()
-$CMDTask=New-ScheduledTaskAction -Execute "$env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.cmd"
-$PSTask= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
+$PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& set-executionpolicy bypass -force; $secondsToWait=5; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force}"'
+$PSTask2= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
 $trigger=New-ScheduledTaskTrigger -AtStartup
-Register-ScheduledTask -Action $CMDTask,$PSTask -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest
+Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest
 write-debug 'Création du fichier c:\windows\ibInit.cmd'
 write-debug 'Création des raccourcis'
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'

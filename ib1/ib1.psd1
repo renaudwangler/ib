@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.2.27'
+ModuleVersion = '1.2.28'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,12 +69,12 @@ PowerShellVersion = '3.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'complete-ib1Install', 'invoke-ib1NetCommand', 'new-ib1Shortcut', 
-               'reset-ib1VM', 'mount-ib1VhdBoot', 'remove-ib1VhdBoot', 
-               'switch-ib1VMFr', 'test-ib1VMNet', 'connect-ib1VMNet', 
-               'set-ib1TSSecondScreen', 'import-ib1TrustedCertificate', 
-               'set-ib1VMCheckpointType', 'repair-ib1VMNetwork', 'Copy-ib1VM', 
-               'start-ib1SavedVMs'
+FunctionsToExport = 'install-ib1Chrome', 'complete-ib1Install', 'invoke-ib1NetCommand', 
+               'new-ib1Shortcut', 'reset-ib1VM', 'mount-ib1VhdBoot', 
+               'remove-ib1VhdBoot', 'switch-ib1VMFr', 'test-ib1VMNet', 
+               'connect-ib1VMNet', 'set-ib1TSSecondScreen', 
+               'import-ib1TrustedCertificate', 'set-ib1VMCheckpointType', 
+               'repair-ib1VMNetwork', 'Copy-ib1VM', 'start-ib1SavedVMs'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

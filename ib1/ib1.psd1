@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.2.26'
+ModuleVersion = '1.2.27'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -92,7 +92,7 @@ AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'complete-ib1Setup'
 # ModuleList = @()
 
 # List of all files packaged with this module
-FileList = 'ibInit.cmd', 'ibInit.ps1'
+FileList = 'ibInit.ps1'
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{

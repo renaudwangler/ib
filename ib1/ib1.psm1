@@ -645,6 +645,8 @@ param(
 [string]$GatewayIP='172.16.0.1',
 [string]$GatewaySubnet='172.16.0.0',
 [string]$GatewayMask=24)
+get-ib1elevated $true
+compare-ib1PSVersion "4.0"
 write-debug 'Mise en place des paramètres de WinRM'
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 Enable-PSRemoting -Force >>$null
@@ -691,7 +693,24 @@ Enable-netFirewallRule -DisplayGroup 'Bureau à distance' -erroraction 0
 set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
 write-debug 'Changement du mot de passe utilisateur'
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
-}
+install-ib1Chrome}
+
+function install-ib1Chrome {
+<#
+.SYNOPSIS
+Cette commande permet d'installer la dernière version du navigateur Chrome de Google.
+.PARAMETER Force
+Lance l'installation même si une version de Chrome est déja présente.
+#>
+PARAM(
+[switch]$Force=$false)
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+$ChromeMSI = "GoogleChromeStandaloneEnterprise.msi"
+$ChromeDL="https://dl.google.com/tag/s/appguid={8A69D345-D564-463C-AFF1-A69D9E530F96}&iid={00000000-0000-0000-0000-000000000000}&lang=en&browser=3&usagestats=0&appname=Google%2520Chrome&needsadmin=prefers/edgedl/chrome/install/$ChromeMSI"
+if ((-not (Get-WmiObject -Class win32_product|where name -like '*chrome*')) -or $Force) {
+  (new-object System.Net.WebClient).DownloadFile($chromeDL,"$env:TEMP\$ChromeMSI")
+  & "$env:TEMP\$ChromeMSI"}}}
 
 #######################
 #  Gestion du module  #
@@ -699,5 +718,5 @@ write-debug 'Changement du mot de passe utilisateur'
 Set-Alias ibreset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

@@ -656,5 +656,6 @@ write-debug 'Changement du mot de passe utilisateur'
 #######################
 Set-Alias ibreset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
-Export-moduleMember -Function invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
+Set-Alias complete-ib1Setup complete-ib1Install
+Export-moduleMember -Function complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset

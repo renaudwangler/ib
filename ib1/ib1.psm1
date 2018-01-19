@@ -653,16 +653,18 @@ Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name Forc
 Restart-Service winrm -Force
 write-debug 'Activation/Paramètrage de Hyper-v'
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
-  if (get-VMSwitch|where-object {($_.switchname -like "*default*") -or ($_.switchname -like "*défaut*")}) {
+  if (get-VMSwitch|where-object {($_.name -like "*default*") -or ($_.name -like "*défaut*")}) {
     write-debug 'Suppression du réseau virtuel par défaut'
-    get-VMSwitch|where-object {($_.switchname -like "*default*") -or ($_.switchname -like "*défaut*")}|Remove-VMSwitch}
-  if (get-VMSwitch|where-object {$_.switchname -like 'ibNat'}) {
-    $ibNat=get-VMSwitch|where-object {$_.switchname -like 'ibNat'}}
+    get-VMSwitch|where-object {($_.name -like "*default*") -or ($_.name -like "*défaut*")}|Remove-VMSwitch}
+  if (get-VMSwitch|where-object {$_.name -like '*ibNat*'}) {
+    $ibNat=get-VMSwitch|where-object {$_.name -like '*ibNat*'}}
   else {
     $ibNat=New-VMSwitch -SwitchName 'ibNat' -switchType Internal}
-  $ibNatAdapter=(get-NetAdapter|where-object {$_.Name -like '*ibNat*'}).ifIndex
-  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter
-  new-NetNat -name ibNat -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"}
+  $ibNatAdapter=(get-NetAdapter|where-object {$_.name -like '*ibNat*'}).ifIndex
+  remove-NetIpAddress -IPAddress $GatewayIP -confirm:0 -ErrorAction 0
+  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter >> $null
+  remove-NetNat -confirm:0 -ErrorAction 0
+  new-NetNat -name ibNat -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask" >> $null}
 else {
   write-debug 'Installation de Hyper-V'
   enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All

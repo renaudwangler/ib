@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.57'
+ModuleVersion = '1.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ PowerShellVersion = '3.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'complte-ib1Install', 'invoke-ib1NetCommand', 'new-ib1Shortcut', 
+FunctionsToExport = 'complete-ib1Install', 'invoke-ib1NetCommand', 'new-ib1Shortcut', 
                'reset-ib1VM', 'mount-ib1VhdBoot', 'remove-ib1VhdBoot', 
                'switch-ib1VMFr', 'test-ib1VMNet', 'connect-ib1VMNet', 
                'set-ib1TSSecondScreen', 'import-ib1TrustedCertificate', 
@@ -83,7 +83,7 @@ CmdletsToExport = @()
 # VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = 'set-ib1VhdBoot', 'ibreset'
+AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'complete-ib1Setup'
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()

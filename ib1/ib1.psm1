@@ -670,10 +670,10 @@ else {
   enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All
   write-warning "Relancer la commande après redémarrage pour finaliser la confirguration d'Hyper-V"}
 write-Debug 'Création de la tâche de lancement de ibInit'
-if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {Get-ScheduledTask -TaskName 'Lancement ibInit'|unregister-scheduledTask}
+if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {Get-ScheduledTask -TaskName 'Lancement ibInit'|unregister-scheduledTask -confirm:0}
 $moduleVersion=(get-Module -ListAvailable -Name ib1|sort-object|select-object -last 1).version.tostring()
-$CMDTask=New-ScheduledTaskAction -Execute "$env:ProgramFiles\windowspowershell\Modules\ib1\1.2.15\$moduleVersion\ibInit.cmd"
-$PSTask= New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& $env:ProgramFiles\windowspowershell\Modules\ib1\1.2.15\$moduleVersion\ibInit.ps1"'
+$CMDTask=New-ScheduledTaskAction -Execute "$env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.cmd"
+$PSTask= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
 $trigger=New-ScheduledTaskTrigger -AtStartup
 Register-ScheduledTask -Action $CMDTask,$PSTask -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest
 write-debug 'Création du fichier c:\windows\ibInit.cmd'

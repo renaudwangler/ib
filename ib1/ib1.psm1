@@ -676,7 +676,7 @@ if (-not (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0)) {
   $trigger=New-ScheduledTaskTrigger -AtStartup
   Register-ScheduledTask -Action $CMDTask,$PSTask -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest}
 write-debug 'Création du fichier c:\windows\ibInit.cmd'
-'powershell.exe -command "& set-executionpolicy bypass -force; $secondsToWait=5; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force}"'|out-file -filePath $env:SystemRoot\ibInit.cmd -encoding ascii
+'powershell.exe -command "& set-executionpolicy bypass -force; $secondsToWait=5; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force}"'|out-file -filePath $env:SystemRoot\ibInit.cmd -encoding utf8
 write-debug 'Création des raccourcis'
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'
 new-ib1Shortcut -File '%SystemRoot%\System32\WindowsPowershell\v1.0\powershell.exe' -title 'Windows PowerShell'

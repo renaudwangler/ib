@@ -1,4 +1,4 @@
--﻿Module powershell ib1
+﻿-﻿Module powershell ib1
 
 Pour installer, sur machine < Windows Server 2016,
 télécharger et installer http://go.microsoft.com/fwlink/?LinkID=746217&clcid=0x409
@@ -9,19 +9,20 @@ Puis dans une commande powershell (En administrateur, avec executionPolicy en "B
 
 Pour mise à jour dans la Gallery Powershell : publish-module -path c:\ib1 -nugetapikey ....
 
-Fonctions contenues dans le mdoule en version 1.2.20
+Fonctions contenues dans le mdoule en version 1.3 (se référer à l'aide)
 - Reset-ib1VM
 - Mount-ib1VhdBoot
 - Remove-ib1VhdBoot
 - Switch-ib1VMFr
-- Test-ib1VMNet
-- Connect-ib1VMNet
+- Copy-ib1VM
+- complete-ib1Install
 - Set-ib1TSSecondScreen
 - Import-ib1trustedCertificate
+- Test-ib1VMNet
+- Connect-ib1VMNet
 - Set-ib1VMCheckpointType
-- Copy-ib1VM
 - Repair-ib1VMNetwork
 - Start-ib1SavedVMs
 - New-ib1Shortcut
 - invoke-ib1NetCommand
-- complete-ib1Install
+

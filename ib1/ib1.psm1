@@ -145,18 +145,20 @@ write-debug "Disque(s) de lecteur Windows trouvé(s) : $dLetter"
 if (($dLetter.Count -ne 1) -or ($dLetter -eq ':')) {
  write-error 'Impossible de trouver un (et un seul) disque virtuel monté qui contienne une unique partition non réservée au systeme.' -Category ObjectNotFound
  break}
-bcdboot $dLetter\windows /l fr-FR >> $null
+bcdboot $dLetter\windows /l fr-FR >>$null
 if ((Test-Path $driverFolder) -and -not $noDrivers) {dism /image:$dLetter\ /add-driver /driver:$driverFolder /recurse}
+DISM /image:$dLetter /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$null
 if ($copyFolder -ne '') {Copy-Item $copyFolder\* $dLetter\ib}
-bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) >> $null
-bcdedit /set '{default}' hypervisorlaunchtype auto
+bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) >>$null
+bcdedit /set '{default}' hypervisorlaunchtype auto >>$null
+bcdedit /timeout 30 >>$null
 Write-Output 'BCD modifié'
 if ($restart) {Restart-Computer}}}
 
 function remove-ib1VhdBoot {
 <#
 .SYNOPSIS
-Cette commande permet de supprimer l'entrée par defaut du BCD et de démonter tous les disques virtuels montés sur la machine.
+Cette commande permet de supprimer les entrées du BCD corespondant à des disques dur virtuels.
 .PARAMETER restart
 Redémarre l'ordinateur à la fin du script (inactif par defaut)
 .EXAMPLE
@@ -169,9 +171,13 @@ PARAM(
 [switch]$restart=$false)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
-get-disk|where-object Model -like "*virtual*"|foreach-object {write-debug $_;get-partition|dismount-vhd -erroraction silentlycontinue}
-write-debug "Supression de l'entrée {Default} du BCD"
-bcdedit /delete '{default}' >> $null
+$bcdVHDs=@()
+foreach ($line in bcdedit) {
+  if ($line -ilike 'identifier*{*}') {
+    $id=$line -match '{.*}'
+    $bootEntry=$matches.Values}
+  elseif ($line -ilike 'device*VHD' -or $line -ilike 'device*unknown') {if ($bootEntry -inotlike '{current}') {$bcdVHDs+=$bootEntry}}}
+  foreach ($bcdVHD in $bcdVHDs) {bcdedit /delete $bcdVHD >>$null}
 Write-Output 'BCD modifie'
 if ($restart) {Restart-Computer}}}
 
@@ -203,22 +209,38 @@ if ($VHDFile -ne '') {
     write-Error "Les paramètres '-VHDFile' et '-VMName' ne peuvent être utilisés ensemble, merci de lancer 2 commandes distinctes"
     break}
   $testMount=$null
-  mount-vhd -path $VHDFile -NoDriveLetter -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false|Set-Partition -newdriveletter Z
+  #Protection contre les disques partageant le même parent que le disque système en cours
+  $newDisk=(mount-vhd -Path $VHDFile -Passthru|get-disk)
+  $oldSignature=$newDisk.signature
+  if ((get-disk|Where-Object Signature -eq $oldSignature).count -gt 1) {
+    Write-Warning "Changement de la signature du disque '$VHDFile'."
+    $newDisk|Set-Disk -Signature 0}
+  else {$oldSignature=0}
+  dismount-VHD $VHDFile
+  #mount-vhd -path $VHDFile -ErrorAction SilentlyContinue >>$null
+  #get-disk|where Operationalstatus -ilike 'offline'|Set-Disk -IsOffline $false >>$null
+  #Dismount-VHD $VHDFile
+  $partLetter=(mount-vhd -path $VHDFile -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false).DriveLetter
   if ($testMount -eq $null) {
     Write-Error "Impossible de monter le disque dur... $VHDFile, merci de vérifier!"
     break}
-  DISM /image:z: /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$ $null
+  DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c
   if ($LASTEXITCODE -eq 50) {
-    if (Test-Path $ib1DISMPath) {& $ib1DISMPath /image:z: /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$ $null} else {$LASTEXITCODE=50}}
+    if (Test-Path $ib1DISMPath) {
+      & $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$null} else {$LASTEXITCODE=50}}
   if ($LASTEXITCODE -eq 50) {
     Start-Process -FilePath $ib1DISMUrl
     write-error "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
-    dismount-vhd $vhdpath
+    dismount-vhd $VHDFile
     break}
   elseif ($LASTEXITCODE -ne 0) {
-    write-warning "Problème pendant le changemement de langue du disque '$VHDFile'. Merci de vérifier!' (Détail de l'erreur ci-dessous)."
+    write-warning "Problème pendant le changemement de langue du disque '$VHDFile'. Merci de vérifier!' (Détail éventuel de l'erreur ci-dessous)."
     write-output $error|select-object -last 1}
   dismount-vhd $VHDFile
+  if ($oldSignature -ne 0) {
+  Write-Warning "Remise en place de l'ancienne signature du disque '$VHDFile'"
+  mount-vhd -Path $VHDFile -Passthru|Get-Disk|Set-Disk -Signature $oldSignature
+  dismount-vhd $VHDFile}
   break}
 $VMs2switch=get-ib1VM $VMName
 foreach ($VM2switch in $VMs2switch) {
@@ -226,36 +248,51 @@ foreach ($VM2switch in $VMs2switch) {
   else {
     Write-Debug "Changement des paramêtres lingustiques de la VM $($VM2switch.name)"
     write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Montage du disque virtuel."
-    $vhdPath=($VM2switch|Get-VMHardDiskDrive|where-object {$_.ControllerNumber -eq 0 -and $_.controllerLocation -eq 0}).path
+    if ($VM2switch.generation -eq 1) {
+      $vhdPath=($VM2switch|Get-VMHardDiskDrive|where-object {$_.ControllerNumber -eq 0 -and $_.controllerLocation -eq 0 -and $_.controllerType -like 'IDE'}).path}
+    else {
+      $vhdPath=($VM2switch|Get-VMHardDiskDrive|where-object {$_.ControllerNumber -eq 0 -and $_.controllerLocation -eq 0}).path}
     $testMount=$null
-    mount-vhd -path $vhdPath -NoDriveLetter -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false|Set-Partition -newdriveletter Z
+    #Protection contre les disques partageant le même parent que le disque système en cours
+    $newDisk=(mount-vhd -Path $vhdPath -Passthru|get-disk)
+    $oldSignature=$newDisk.signature
+    if ((get-disk|Where-Object Signature -eq $oldSignature).count -gt 1) {
+      Write-Warning "Changement de la signature du disque de la VM '$($VM2switch.name)'."
+      $newDisk|Set-Disk -Signature 0}
+    else {$oldSignature=0}
+    dismount-VHD $vhdpath
+    $partLetter=(mount-vhd -path $vhdPath -Passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object IsActive -eq $false).DriveLetter
     if ($testMount -eq $null) {Write-Error "Impossible de monter le disque dur... de la VM $($VM2switch.name)" -Category invalidResult}
     else {
-      if (-not $noCheckpoint) {
+      if ((-not $noCheckpoint) -and $oldSignature -eq 0) {
         Dismount-VHD $vhdPath
         $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Avant" -erroraction silentlycontinue
-        if ($prevSnap -ne $null) {write-error 'Un checkpoint nommé "ib1SwitchFR-Avant" existe déja sur la VM "$($VM2switch.name)"';break}
+        if ($prevSnap -ne $null) {write-error "Un checkpoint nommé 'ib1SwitchFR-Avant' existe déja sur la VM '$($VM2switch.name)'";break}
         write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Avant." 
         Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Avant"
-        mount-vhd -path $vhdPath -NoDriveLetter -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false|Set-Partition -newdriveletter Z}
+        $partLetter=(mount-vhd -path $vhdPath -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false).DriveLetter}
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Changement des options linguistiques."
-      DISM /image:z: /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$ $null
+      DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$null
       if ($LASTEXITCODE -eq 50) {
-        if (Test-Path $ib1DISMPath) {& $ib1DISMPath /image:z: /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$ $null} else {$LASTEXITCODE=50}}
+        if (Test-Path $ib1DISMPath) {& $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$null} else {$LASTEXITCODE=50}}
       if ($LASTEXITCODE -eq 50) {
         Start-Process -FilePath $ib1DISMUrl
         write-error "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
         dismount-vhd $vhdpath
         break}
       elseif ($LASTEXITCODE -ne 0) {
-        write-warning "Problème pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de vérifier!' (Détail de l'erreur ci-dessous, utilisez éventuellement les checkpoint pour annuler complètement)."
+        write-warning "Problème pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de vérifier!' (Détail éventuel de l'erreur ci-dessous, utilisez éventuellement les checkpoint pour annuler complètement)."
         write-output $error|select-object -last 1}
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Démontage du disque."
       dismount-vhd $vhdpath
+      if ($oldSignature -ne 0) {
+      Write-Warning "Remise en place de l'ancienne signature du disque de la VM '$($VM2switch.name)'"
+      mount-vhd -Path $vhdpath -Passthru|Get-Disk|Set-Disk -Signature $oldSignature
+      dismount-vhd $vhdpath}
       Start-Sleep 1}
-    if (-not $noCheckpoint) {
+    if ((-not $noCheckpoint) -and $oldSignature -eq 0) {
       $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Après"  -erroraction silentlycontinue
-      if ($prevSnap -ne $null) {write-error 'Un checkpoint nommé "ib1SwitchFR-Après" existe déja sur la VM "$($VM2switch.name)"';break}
+      if ($prevSnap -ne $null) {write-error "Un checkpoint nommé 'ib1SwitchFR-Après' existe déja sur la VM '$($VM2switch.name)'";break}
       write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Après."
       Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Après"}
     write-progress -Activity "Traitement de $($VM2switch.name)" -complete}}}}
@@ -316,7 +353,7 @@ if ($extNic.PhysicalMediaType -eq "Unspecified") {
     start-sleep 2}
   else {
     Write-Progress -Activity "Création du switch" -CurrentOperation "Création du switch virtuel '$externalNetworkname' et branchement sur la carte réseau."
-    New-VMSwitch -Name $externalNetworkname -netadaptername $extNic.Name >> $null
+    New-VMSwitch -Name $externalNetworkname -netadaptername $extNic.Name >>$null
     Write-Progress -Activity "Création du switch" -Completed}
 test-ib1VMNet}
 
@@ -341,10 +378,13 @@ if (Test-Path $TSCFilename) {
   $oldFile=Get-Content $TSCFilename
   $newFile=@()
   Add-Type -AssemblyName System.Windows.Forms
-  $Monitors = [System.Windows.Forms.Screen]::AllScreens
+  #Recherche du moniteur secondaire.
+  $Monitors=[System.Windows.Forms.Screen]::AllScreens
+  $monitor=$monitors|where primary -ne $true
+  if (!$monitor) {$monitor=$monitors[1]}
   foreach ($fileLine in $oldFile){
     if ($fileLine -ilike '*winposstr*') {
-      $newFile+="$($fileLine.split(",")[0]),$($fileLine.split(",")[1]),$($Monitors[1].WorkingArea.X),$($Monitors[1].WorkingArea.Y),$($Monitors[1].WorkingArea.X+$Monitors[1].Bounds.Width),$($Monitors[1].WorkingArea.Y+$Monitors[1].Bounds.Height)"}
+      $newFile+="$($fileLine.split(",")[0]),$($fileLine.split(",")[1]),$($Monitor.WorkingArea.X),$($Monitor.WorkingArea.Y),$($Monitor.WorkingArea.X+$Monitor.Bounds.Width),$($Monitor.WorkingArea.Y+$Monitor.Bounds.Height)"}
     else {$newFile+=$fileLine}}
   Set-Content $TSCFilename $newFile}
 else {write-error "Le fichier '$TSCFilename' est introuvable" -Category ObjectNotFound;break}
@@ -678,12 +718,17 @@ $PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile
 $PSTask2= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
 $trigger=New-ScheduledTaskTrigger -AtStartup
 Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest
-write-debug 'Création du fichier c:\windows\ibInit.cmd'
 write-debug 'Création des raccourcis'
+new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27'
+new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Questionnaire mi-parcours'
+new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluation fin de formation'
+new-ib1Shortcut -URL 'https://docs.google.com/forms/d/e/1FAIpQLSfH3FiI3_0Gdqx7sIDtdYyjJqFHHgZa2p75m8zev7bk2sT2eA/viewform?c=0&w=1' -title 'Evaluation du distanciel'
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'
 new-ib1Shortcut -File '%SystemRoot%\System32\WindowsPowershell\v1.0\powershell.exe' -title 'Windows PowerShell'
-new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Mi-Parcours'
-new-ib1Shortcut -URL 'https://eval.ib-formation.com'
+if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
+  write-debug 'Création du partage formateur'
+  md C:\partage
+  New-SmbShare partage -Path c:\partage}
 write-debug 'Activation de la connexion RDP'
 set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminal Server' -name 'fDenyTSConnections' -Value 0
 Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction 0

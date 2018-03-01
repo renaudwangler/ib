@@ -685,6 +685,7 @@ param(
 [string]$GatewayIP='172.16.0.1',
 [string]$GatewaySubnet='172.16.0.0',
 [string]$GatewayMask=24)
+$defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 get-ib1elevated $true
 compare-ib1PSVersion "4.0"
 write-debug 'Mise en place des paramètres de WinRM'
@@ -695,18 +696,19 @@ Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name Forc
 Restart-Service winrm -Force
 write-debug 'Activation/Paramètrage de Hyper-v'
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
-  if (get-VMSwitch|where-object {($_.name -like "*default*") -or ($_.name -like "*défaut*")}) {
+  if (Get-HNSNetwork|Where-Object id -eq $defaultSwitchId) {
     write-debug 'Suppression du réseau virtuel par défaut'
-    get-VMSwitch|where-object {($_.name -like "*default*") -or ($_.name -like "*défaut*")}|Remove-VMSwitch}
+    Get-HNSNetwork|Where-Object id -eq $defaultSwitchId|Remove-HNSNetwork}
   if (get-VMSwitch|where-object {$_.name -like '*ibNat*'}) {
     $ibNat=get-VMSwitch|where-object {$_.name -like '*ibNat*'}}
   else {
     $ibNat=New-VMSwitch -SwitchName 'ibNat' -switchType Internal}
   $ibNatAdapter=(get-NetAdapter|where-object {$_.name -like '*ibNat*'}).ifIndex
   remove-NetIpAddress -IPAddress $GatewayIP -confirm:0 -ErrorAction 0
-  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter >> $null
   remove-NetNat -confirm:0 -ErrorAction 0
-  new-NetNat -name ibNat -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask" >> $null}
+  Start-Sleep 10
+  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter
+  new-NetNat -name ibNat -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"}
 else {
   write-debug 'Installation de Hyper-V'
   enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All
@@ -723,6 +725,7 @@ new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -ti
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Questionnaire mi-parcours'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluation fin de formation'
 new-ib1Shortcut -URL 'https://docs.google.com/forms/d/e/1FAIpQLSfH3FiI3_0Gdqx7sIDtdYyjJqFHHgZa2p75m8zev7bk2sT2eA/viewform?c=0&w=1' -title 'Evaluation du distanciel'
+new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'
 new-ib1Shortcut -File '%SystemRoot%\System32\WindowsPowershell\v1.0\powershell.exe' -title 'Windows PowerShell'
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
@@ -738,6 +741,35 @@ Enable-netFirewallRule -DisplayGroup 'Bureau à distance' -erroraction 0
 set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
 write-debug 'Changement du mot de passe utilisateur'
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
+Write-Debug 'Désactivation des mises à jour automatiques'
+get-service *wuauserv*|Stop-Service
+Get-Service *wuauserv*|Set-Service -StartupType Disabled
+Write-Debug "Configuration des options d'alimentation"
+powercfg /hibernate off
+powercfg /SETACTIVE SCHEME_BALANCED
+powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
+powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
+powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
+powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
+if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
+  write-debug 'Installation Skillpipe'
+  $CheckFileRequest=[System.Net.WebRequest]::Create('https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exes')
+  $CheckFileResponse=$CheckFileRequest.GetResponse()
+  $CheckFileStatus=[int]$CheckFileResponse.StatusCode
+  If ([int]$CheckFileResponse.StatusCode -eq 200) {
+    $CheckFileResponse.Close()
+    md $env:Public\Downloads\skillpipe
+    Invoke-WebRequest -Uri https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe -OutFile $env:Public\desktop\SkillpipeReaderSetup.exe
+    start-process $env:Public\desktop\skillpipeReaderSetup.exe /extract:$env:Public\Downloads\skillpipe -wait
+    Start-Process $env:Public\Downloads\skillpipe\vcredist_x86.exe /passive -Wait
+    start-process $env:windir\system32\msiexec.exe "/package $env:Public\Downloads\skillpipe\Clients.WPFSetup.msi /quiet" -wait}
+  else {
+    Write-Warning "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible"
+    $CheckFileResponse.Close()}}
+if (-not(Get-Childitem -Path "$env:Public\desktop\présentation stagiaire*")) {
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/Presentation.ppsx -OutFile "$env:Public\desktop\Présentation Stagiaire.ppsx"
+  copy "$env:ProgramFiles\WindowsPowerShell\Modules\ib1\$((Get-Module -ListAvailable -Name ib1|sort version -Descending|select -First 1).version.tostring())\prez.ppsx" "$env:Public\desktop\Présentation stagiaire.ppsx"}
+write-debug 'Installation de la dernière version de Chrome'
 install-ib1Chrome}
 
 function install-ib1Chrome {

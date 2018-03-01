@@ -767,8 +767,7 @@ if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
     Write-Warning "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible"
     $CheckFileResponse.Close()}}
 if (-not(Get-Childitem -Path "$env:Public\desktop\présentation stagiaire*")) {
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/Presentation.ppsx -OutFile "$env:Public\desktop\Présentation Stagiaire.ppsx"
-  copy "$env:ProgramFiles\WindowsPowerShell\Modules\ib1\$((Get-Module -ListAvailable -Name ib1|sort version -Descending|select -First 1).version.tostring())\prez.ppsx" "$env:Public\desktop\Présentation stagiaire.ppsx"}
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/Presentation.ppsx -OutFile "$env:Public\desktop\Présentation Stagiaire.ppsx"}
 write-debug 'Installation de la dernière version de Chrome'
 install-ib1Chrome}
 

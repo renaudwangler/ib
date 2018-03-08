@@ -5,38 +5,150 @@
 $ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
 $driverFolder='C:\Dell'
+$logFile="$env:TEMP\ib1.log"
+$defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
+$logStart=$true
+
+function write-ib1log {
+[CmdletBinding(DefaultParameterSetName='TextLog')]
+param([string]$TextLog,[switch]$ErrorLog=$false,[switch]$DebugLog=$false,[switch]$warningLog=$false,[string]$colorLog='white',[string]$progressTitleLog='')
+$horodate=get-date -Format "[%d/%M/%y-%H:%m] "
+if ($logStart) {
+  Set-Variable -Name logStart -Value $false -Scope 1
+  $launchCommand=(Get-PSCallStack|Where-Object command -INotLike "*<scriptblock>*"|Sort-Object)[0]
+  if (Get-ChildItem -path $logFile -ErrorAction SilentlyContinue) {
+    Add-Content -Path $logFile ''
+    Add-Content -Path $logFile '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-'}
+  Add-Content -Path $logFile "$($horodate)Lancement de la commande '$($launchCommand.Command)'"
+  if ($launchCommand.Arguments -inotlike '{}') {
+    Add-Content -Path $logFile "    Arguments: $($launchCommand.Arguments)"}}
+if ($ErrorLog) {
+  add-content -Path $logFile "$horodate[ERREUR] $TextLog"
+  Write-Host "[ERREUR!] $TextLog" -ForegroundColor Red
+  break}
+elseif ($DebugLog) {
+  Add-Content -Path $logFile "$horodate$TextLog"
+  Write-Debug $TextLog}
+elseif ($warningLog) {
+  Add-Content -Path $logFile "$horodate[ATTENTION] $TextLog"
+  Write-Warning $TextLog}
+elseif ($progressTitleLog -ne '') {
+  if ($TextLog) {write-progress -Activity $progressTitleLog -currentOperation $TextLog}
+  else {
+    write-progress -Activity $progressTitleLog -complete
+    $TextLog="Fin d'activité."}
+  Add-Content -Path $logFile "$horodate[$progressTitleLog]$TextLog"}
+else {
+  Add-Content -Path $logFile "$horodate$TextLog"
+  write-host $TextLog -ForegroundColor $colorLog}}
+
+function set-ib1VMNotes {
+[CmdletBinding(DefaultParameterSetName='VMname')]
+param([string]$TextNotes,[string]$VMName,[switch]$clear=$false)
+if ($clear) {
+  Get-VM|foreach {Set-VM $_ -Notes ''}
+  write-ib1log "Les Notes des VMs ont été nettoyées." -DebugLog}
+$TextNotes=(get-date -Format "[%d/%M/%y-%H:%m-V")+(get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring()+']'+$TextNotes
+Get-VM -VMName *$VMName* -ErrorAction SilentlyContinue|ForEach-Object {
+  if ($_.Notes -ne '') {Set-VM $_ -Notes "$($_.Notes)`n$TextNotes" -ErrorAction SilentlyContinue}
+  else {Set-VM $_ -Notes $TextNotes -ErrorAction SilentlyContinue}}}
+
+function test-ib1PSDirect {
+<#
+.SYNOPSIS
+Cette fonction teste la disponibilité de Powershell Direct pour la VM en objet.
+.PARAMETER VMName
+Nom de la VM à tester (ou partie du nom, mais doit identifier une VM de manière unique)
+.EXAMPLE
+test-ib1PSDirect -VMName LON-DC1
+renvoie $true si des commandes peuvent être passées sur la VM 20410D-LON-DC1
+#>
+[CmdletBinding(DefaultParameterSetName='VMname')]
+param(
+[parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Machine virtuelle à tester pour PowerShell Direct")][string]$VMName)
+#begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process{
+  $TPDVM=Get-VM -VMName *$VMName* -ErrorAction SilentlyContinue|Where-Object state -ILike *running*
+  if ($TPDVM.count -ne 1) {
+    write-ib1log 'Impossible de trouver une et une seule VM allumée correspondant au nom '$VMName'.' -warningLog
+    return $false}
+  else {
+    if ($TPDVM.Version -lt 8) {
+      write-ib1log "Powershell Direct non disponible sur la machine '$VMName': la machine est en version $($TPDVM.Version) !" -warningLog
+      return $false}
+    Enable-VMIntegrationService -VM $TPDVM -Name 'Guest Service Interface'
+    return $true}}}
+
+function get-ib1NetComputers {
+param([string]$subNet)
+  $netComputers=@(0..254)
+  $netComputers[0]=$false
+  [System.Collections.ArrayList]$pingJobs=@()
+  write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24" "Lancement des jobs..."
+  for ($i=1;$i -lt 255;$i++) {
+    $pingJobs.add((Test-Connection -ComputerName "$subNet.$i" -Count 1 -BufferSize 8 -AsJob))|Out-Null}
+  foreach ($pingJob in $pingJobs) {
+    if ($pingJob.state -inotlike '*completed*') {Wait-Job $pingJob >> $null}
+    $pingResult=Receive-Job $pingJob -Wait -AutoRemoveJob
+    if ($pingResult.StatusCode -eq 0) {write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24" "La machine '$($pingResult.Address)' a répondu au ping."}
+    $netComputers[$pingResult.Address.split('.')[3]]=($pingResult.StatusCode -eq 0)}
+  write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24"
+  return $netComputers}
+
+function get-ib1Log {
+<#
+.SYNOPSIS
+Cette commande facilite l'affichage du journal des commandes ayant fait appel au module ib1 sur la machien locale.
+.EXAMPLE
+get-ib1Log
+Affiche le log des commandes
+#>
+PARAM([switch]$clearLog=$false)
+if (Test-Path $logFile) {
+  & $logFile
+  if ($clearLog) {
+    Start-Sleep 1
+    Remove-Item -Path $logFile}}}
+
+function get-ib1Version {
+<#
+.SYNOPSIS
+Cette commande affiche la version à jour du module ib1 présentement installé.
+.EXAMPLE
+get-ib1Version
+Affiche la version du module
+#>
+(get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring()}
 
 function compare-ib1PSVersion ($ibVersion='4.0') {
 if ($PSVersionTable.PSCompatibleVersions -notcontains $ibVersion) {
-  write-warning "Attention, script  fonctionnant au mieux avec Powershell $ibVersion"}}
+  write-ib1log "Attention, script  fonctionnant au mieux avec Powershell $ibVersion" -warningLog}}
 
 function get-ib1elevated ($ibElevationNeeded=$false) {
 if ((New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
 { if (-not $ibElevationNeeded) { Set-PSRepositery PSGallery -InstallationPolicy Trusted;return $true}}
 else {
 if ($ibElevationNeeded) {
-  write-error "Attention, commande à utiliser en tant qu'administrateur" -Category AuthenticationError; break}
+  write-ib1log "Attention, commande à utiliser en tant qu'administrateur" -ErrorLog}
 else { return $false}}}
 
 function start-ib1VMWait ($SWVmname) {
-  if ((get-vm $SWVmname).state -ne "Running") {
+  if ((get-vm $SWVmname).state -inotlike "*running*") {
     Start-VM $SWVmname
     while ((get-vm $SWVmname).heartbeat -notlike '*ok*') {
-      write-progress -Activity "Démarrage de $SWVmname" -currentOperation "Attente de signal de démarrage réussi de la VM '$((get-vm $SWVmname).heartbeat)'"
+      write-ib1log -progressTitleLog "Démarrage de $SWVmname" "Attente de signal de démarrage réussi de la VM '$((get-vm $SWVmname).heartbeat)'"
       start-sleep 2}
-    write-progress -Activity "Démarrage de $SWVmname" -complete}}
+    write-ib1log -progressTitleLog "Démarrage de $SWVmname"}}
 
 function get-ib1VM ($gVMName) {
   if ($gVMName -eq '') {
   try { $gResult=Get-VM -ErrorAction stop }
   catch {
-    write-error "Impossible de trouver des machines virtuelles sur ce Windows." -Category ObjectNotFound
-    break}}
+    write-ib1log "Impossible de trouver des machines virtuelles sur ce Windows." -ErrorLog}}
   else {
-  try { $gResult=Get-VM $gVMName -ErrorAction stop }
+  try { $gResult=Get-VM -VMName *$gVMName* -ErrorAction stop }
   catch {
-  write-error "Impossible de trouver une machine virtuelle '$gVMName'." -Category ObjectNotFound
-    break}}
+  write-ib1log "Impossible de trouver une machine virtuelle '$gVMName'." -ErrorLog}}
   return $gResult}
 
 function set-ib1VMCheckpointType {
@@ -61,8 +173,11 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 $VMs2Set=get-ib1VM $VMName
 foreach ($VM2Set in $VMs2Set) {
-  Get-VM -VMName $VM2Set.vmname|Set-VM -checkpointType Standard}}
-end {Write-Output "Fin de l'opération"}}
+  if ($VM2Set.checkpointType -ilike '*standard*') {write-ib1log "Les checkpoints de la VM '$($VM2Set.vmName)' sont déja en mode standard." -warningLog}
+  else {
+    write-ib1log "Changement des checkpoints de la VM '$())' en mode standard." -DebugLog
+    set-ib1VMNotes $VM2Set.vmName -TextNotes "Checkpoints en mode standard."
+    Get-VM -VMName $VM2Set.vmName|Set-VM -checkpointType Standard}}}}
 
 function reset-ib1VM {
 <#
@@ -93,14 +208,15 @@ $VMs2Reset=get-ib1VM $VMName
 foreach ($VM2reset in $VMs2Reset) {
   if ($snapshot=Get-VMSnapshot -VMName $VM2reset.vmname|sort-object creationtime|select-object -last 1 -ErrorAction SilentlyContinue) {
     if (-not $keepVMUp -and $VM2reset.state -ieq 'running') {
-      Write-Debug "Arrêt de la VM $($VM2reset.vmname)."
+      write-ib1log "Arrêt de la VM $($VM2reset.vmname)." -DebugLog
       stop-vm -VMName $VM2reset.vmname -confirm:$false -turnOff}
-    Write-Debug "Restauration du snapshot $($snapshot.Name) sur la VM $($VM2reset.vmname)."
+    write-ib1log "Restauration du snapshot $($snapshot.Name) sur la VM $($VM2reset.vmname)." -DebugLog
     Restore-VMSnapshot $snapshot -confirm:$false}
-  else {write-debug "La VM $($VM2reset.vmname) n'a pas de snapshot"}}}
+  else {write-ib1log "La VM $($VM2reset.vmname) n'a pas de snapshot" -DebugLog}}}
   end {
-  Write-Output "Fin de l'opération"
-  if ($powerOff) {stop-computer -force}}}
+  if ($powerOff) {
+    write-ib1log "Extinction de la machine après opération" -DebugLog
+    stop-computer -force}}}
 
 function mount-ib1VhdBoot {
 <#
@@ -130,35 +246,46 @@ PARAM(
 [switch]$noDrivers=$false,
 [string]$copyFolder='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
-# Attacher un VHD et le rajouter au menu de démarrage
 process {
-write-debug "`$VHDfile=$VHDfile"
 if (($copyFolder -ne '') -and -not (test-path $copyFolder)) {
-  write-error "Le dossier '$copyFolder' n'existe pas, merci de vérifier !"
-  break}
+  write-ib1log "Le dossier '$copyFolder' n'existe pas, merci de vérifier !" -ErrorLog}
 try { Mount-VHD -Path $vhdFile -ErrorAction stop }
 catch {
-  write-error "Impossible de monter le disque virtuel contenu dans le fichier $VHDFile." -Category ObjectNotFound
-  break}
+  write-ib1log "Impossible de monter le disque virtuel contenu dans le fichier $VHDFile." -ErrorLog}
 $dLetter=(get-disk|where-object Model -like "*virtual*"|Get-Partition|Get-Volume|where-object {$_.filesystemlabel -ine "system reserved" -and $_.filesystemlabel -ine "réservé au système"}).driveletter+":"
-write-debug "Disque(s) de lecteur Windows trouvé(s) : $dLetter"
+write-ib1log "Disque(s) de lecteur Windows trouvé(s) : $dLetter" -DebugLog
 if (($dLetter.Count -ne 1) -or ($dLetter -eq ':')) {
- write-error 'Impossible de trouver un (et un seul) disque virtuel monté qui contienne une unique partition non réservée au systeme.' -Category ObjectNotFound
- break}
-bcdboot $dLetter\windows /l fr-FR >>$null
-if ((Test-Path $driverFolder) -and -not $noDrivers) {dism /image:$dLetter\ /add-driver /driver:$driverFolder /recurse}
-DISM /image:$dLetter /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$null
-if ($copyFolder -ne '') {Copy-Item $copyFolder\* $dLetter\ib}
-bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) >>$null
-bcdedit /set '{default}' hypervisorlaunchtype auto >>$null
-bcdedit /timeout 30 >>$null
-Write-Output 'BCD modifié'
-if ($restart) {Restart-Computer}}}
+ write-ib1log 'Impossible de trouver un (et un seul) disque virtuel monté qui contienne une unique partition non réservée au systeme.' -ErrorLog}
+ write-ib1log "Création d'une nouvelle entrée dans le BCD." -DebugLog
+bcdboot $dLetter\windows /l fr-FR |Add-Content -Path $logFile -Encoding UTF8
+if ((Test-Path $driverFolder) -and -not $noDrivers) {
+  write-ib1log "Insertion des drivers contenus dans le répertoire '$driverFolder'." -DebugLog
+  DISM /image:$dLetter\ /add-driver /driver:$driverFolder /recurse|Add-Content -Path $logFile -Encoding UTF8}
+write-ib1log "Changement des otpions de clavier Français." -DebugLog
+DISM /image:$dLetter /set-allIntl:en-US /set-inputLocale:0409:0000040c |Add-Content -Path $logFile -Encoding UTF8
+if ($copyFolder -ne '') {
+  write-ib1log "Copie du dossier '$copyFolder' dans le dossier \ib du disque monté" -DebugLog
+  Copy-Item $copyFolder\* $dLetter\ib}
+write-ib1log "Modification de la description du BCD pour : '$([io.path]::GetFileNameWithoutExtension($VHDFile))'." -DebugLog
+bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) |Add-Content -Path $logFile -Encoding UTF8
+write-ib1log "Modification du BCD pour lancement Hyper-V." -DebugLog
+bcdedit /set '{default}' hypervisorlaunchtype auto|Add-Content -Path $logFile -Encoding UTF8
+write-ib1log "Mise en place du menu de multi-boot dans le BCD" -DebugLog
+bcdedit /timeout 30|Add-Content -Path $logFile -Encoding UTF8
+write-ib1log "Installation du module ib1 dans le disque monté." -DebugLog
+New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1" -ErrorAction SilentlyContinue >> $null
+New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)" -ErrorAction SilentlyContinue >> $null
+Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+$module=get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1
+if ($restart) {
+  write-ib1log "Redémarrage de la machine en fin d'opération." -DebugLog
+  Restart-Computer}}}
 
 function remove-ib1VhdBoot {
 <#
 .SYNOPSIS
 Cette commande permet de supprimer les entrées du BCD corespondant à des disques dur virtuels.
+(Ne fonctionnera pas sans un rebbot depuis la commande mount-ib1VhdBoot)
 .PARAMETER restart
 Redémarre l'ordinateur à la fin du script (inactif par defaut)
 .EXAMPLE
@@ -177,9 +304,12 @@ foreach ($line in bcdedit) {
     $id=$line -match '{.*}'
     $bootEntry=$matches.Values}
   elseif ($line -ilike 'device*VHD' -or $line -ilike 'device*unknown') {if ($bootEntry -inotlike '{current}') {$bcdVHDs+=$bootEntry}}}
-  foreach ($bcdVHD in $bcdVHDs) {bcdedit /delete $bcdVHD >>$null}
-Write-Output 'BCD modifie'
-if ($restart) {Restart-Computer}}}
+  foreach ($bcdVHD in $bcdVHDs) {
+    write-ib1log "Nettoyage de l'entrée de BCD '$($bcdVHD)'" -DebugLog
+    bcdedit /delete $bcdVHD|Add-Content -Path $logFile -Encoding UTF8}
+if ($restart) {
+  write-ib1log "Redémarrage de la machine en fin d'opération." -DebugLog
+  Restart-Computer}}}
 
 function switch-ib1VMFr {
 <#
@@ -190,8 +320,8 @@ Cette commande permet de changer le clavier d'une marchine virtuelle en Francais
 Nom de la VM sur laquelle agir (agit sur toutes les VMs si paramètre non spécifié)
 .PARAMETER VHDFile
 Nom du fichier VHD de disque Virtuel sur lequel agir (permet de changer la langue même si le VHD n'est pas monté dans une VM)
-.PARAMETER noCheckpoint
-Ne crée pas les points de contrôle sur la VM avant et après action
+.PARAMETER Checkpoint
+Crée un point de contrôle avant et un point de contrôle après modification de la VM
 .EXAMPLE
 switch-ib1VMFr
 Change le clavier de toutes les VM en Français.
@@ -201,12 +331,14 @@ DefaultParameterSetName='VMName')]
 PARAM(
 [string]$VMName='',
 [string]$VHDFile='',
-[switch]$noCheckpoint=$false)
+[switch]$noCheckpoint=$true,
+[switch]$Checkpoint=$false)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
+if ($noCheckpoint -eq $false) {write-ib1log "Le paramètre -noCheckpoint est obsolète, merci de consulter l'aide en ligne (get-help)" -ErrorLog}
 if ($VHDFile -ne '') {
   if ($VMName -ne '') {
-    write-Error "Les paramètres '-VHDFile' et '-VMName' ne peuvent être utilisés ensemble, merci de lancer 2 commandes distinctes"
+    write-ib1log "Les paramètres '-VHDFile' et '-VMName' ne peuvent être utilisés ensemble, merci de lancer 2 commandes distinctes" -ErrorLog
     break}
   $testMount=$null
   #Protection contre les disques partageant le même parent que le disque système en cours
@@ -217,17 +349,14 @@ if ($VHDFile -ne '') {
     $newDisk|Set-Disk -Signature 0}
   else {$oldSignature=0}
   dismount-VHD $VHDFile
-  #mount-vhd -path $VHDFile -ErrorAction SilentlyContinue >>$null
-  #get-disk|where Operationalstatus -ilike 'offline'|Set-Disk -IsOffline $false >>$null
-  #Dismount-VHD $VHDFile
   $partLetter=(mount-vhd -path $VHDFile -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false).DriveLetter
   if ($testMount -eq $null) {
     Write-Error "Impossible de monter le disque dur... $VHDFile, merci de vérifier!"
     break}
-  DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c
+  DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|Add-Content -Path $logFile -Encoding UTF8
   if ($LASTEXITCODE -eq 50) {
     if (Test-Path $ib1DISMPath) {
-      & $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$null} else {$LASTEXITCODE=50}}
+      & $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|Add-Content -Path $logFile -Encoding UTF8} else {$LASTEXITCODE=50}}
   if ($LASTEXITCODE -eq 50) {
     Start-Process -FilePath $ib1DISMUrl
     write-error "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
@@ -244,10 +373,10 @@ if ($VHDFile -ne '') {
   break}
 $VMs2switch=get-ib1VM $VMName
 foreach ($VM2switch in $VMs2switch) {
-  if ($VM2switch.state -ine 'off') {Write-Output "La VM $($VM2switch.name) n'est pas éteinte et ne sera pas traitée"}
+  if ($VM2switch.state -ine 'off') {write-ib1log "La VM $($VM2switch.name) n'est pas éteinte et ne sera pas traitée" -warningLog}
   else {
-    Write-Debug "Changement des paramêtres lingustiques de la VM $($VM2switch.name)"
-    write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Montage du disque virtuel."
+    write-ib1log "Changement des paramêtres lingustiques de la VM $($VM2switch.name)" -DebugLog
+    write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Montage du disque virtuel."
     if ($VM2switch.generation -eq 1) {
       $vhdPath=($VM2switch|Get-VMHardDiskDrive|where-object {$_.ControllerNumber -eq 0 -and $_.controllerLocation -eq 0 -and $_.controllerType -like 'IDE'}).path}
     else {
@@ -257,45 +386,48 @@ foreach ($VM2switch in $VMs2switch) {
     $newDisk=(mount-vhd -Path $vhdPath -Passthru|get-disk)
     $oldSignature=$newDisk.signature
     if ((get-disk|Where-Object Signature -eq $oldSignature).count -gt 1) {
-      Write-Warning "Changement de la signature du disque de la VM '$($VM2switch.name)'."
+      write-ib1log write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Changement de la signature du disque de la VM '$($VM2switch.name)'."
       $newDisk|Set-Disk -Signature 0}
     else {$oldSignature=0}
     dismount-VHD $vhdpath
     $partLetter=(mount-vhd -path $vhdPath -Passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object IsActive -eq $false).DriveLetter
-    if ($testMount -eq $null) {Write-Error "Impossible de monter le disque dur... de la VM $($VM2switch.name)" -Category invalidResult}
+    if ($testMount -eq $null) {write-ib1log "Impossible de monter le disque dur... de la VM $($VM2switch.name)" -warningLog}
     else {
-      if ((-not $noCheckpoint) -and $oldSignature -eq 0) {
+      if ($Checkpoint -and ($oldSignature -eq 0)) {
         Dismount-VHD $vhdPath
         $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Avant" -erroraction silentlycontinue
-        if ($prevSnap -ne $null) {write-error "Un checkpoint nommé 'ib1SwitchFR-Avant' existe déja sur la VM '$($VM2switch.name)'";break}
-        write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Avant." 
+        if ($prevSnap -ne $null) {write-ib1log "Un checkpoint nommé 'ib1SwitchFR-Avant' existe déja sur la VM '$($VM2switch.name)'" -ErrorLog}
+        write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Création du checkpoint ib1SwitchFR-Avant." 
         Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Avant"
         $partLetter=(mount-vhd -path $vhdPath -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false).DriveLetter}
-      write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Changement des options linguistiques."
-      DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$null
+      write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Changement des options linguistiques."
+      DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|Add-Content -Path $logFile -Encoding UTF8
+      Add-Content -Path $logFile ''
       if ($LASTEXITCODE -eq 50) {
-        if (Test-Path $ib1DISMPath) {& $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c >>$null} else {$LASTEXITCODE=50}}
+        if (Test-Path $ib1DISMPath) {
+        write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Echec, éssai avec '$ib1DISMPath'"
+        & $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|Add-Content -Path $logFile -Encoding UTF8
+        Add-Content -Path $logFile ''} else {$LASTEXITCODE=50}}
       if ($LASTEXITCODE -eq 50) {
+        Dismount-VHD $vhdPath
         Start-Process -FilePath $ib1DISMUrl
-        write-error "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
-        dismount-vhd $vhdpath
-        break}
+        write-ib1log "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -ErrorLog}
       elseif ($LASTEXITCODE -ne 0) {
-        write-warning "Problème pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de vérifier!' (Détail éventuel de l'erreur ci-dessous, utilisez éventuellement les checkpoint pour annuler complètement)."
-        write-output $error|select-object -last 1}
-      write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Démontage du disque."
+        write-ib1log "Problème pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de vérifier!' (Détail éventuel de l'erreur dans le log, utilisez éventuellement les checkpoint pour annuler complètement)." -warningLog}
+      write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Démontage du disque."
       dismount-vhd $vhdpath
       if ($oldSignature -ne 0) {
-      Write-Warning "Remise en place de l'ancienne signature du disque de la VM '$($VM2switch.name)'"
-      mount-vhd -Path $vhdpath -Passthru|Get-Disk|Set-Disk -Signature $oldSignature
-      dismount-vhd $vhdpath}
-      Start-Sleep 1}
-    if ((-not $noCheckpoint) -and $oldSignature -eq 0) {
+        write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Remise en place de l'ancienne signature du disque de la VM '$($VM2switch.name)'"
+        mount-vhd -Path $vhdpath -Passthru|Get-Disk|Set-Disk -Signature $oldSignature
+        dismount-vhd $vhdpath}
+        Start-Sleep 1}
+    if ($Checkpoint -and ($oldSignature -eq 0)) {
       $prevSnap=Get-VMSnapshot -VMName $($VM2switch.name) -name "ib1SwitchFR-Après"  -erroraction silentlycontinue
-      if ($prevSnap -ne $null) {write-error "Un checkpoint nommé 'ib1SwitchFR-Après' existe déja sur la VM '$($VM2switch.name)'";break}
-      write-progress -Activity "Traitement de $($VM2switch.name)" -currentOperation "Création du checkpoint ib1SwitchFR-Après."
+      if ($prevSnap -ne $null) {write-ib1log "Un checkpoint nommé 'ib1SwitchFR-Après' existe déja sur la VM '$($VM2switch.name)'" -ErrorLog}
+      write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Création du checkpoint ib1SwitchFR-Après."
       Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Après"}
-    write-progress -Activity "Traitement de $($VM2switch.name)" -complete}}}}
+    set-ib1VMNotes $VM2switch.name -TextNotes "Switch clavier FR."
+    write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)"}}}}
 
 function test-ib1VMNet {
 <#
@@ -308,11 +440,11 @@ Indiquera si des VMs sont branchées sur des switchs virtuels non déclarés.
 $vSwitchs=(Get-VMSwitch).name
 $VMs=Get-VM
 foreach ($VM in $VMs) {
-  Write-progress -Activity "Vérification de la configuration réseau de la VM $($VM.Name)."
+  write-ib1log -progressTitleLog "Vérification de la configuration réseau de la VM $($VM.Name)." "lancement"
   foreach ($VMnetwork in $VM.NetworkAdapters) {
-    Write-progress -Activity "Vérification de la configuration réseau de la VM $($VM.Name)." -CurrentOperation "Vérification de la présence du switch $($VMnetwork.name)"
-    if ($VMnetwork.SwitchName -notin $vSwitchs) {Write-Warning "La VM '$($VM.Name)' est branchée sur le switch virtuel '$($VMnetwork.SwitchName)' qui est introuvable. Merci de vérifier !"}}
-  Write-progress -Activity "Vérification de la configuration réseau de la VM $($VM.Name)." -Completed}}
+    write-ib1log -progressTitleLog "Vérification de la configuration réseau de la VM $($VM.Name)." "Vérification de la présence du switch $($VMnetwork.name)"
+    if ($VMnetwork.SwitchName -notin $vSwitchs) {write-ib1log -progressTitleLog "Vérification de la configuration réseau de la VM $($VM.Name)." "[ATTENTION] La VM '$($VM.Name)' est branchée sur le switch virtuel '$($VMnetwork.SwitchName)' qui est introuvable. Merci de vérifier !"}}
+  write-ib1log -progressTitleLog "Vérification de la configuration réseau de la VM $($VM.Name)."}}
 
 function connect-ib1VMNet {
 <#
@@ -332,29 +464,30 @@ PARAM(
 [string]$externalNetworkname='External Network')
 get-ib1elevated $true
 compare-ib1PSVersion "4.0"
+write-ib1log "La commande connect-ib1VMNet ne dervait plus être utile avec le vSwitch ibNat et sera bientôt supprimée." -warningLog
 $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp|Get-NetAdapter
 if ($extNic.PhysicalMediaType -eq "Unspecified") {
   if ((Get-VMSwitch $externalNetworkname  -switchtype External -ErrorAction SilentlyContinue).NetAdapterInterfaceDescription -eq (Get-NetAdapter -Physical|where-object status -eq up).InterfaceDescription) {
-    Write-warning "La configuration réseau externe est déjà correcte"
+    write-ib1log "La configuration réseau externe est déjà correcte" -warningLog
     break}
   else {
-    Write-Warning "La carte réseau est déja connectée a un switch virtuel. Suppression!"
+    write-ib1log "La carte réseau est déja connectée a un switch virtuel. Suppression!" -warningLog
     $switch2Remove=Get-VMSwitch -SwitchType External|where-object {$extNic.name -like '*'+$_.name+'*'}
-    Write-Progress -Activity "Suppression de switch virtuel existant" -currentOperation "Attente pour suppression de '$($switch2Remove.name)'."
+    write-ib1log -progressTitleLog "Suppression de switch virtuel existant" "Attente pour suppression de '$($switch2Remove.name)'."
     Remove-VMSwitch -Force -VMSwitch $switch2Remove
     for ($sleeper=0;$sleeper -lt 20;$sleeper++) {
-      Write-Progress -Activity "Suppression de switch virtuel existant" -currentOperation "Attente pour suppression de '$($switch2Remove.name)'." -PercentComplete ($sleeper*5)
+      write-ib1log -progressTitleLog "Suppression de switch virtuel existant" "Attente pour suppression de '$($switch2Remove.name)'."
       Start-Sleep 1}
-    Write-Progress -Activity "Suppression de switch virtuel existant" -Completed}
+    write-ib1log -progressTitleLog "Suppression de switch virtuel existant"}
     $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp|Get-NetAdapter}
   if (Get-VMSwitch $externalNetworkname -ErrorAction SilentlyContinue) {
-    Write-Warning "Le switch '$externalNetworkname' existe. Branchement sur la bonne carte réseau"
+    write-ib1log "Le switch '$externalNetworkname' existe. Branchement sur la bonne carte réseau" -warningLog
     Get-VMSwitch $externalNetworkname|Set-VMSwitch -netadaptername $extNic.Name
     start-sleep 2}
   else {
-    Write-Progress -Activity "Création du switch" -CurrentOperation "Création du switch virtuel '$externalNetworkname' et branchement sur la carte réseau."
+    write-ib1log -progressTitleLog "Création du switch" "Création du switch virtuel '$externalNetworkname' et branchement sur la carte réseau."
     New-VMSwitch -Name $externalNetworkname -netadaptername $extNic.Name >>$null
-    Write-Progress -Activity "Création du switch" -Completed}
+    write-ib1log -progressTitleLog "Création du switch"}
 test-ib1VMNet}
 
 function set-ib1TSSecondScreen {
@@ -386,9 +519,9 @@ if (Test-Path $TSCFilename) {
     if ($fileLine -ilike '*winposstr*') {
       $newFile+="$($fileLine.split(",")[0]),$($fileLine.split(",")[1]),$($Monitor.WorkingArea.X),$($Monitor.WorkingArea.Y),$($Monitor.WorkingArea.X+$Monitor.Bounds.Width),$($Monitor.WorkingArea.Y+$Monitor.Bounds.Height)"}
     else {$newFile+=$fileLine}}
+  write-ib1log "Ecriture de la nouvelle version du fichier '$TSCFilename'." -DebugLog
   Set-Content $TSCFilename $newFile}
-else {write-error "Le fichier '$TSCFilename' est introuvable" -Category ObjectNotFound;break}
-}}
+else {write-ib1log "Le fichier '$TSCFilename' est introuvable" -ErrorLog}}}
 
 function import-ib1TrustedCertificate {
 <#
@@ -410,11 +543,9 @@ process {
 if ($CertificateUrl -eq '') {$CertificateUrl='http://mars.ib-formation.fr/marsca.cer'}
 $fileName=split-path $CertificateUrl -leaf
 try {invoke-webrequest $CertificateUrl -OutFile "$($env:USERPROFILE)\downloads\$fileName" -ErrorAction stop}
-catch {
-  write-error "URL incrorrecte, le fichier '' est introuvable" -Category ObjectNotFound
-  break}
-Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false
-}}
+catch {write-ib1log "URL incrorrecte, le fichier '' est introuvable" -ErrorLog}
+write-ib1log "Insertion du certificat dans le magasin de certificats local." -DebugLog
+Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false|Add-Content -Path $logFile -Encoding UTF8}}
 
 function copy-ib1VM {
 <#
@@ -440,46 +571,54 @@ PARAM(
 [string]$VMsuffix='',
 [string]$VMprefix='',
 [switch]$noCheckpoint=$false)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"; if ($VMsuffix -eq '' -and $VMprefix -eq '') {write-error "Attention, commande nécessitant soit un préfixe, soit un suffixe pour le nom de la VM clonée." -Category SyntaxError; break}}
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"; if ($VMsuffix -eq '' -and $VMprefix -eq '') {write-ib1log "Attention, commande nécessitant soit un préfixe, soit un suffixe pour le nom de la VM clonée." -ErrorLog}}
 process {
 if ($VMsuffix -ne '') {$VMsuffix="-$VMsuffix"}
 if ($VMprefix -ne '') {$VMprefix="-$VMprefix"}
 $VMs2copy=get-ib1VM $VMName
 foreach ($VM2copy in $VMs2copy) {
-  if ($VM2copy.state -ine 'off') {echo "La VM $($VM2copy.name) n'est pas éteinte et ne sera pas traitée"}
+  if ($VM2copy.state -ine 'off') {write-ib1log "La VM $($VM2copy.name) n'est pas éteinte et ne sera pas traitée" -warningLog}
   else {
-    Write-Debug "Copie de la VM $($VM2copy.name)"
-    write-progress -Activity "Traitement de $($VM2copy.name)" -currentOperation "Création des dossiers."
+    write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Création des dossiers."
     $vmCopyName="$VMprefix$($VM2copy.name)$VMsuffix"
     $vmCopyPath="$(split-path -path $VM2copy.path -parent)\$($vmCopyName)"
-    New-Item $vmCopyPath -ItemType directory -ErrorAction SilentlyContinue -ErrorVariable createDir >> $null
-    New-Item "$vmCopyPath\Virtual Hard Disks" -ItemType directory -ErrorAction SilentlyContinue >> $null
+    New-Item $vmCopyPath -ItemType directory -ErrorAction SilentlyContinue -ErrorVariable createDir|Add-Content -Path $logFile -Encoding UTF8
+    New-Item "$vmCopyPath\Virtual Hard Disks" -ItemType directory -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
     foreach ($VHD2copy in $VM2copy.HardDrives) {
-      write-progress -Activity "Traitement de $($VM2copy.name)" -currentOperation "Copie du dossier $(split-path -path $VHD2copy.path -parent)."
+      write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Copie du dossier $(split-path -path $VHD2copy.path -parent)."
       Copy-Item "$(split-path -path $VHD2copy.path -parent)\" $vmCopyPath -Recurse -ErrorAction SilentlyContinue}
+    write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Création du disque dur original."
     $newVMdrive0 = "$vmCopyPath\$(split-path (split-path -path $vm2copy.HardDrives[0].path -parent) -leaf)\$(split-path -path $VM2copy.HardDrives[0].path -leaf)"
+    write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Création de la VM."
     $newVM=new-vm -Name $vmCopyName -VHDPath $newVMdrive0 -MemoryStartupBytes ($VM2copy.MemoryMinimum*8) -Path $(split-path -path $vmCopyPath -Parent) 
     if ($VM2copy.ProcessorCount -gt 1) {
+      write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Affectation de $($VM2copy.ProcessorCount) processeurs"
       Set-VMProcessor -VMName $vmCopyName -Count $VM2copy.ProcessorCount}
     if ($VM2copy.DynamicMemoryEnabled) {
+      write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Mise en place des paramètres de mémoire dynamique."
       $VM2copyMemory=Get-VMMemory $VM2copy.name
       Set-VMMemory $vmCopyName -DynamicMemoryEnabled $true -MinimumBytes $VM2copyMemory.Minimum -StartupBytes $VM2copyMemory.Startup -MaximumBytes $VM2copyMemory.Maximum -Buffer $VM2copyMemory.Buffer -Priority $VM2copyMemory.Priority}
+    write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Création du lecteur DVD original."
     $vm2copyDVD=(Get-VMDvdDrive -VMName $VM2copy.name)[0]
     Set-VMDvdDrive $vmCopyName -Path $vm2copyDVD.Path -ControllerNumber $vm2copyDVD.ControllerNumber -ControllerLocation $vm2copyDVD.ControllerLocation
     if ($VM2copy.DVDDrives.count -gt 1) {
+      write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Ajout de lecteur(s) DVD supplémentaire(s)."
       $vm2copyDVDs=Get-VMDvdDrive -VMName $VM2copy.name
       for ($i=1;$i -lt $VM2copy.DVDDrives.count;$i++) {
         $vm2copyDVD=(Get-VMDvdDrive -VMName $VM2copy.name)[$i]
         Add-VMDvdDrive $vmCopyName -Path $vm2copyDVD.Path -ControllerNumber $vm2copyDVD.ControllerNumber -ControllerLocation $vm2copyDVD.ControllerLocation}}
     if ($VM2copy.HardDrives.Count -gt 1) {
+      write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Ajout de(s) disque(s) suppkémentaire."
       for ($i=1;$i -lt $VM2copy.HardDrives.Count;$i++) {
         $newVMdrive="$vmCopyPath\$(split-path (split-path -path $VM2copy.HardDrives[$i].path -parent) -leaf)\$(split-path -path $VM2copy.HardDrives[$i].path -leaf)"
         Add-VMHardDiskDrive -VMName $vmCopyName -Path $newVMdrive -ControllerType $vm2copy.HardDrives[$i].ControllerType -ControllerNumber $vm2copy.HardDrives[$i].ControllerNumber -ControllerLocation $vm2copy.HardDrives[$i].ControllerLocation}}
     if ($VM2copy.NetworkAdapters[0].Connected) {
+      write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Connection de la carte réseau initiale au réseau '$($VM2copy.NetworkAdapters[0].SwitchName)'."
       Connect-VMNetworkAdapter -VMName $vmCopyName -SwitchName $VM2copy.NetworkAdapters[0].SwitchName}
     else {
       Disconnect-VMNetworkAdapter -VMName $vmCopyName}
     if ($VM2copy.NetworkAdapters.Count -gt 1) {
+      write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Connexion de carte(s) réseau supplémentaire(s)."
       for ($i=1;$i -lt $VM2copy.NetworkAdapters.Count;$i++) {
         if ($VM2copy.NetworkAdapters[$i].connected) {
           Add-VMNetworkAdapter -VMName $vmCopyName -SwitchName $VM2copy.NetworkAdapters[$i].SwitchName}
@@ -487,16 +626,19 @@ foreach ($VM2copy in $VMs2copy) {
           Add-VMNetworkAdapter -VMName $vmCopyName}}
           }}
   if (-not $noCheckpoint) {
-      write-progress -Activity "Traitement de $($VM2copy.name)" -currentOperation "Création du checkpoint ib1Copy"
+      write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Création du checkpoint ib1Copy"
       Checkpoint-VM -VM $newVM -SnapshotName "ib1Copy"}
-  Write-Warning 'Pensez à mettre à jour la configuration IP des cartes réseau qui ont été créées dans la machine virtuelle.'}}}
+  write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)"
+  set-ib1VMNotes $VM2copy.name "Création d'une copie de la VM."
+  set-ib1VMNotes $newVM.Name -TextNotes "VM Copiée depuis '$($VM2copy.name)'."
+  write-ib1log 'Pensez à mettre à jour la configuration IP des cartes réseau qui ont été créées dans la machine virtuelle.' -warningLog}}}
 
 function repair-ib1VMNetwork {
 <#
 .SYNOPSIS
 Cette commande permet de vérifier l'état de la carte réseau d'une VM et, le cas échéant, de relancer cette carte.
 Cette commande est particulièrement utile sur un DC première machine virtuelle à démarrer.
-Prérequis : cette commande utilise du Powershell Direct et ne fonctionne que si la VM est en Windows version 8/2012 au minimum.
+Prérequis : cette commande utilise du Powershell Direct et ne fonctionne que si la VM est en version 8/2012 au minimum.
 .PARAMETER VMName
 Nom de la VMs à vérifier (si ce paramètre est omis, toutes les VMs allumées seront vérifiées - Attention à l'ordre).
 .PARAMETER userName
@@ -520,19 +662,23 @@ $VMs2Repair=get-ib1VM $VMName
 if ($userPass -eq '') {$userPass2=read-host "Mot de passe de '$userName'" -AsSecureString} else {$userPass2=ConvertTo-SecureString $userPass -AsPlainText -Force}
 $cred=New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName,$userPass2
 foreach ($VM2repair in $VMs2Repair) {
-  if ((get-vm $VM2repair.name).heartbeat -notlike '*OK*') {Write-Warning "La VM '$($VM2repair.name)' n'est pas dans un état démarré correct, son réseau ne sera pas vérifié."}
+  if ((get-vm $VM2repair.name).heartbeat -notlike '*OK*') {write-ib1log "La VM '$($VM2repair.name)' n'est pas dans un état démarré correct, son réseau ne sera pas vérifié." -warningLog}
+  elseif (!(test-ib1PSDirect -VMName $VM2repair.name)) {write-ib1log "Powershell Direct n'est pas disponible sur la VM '$($VM2repair.name)': son réseau ne sera pas vérifié." -warningLog}
   else {
+    set-ib1VMNotes $VM2repair.name -TextNotes "Vérification/Réparation du réseau."
     $netStatus=''
     $warningDisplay=$true
     while ($netStatus -notlike '*domain*') {
-      $netStatus=(Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock {(Get-NetConnectionProfile).NetworkCategory}).value
+      try {$netStatus=(Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock {(Get-NetConnectionProfile).NetworkCategory} -ErrorAction stop).value}
+      catch {
+        write-ib1log "Il ne semble pas possible de faire du Powershell Direct sur la VM '$($VM2repair.name)'. merci de vérifier les prérequis et le comtpe utilisé!" -warningLog
+        $netStatus='domain'}
       if ($netStatus -notlike '*domain*') {
         if ($warningDisplay) {
-          Write-Warning "Le réseau de la VM '$($VM2repair.name)' n'est pas en mode domaine, redémarrage de la(des) carte(s)."
+          write-ib1log "Le réseau de la VM '$($VM2repair.name)' n'est pas en mode domaine, redémarrage de la(des) carte(s)." -warningLog
           Start-Sleep -s 10
           $warningDisplay=$false}
-        Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock{get-netadapter|restart-netadapter}}}}}}
-  end {Write-Output "Fin de l'opération"}}
+        Invoke-Command -VMName $VM2repair.name -Credential $cred -ScriptBlock{get-netadapter|restart-netadapter}}}}}}}
 
 function start-ib1SavedVMs {
 <#
@@ -556,16 +702,18 @@ PARAM(
 [switch]$FirstRepairNet=$false)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
-if ($FirstRepairNet -and $First -eq $null) {Write-Error "Le paramètre '-FirstRepairNet' ne peut être passé sans le paramètre '-First'" -Category SyntaxError; break}
+if ($FirstRepairNet -and $First -eq $null) {write-ib1log "Le paramètre '-FirstRepairNet' ne peut être passé sans le paramètre '-First'" -ErrorLog}
 if ($First -ne '') {$FirstVM2start=get-ib1VM $First}
 if ($DontRevert -eq $false) {
-  Write-Debug "Rétablissement des VMs avant démarrage"
+  write-ib1log "Rétablissement des VMs avant démarrage" -DebugLog
   reset-ib1VM}
-if ($First -ne '') {start-ib1VMWait ($First)}
+if ($First -ne '') {
+  write-ib1log "Attente du démarrage de la VM '$First'." -DebugLog
+  start-ib1VMWait ($First)}
 $VMs2Start=get-ib1VM ('')
 foreach ($VM2start in $VMs2start) {
   if ($VM2Start.state -like '*saved*') {
-    write-debug "Démarrage de la VM '$($VM2Start.name)'."
+    write-ib1log "Démarrage de la VM '$($VM2Start.name)'." -DebugLog
     start-VM $VM2start.name}}}}
     
 function new-ib1Shortcut {
@@ -597,16 +745,16 @@ PARAM(
 [string]$icon='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
-if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {Write-Error "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -Category SyntaxError; break}
+if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {write-ib1log "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -ErrorLog}
 if ($URL -ne '') {
   if ($title -eq '') {
-    write-debug "Recherche du titre du site Web pour nommer le raccourci"
+    write-ib1log "Recherche du titre du site Web pour nommer le raccourci" -DebugLog
     $title=((Invoke-WebRequest $URL).parsedHtML.getElementsByTagName('title')[0].text) -replace ':','-' -replace '\\','-'}
   $title=$title+'.url'
   $target=$URL.ToString()}  
 else {
   if ($title -eq '') {
-    write-debug "Récupération du nom du fichier pour nommer le raccourci"
+    write-ib1log "Récupération du nom du fichier pour nommer le raccourci" -DebugLog
     $title=([io.path]::GetFileNameWithoutExtension($File))}
   $title=$title+'.lnk'
   $target=$File}
@@ -616,6 +764,7 @@ $shortcut=$WScriptShell.createShortCut("$Folder\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}
 if ($icon -ne '') {$shortcut.IconLocation=$Icon}
+write-ib1log "Création du raccourci." -DebugLog
 $shortcut.save()}}
 
 function invoke-ib1netCommand {
@@ -626,49 +775,72 @@ Cette commande permet de lancer une commande/un programme sur toutes les machine
 Syntaxe complète de la commande à lancer
 .PARAMETER NoLocal
 Ce switch permet de ne pas lancer la commande cible sur la machine locale.
+.PARAMETER SubNet
+Ce paramètre permet de spécifier (sous la forme X.Y.Z) le sous-réseau sur lequel lancer la commande.
+Par défaut, le sous-réseau local connecté à la machine est utilisé.
+.PARAMETER Gateway
+Ce paramètre permet de spécifier l'adresse de la passerelle par défaut du réseau choisi sur laquelle la commande ne sera pas executée
+Ce paramètre n'est utile qu'en complément du paramètre -SubNet
+.PARAMETER GetCred
+Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser pour la connexion WinRM et la commande
+S'il est omis, les identifiants de l'utilisateur connecté localement seront utilisés.
 .EXAMPLE
 invoke-ib1netCommand -NoLocal -Command 'stop-computer -force'
 Eteind toutes les machines du réseau local dont l'accès est permis.
 #>
-[CmdletBinding(
-DefaultParameterSetName='Command')]
+[CmdletBinding(DefaultParameterSetName='Command')]
 param(
 [parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Commande à lancer sur les machines accessibles sur le réseau local.")]
 [string]$Command,
-[switch]$NoLocal=$false)
-workflow get-ib1remotecomputers {
-param([boolean]$NoLocal2)
-  $computers=@()
-  write-progress -Activity 'Récupération des machines joignables sur le réseau local' -currentOperation 'Détection des paramètres du réseau local'
-  $ipConfiguration=inlinescript {Get-NetIPConfiguration|where {$_.NetAdapter.Status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*hyper-v*'}}
+[switch]$NoLocal=$false,
+[string]$SubNet,
+[string]$GateWay='254',
+[switch]$GetCred=$false)
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+if ($SubNet) {
+  if ($NoLocal) {write-ib1log "Le paramètre -NoLocal n'est pas compatible avec le paramètre -SubNet." -ErrorLog}
+  if ($SubNet.Split('.') -lt 0 -or $SubNet.Split('.') -gt 255 -or $SubNet.split('.').Count -ne 3) {write-ib1log "La syntaxe du paramètre -SubNet ne semble pas correcte: merci de vérifier !" -ErrorLog}}
+else {
+  write-ib1log "Récupération des informations sur le réseau local" -DebugLog
+  $ipConfiguration=(Get-NetIPConfiguration|where {$_.NetAdapter.Status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*hyper-v*'})
+  if (($ipConfiguration.count -gt 1) -or ($ipConfiguration.count -eq 0)) {write-ib1log "Le paramètre -SubNet peut être omis si une et une seule carte réseau locale est connectée au réseau" -ErrorLog}
   $ipAddress=($ipConfiguration|Get-NetIPAddress -AddressFamily ipv4).IPAddress.split('.')
-  $localipAddress=$ipAddress[0]+'.'+$ipAddress[1]+'.'+$ipAddress[2]+'.'+$ipAddress[3]
-  $localGateway=$ipConfiguration.ipv4defaultgateway.nexthop.ToString()
-  $ipAddress=$ipAddress[0]+'.'+$ipAddress[1]+'.'+$ipAddress[2]+'.'
-  for ($i=1;$i -lt 255;$i++) {
-    $newAddress="$ipAddress$i"
-    if ((($newAddress -notlike $localipAddress) -and -not $noLocal2) -and ($newAddress -notlike $localGateway)) {
-    $computers+="$ipAddress$i"}}
-  $computersOK=@()
-  foreach -parallel ($computer in $computers) {
-    write-progress -Activity 'Récupération des machines joignables sur le réseau local' -currentOperation "Ping sur la machine '$computer'"
-    if (Test-Connection -ComputerName $computer -Count 1 -ErrorAction SilentlyContinue -Quiet) {
-    $WORKFLOW:computersOK+=$computer   
-    }}
-  write-progress -Activity 'Récupération des machines joignables sur le réseau local' -complete  
-  return($computersOK)}
-get-ib1elevated $true
-compare-ib1PSVersion "4.0"
-$cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
+  $localip=$ipAddress[3]
+  $Gateway=$ipConfiguration.ipv4defaultgateway.nexthop.split('.')[3]
+  $subNet=$ipAddress[0]+'.'+$ipAddress[1]+'.'+$ipAddress[2]}
+if ($GetCred) {
+  $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
+  if (-not $cred) {
+    write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
+    break}}
+write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 Enable-PSRemoting -Force >>$null
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 Restart-Service winrm -Force
-$remoteComputers=get-ib1remotecomputers
-$remoteComputers|foreach-object {
-  write-host " - Lancement de la commande sur la machine '$_'." -ForegroundColor Yellow
-  invoke-command -ComputerName $_ -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred}}
+$computers=get-ib1NetComputers $SubNet
+$computers[$GateWay]=$false
+if ($NoLocal) {$computers[$localip]=$false}
+if (($computers|Group|Where name -eq true).count -lt 1) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
+for ($index=1;$index -lt 255;$index++) {
+  if ($computers[$index]) {
+    $commandNoError=$true
+    try {
+      if ($GetCred) {$commandOPut=(invoke-command -ComputerName "$SubNet.$index" -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred -ErrorAction Stop)}
+      else {$commandOut=(invoke-command -ComputerName "$SubNet.$index" -ScriptBlock ([scriptBlock]::create($command)) -ErrorAction Stop)}}
+    catch {
+     $commandNoError=$false
+     if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -ilike '*Accès refusé*') {write-ib1log "[$subNet.$index] Accès refusé." -colorLog Red}
+     else {
+       write-ib1log "[$SubNet.$index] Erreur:" -colorLog Red
+       Add-Content -Path $logFile $_.Exception.message
+       $_.Exception.message}}
+  if ($commandNoError) {
+    write-ib1log "[$SubNet.$index] Résultat de la commande:" -colorLog Green
+    Add-Content -Path $logFile $commandOut
+    $commandOut}}}}}
   
 function complete-ib1Install{
 <#
@@ -685,42 +857,53 @@ param(
 [string]$GatewayIP='172.16.0.1',
 [string]$GatewaySubnet='172.16.0.0',
 [string]$GatewayMask=24)
-$defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 get-ib1elevated $true
 compare-ib1PSVersion "4.0"
-write-debug 'Mise en place des paramètres de WinRM'
+write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-Enable-PSRemoting -Force >>$null
+write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
+Enable-PSRemoting -Force|Add-Content -Path $logFile -Encoding UTF8
+write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Option de confiance pour accepter les commandes de toutes machines."
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
+write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Redémarrage du service WinRM"
 Restart-Service winrm -Force
-write-debug 'Activation/Paramètrage de Hyper-v'
+write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM"
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
   if (Get-HNSNetwork|Where-Object id -eq $defaultSwitchId) {
-    write-debug 'Suppression du réseau virtuel par défaut'
+    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" 'Suppression du réseau virtuel par défaut'
     Get-HNSNetwork|Where-Object id -eq $defaultSwitchId|Remove-HNSNetwork}
   if (get-VMSwitch|where-object {$_.name -like '*ibNat*'}) {
+    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Création du vSwitch 'ibNat'"
     $ibNat=get-VMSwitch|where-object {$_.name -like '*ibNat*'}}
   else {
     $ibNat=New-VMSwitch -SwitchName 'ibNat' -switchType Internal}
+  write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Configuration du vSwitch 'ibNat'"
   $ibNatAdapter=(get-NetAdapter|where-object {$_.name -like '*ibNat*'}).ifIndex
   remove-NetIpAddress -IPAddress $GatewayIP -confirm:0 -ErrorAction 0
   remove-NetNat -confirm:0 -ErrorAction 0
   Start-Sleep 10
   new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter
-  new-NetNat -name ibNat -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"}
+  new-NetNat -name ibNat -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"
+  if ((get-VMHost).EnableEnhancedSessionMode) {
+    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Désactivation de la stratégie de session avançée d'Hyper-V."
+    Set-VMHost -EnableEnhancedSessionMode $false}
+  write-ib1log -progressTitleLog "Paramètrage de Hyper-V"}
 else {
-  write-debug 'Installation de Hyper-V'
+  write-ib1log "Installation de Hyper-V" -DebugLog
   enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All
-  write-warning "Relancer la commande après redémarrage pour finaliser la confirguration d'Hyper-V"}
-write-Debug 'Création de la tâche de lancement de ibInit'
-if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {Get-ScheduledTask -TaskName 'Lancement ibInit'|unregister-scheduledTask -confirm:0}
+  write-ib1log "Relancer la commande après redémarrage pour finaliser la confirguration d'Hyper-V" -warningLog}
+write-ib1log 'Création de la tâche de lancement de ibInit' -DebugLog
+if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {
+  write-ib1log "Supression de l'ancienne tâche ibInit" -DebugLog
+  Get-ScheduledTask -TaskName 'Lancement ibInit'|unregister-scheduledTask -confirm:0}
 $moduleVersion=(get-Module -ListAvailable -Name ib1|sort-object|select-object -last 1).version.tostring()
 $PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& set-executionpolicy bypass -force; $secondsToWait=5; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force}"'
 $PSTask2= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
+write-ib1log "Création de la tâche de mise à jour du module et de lancement de ibInit.ps1" -DebugLog
 $trigger=New-ScheduledTaskTrigger -AtStartup
 Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest
-write-debug 'Création des raccourcis'
+write-ib1log 'Création des raccourcis sur le bureau' -DebugLog
 new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Questionnaire mi-parcours'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluation fin de formation'
@@ -729,22 +912,22 @@ new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'
 new-ib1Shortcut -File '%SystemRoot%\System32\WindowsPowershell\v1.0\powershell.exe' -title 'Windows PowerShell'
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
-  write-debug 'Création du partage formateur'
+  write-ib1log 'Création du partage pour le poste Formateur.' -DebugLog
   md C:\partage
   New-SmbShare partage -Path c:\partage}
-write-debug 'Activation de la connexion RDP'
+write-ib1log 'Activation de la connexion et des règles firewall pour RDP' -DebugLog
 set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminal Server' -name 'fDenyTSConnections' -Value 0
 Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction 0
 Enable-netFirewallRule -DisplayGroup 'File and Printer Sharing' -erroraction 0
 Enable-netFirewallRule -DisplayGroup "Partage de fichiers et d'imprimantes" -erroraction 0
 Enable-netFirewallRule -DisplayGroup 'Bureau à distance' -erroraction 0
 set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
-write-debug 'Changement du mot de passe utilisateur'
+write-ib1log 'Changement du mot de passe utilisateur' -DebugLog
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
-Write-Debug 'Désactivation des mises à jour automatiques'
+write-ib1log 'Désactivation des mises à jour automatiques' -DebugLog
 get-service *wuauserv*|Stop-Service
 Get-Service *wuauserv*|Set-Service -StartupType Disabled
-Write-Debug "Configuration des options d'alimentation"
+write-ib1log "Configuration des options d'alimentation" -DebugLog
 powercfg /hibernate off
 powercfg /SETACTIVE SCHEME_BALANCED
 powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
@@ -752,23 +935,29 @@ powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
 powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
 powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
 if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
-  write-debug 'Installation Skillpipe'
+  write-ib1log -progressTitleLog "Installation Skillpipe" "Test du fichier d'installation."
   $CheckFileRequest=[System.Net.WebRequest]::Create('https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exes')
   $CheckFileResponse=$CheckFileRequest.GetResponse()
   $CheckFileStatus=[int]$CheckFileResponse.StatusCode
   If ([int]$CheckFileResponse.StatusCode -eq 200) {
     $CheckFileResponse.Close()
     md $env:Public\Downloads\skillpipe
+    write-ib1log -progressTitleLog "Installation Skillpipe" "Téléchargement du fichier d'installation."
     Invoke-WebRequest -Uri https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe -OutFile $env:Public\desktop\SkillpipeReaderSetup.exe
+    write-ib1log -progressTitleLog "Installation Skillpipe" "Extraction de SkillPipeReaderSetup.exe"
     start-process $env:Public\desktop\skillpipeReaderSetup.exe /extract:$env:Public\Downloads\skillpipe -wait
+    write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation de Visual C++"
     Start-Process $env:Public\Downloads\skillpipe\vcredist_x86.exe /passive -Wait
-    start-process $env:windir\system32\msiexec.exe "/package $env:Public\Downloads\skillpipe\Clients.WPFSetup.msi /quiet" -wait}
+    write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation MSI du lecteur Skillpipe."
+    start-process $env:windir\system32\msiexec.exe "/package $env:Public\Downloads\skillpipe\Clients.WPFSetup.msi /quiet" -wait
+    write-ib1log -progressTitleLog "Installation Skillpipe"}
   else {
-    Write-Warning "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible"
+    write-ib1log "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible" -warningLog
     $CheckFileResponse.Close()}}
 if (-not(Get-Childitem -Path "$env:Public\desktop\présentation stagiaire*")) {
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/Presentation.ppsx -OutFile "$env:Public\desktop\Présentation Stagiaire.ppsx"}
-write-debug 'Installation de la dernière version de Chrome'
+  write-ib1log "Copie de la présentation stagiaire sur le bureau depuis github." -DebugLog
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/Presentation.ppsx -OutFile "$env:Public\desktop\Présentation Stagiaire.ppsx"}
+write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
 install-ib1Chrome}
 
 function install-ib1Chrome {
@@ -794,5 +983,5 @@ if ((-not (Get-WmiObject -Class win32_product|where name -like '*chrome*')) -or 
 Set-Alias ibreset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, test-ib1PSDirect
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

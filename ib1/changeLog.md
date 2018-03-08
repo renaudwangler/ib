@@ -1,3 +1,11 @@
+﻿**Version 1.4.1:**
+-Remplacement des ">>$null" par des "|out-null"
+-Suppression des valeurs "$false" par défaut pour les paramètres de type "switch"
+-Remplacement du redémarrage de WinRm par "enable-psRemoting" en le changeant de place
+-Changement de la commande "get-ib1NetComputers" pour simplifier avec tableau associatif
+-Sauvegarde des "TrustedHosts" pour les remettre en place après action
+-Passage des réseau de la machine en "Privé" à chaque redémarrage après la commande "complete-ib1Install"
+
 **Version 1.4:**
 - Moteur de log du module (commande interne "write-ib1Log").
 - Nouvelle commande pour afficher le log "get-ib1Log"

@@ -81,17 +81,17 @@ process{
 
 function get-ib1NetComputers {
 param([string]$subNet)
-  $netComputers=@(0..254)
-  $netComputers[0]=$false
+  $netComputers=[ordered]@{}
   [System.Collections.ArrayList]$pingJobs=@()
   write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24" "Lancement des jobs..."
   for ($i=1;$i -lt 255;$i++) {
     $pingJobs.add((Test-Connection -ComputerName "$subNet.$i" -Count 1 -BufferSize 8 -AsJob))|Out-Null}
   foreach ($pingJob in $pingJobs) {
-    if ($pingJob.state -inotlike '*completed*') {Wait-Job $pingJob >> $null}
+    if ($pingJob.state -inotlike '*completed*') {Wait-Job $pingJob|Out-Null}
     $pingResult=Receive-Job $pingJob -Wait -AutoRemoveJob
-    if ($pingResult.StatusCode -eq 0) {write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24" "La machine '$($pingResult.Address)' a répondu au ping."}
-    $netComputers[$pingResult.Address.split('.')[3]]=($pingResult.StatusCode -eq 0)}
+    if ($pingResult.StatusCode -eq 0) {
+      write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24" "La machine '$($pingResult.Address)' a répondu au ping."
+      $netComputers[$pingResult.address]=$true}}
   write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24"
   return $netComputers}
 
@@ -273,8 +273,8 @@ bcdedit /set '{default}' hypervisorlaunchtype auto|Add-Content -Path $logFile -E
 write-ib1log "Mise en place du menu de multi-boot dans le BCD" -DebugLog
 bcdedit /timeout 30|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log "Installation du module ib1 dans le disque monté." -DebugLog
-New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1" -ErrorAction SilentlyContinue >> $null
-New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)" -ErrorAction SilentlyContinue >> $null
+New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1" -ErrorAction SilentlyContinue|Out-Null
+New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)" -ErrorAction SilentlyContinue|Out-Null
 Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
 $module=get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1
 if ($restart) {
@@ -486,7 +486,7 @@ if ($extNic.PhysicalMediaType -eq "Unspecified") {
     start-sleep 2}
   else {
     write-ib1log -progressTitleLog "Création du switch" "Création du switch virtuel '$externalNetworkname' et branchement sur la carte réseau."
-    New-VMSwitch -Name $externalNetworkname -netadaptername $extNic.Name >>$null
+    New-VMSwitch -Name $externalNetworkname -netadaptername $extNic.Name|Out-Null
     write-ib1log -progressTitleLog "Création du switch"}
 test-ib1VMNet}
 
@@ -792,10 +792,10 @@ Eteind toutes les machines du réseau local dont l'accès est permis.
 param(
 [parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Commande à lancer sur les machines accessibles sur le réseau local.")]
 [string]$Command,
-[switch]$NoLocal=$false,
+[switch]$NoLocal,
 [string]$SubNet,
-[string]$GateWay='254',
-[switch]$GetCred=$false)
+[string]$GateWay,
+[switch]$GetCred)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ($SubNet) {
@@ -805,42 +805,41 @@ else {
   write-ib1log "Récupération des informations sur le réseau local" -DebugLog
   $ipConfiguration=(Get-NetIPConfiguration|where {$_.NetAdapter.Status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*hyper-v*'})
   if (($ipConfiguration.count -gt 1) -or ($ipConfiguration.count -eq 0)) {write-ib1log "Le paramètre -SubNet peut être omis si une et une seule carte réseau locale est connectée au réseau" -ErrorLog}
-  $ipAddress=($ipConfiguration|Get-NetIPAddress -AddressFamily ipv4).IPAddress.split('.')
-  $localip=$ipAddress[3]
-  $Gateway=$ipConfiguration.ipv4defaultgateway.nexthop.split('.')[3]
-  $subNet=$ipAddress[0]+'.'+$ipAddress[1]+'.'+$ipAddress[2]}
+  $ipAddress=($ipConfiguration|Get-NetIPAddress -AddressFamily ipv4).IPAddress
+  $Gateway=$ipConfiguration.ipv4defaultgateway.nexthop
+  $subNet=$ipAddress.split('.')[0]+'.'+$ipAddress.split('.')[1]+'.'+$ipAddress.split('.')[2]}
 if ($GetCred) {
   $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
   if (-not $cred) {
     write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
     break}}
+$computers=get-ib1NetComputers $SubNet
+if ($GateWay) {$computers.remove($GateWay)}
+if ($NoLocal) {$computers.remove($ipAddress)}
+if ($computers.count -eq 0) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
 write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-Enable-PSRemoting -Force >>$null
+$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
-Restart-Service winrm -Force
-$computers=get-ib1NetComputers $SubNet
-$computers[$GateWay]=$false
-if ($NoLocal) {$computers[$localip]=$false}
-if (($computers|Group|Where name -eq true).count -lt 1) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
-for ($index=1;$index -lt 255;$index++) {
-  if ($computers[$index]) {
-    $commandNoError=$true
-    try {
-      if ($GetCred) {$commandOPut=(invoke-command -ComputerName "$SubNet.$index" -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred -ErrorAction Stop)}
-      else {$commandOut=(invoke-command -ComputerName "$SubNet.$index" -ScriptBlock ([scriptBlock]::create($command)) -ErrorAction Stop)}}
-    catch {
-     $commandNoError=$false
-     if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -ilike '*Accès refusé*') {write-ib1log "[$subNet.$index] Accès refusé." -colorLog Red}
-     else {
-       write-ib1log "[$SubNet.$index] Erreur:" -colorLog Red
-       Add-Content -Path $logFile $_.Exception.message
-       $_.Exception.message}}
+Enable-PSRemoting -Force|Out-Null
+foreach ($computer in $computers.Keys) {
+  $commandNoError=$true
+  try {
+    if ($GetCred) {$commandOPut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred -ErrorAction Stop)}
+    else {$commandOut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -ErrorAction Stop)}}
+  catch {
+   $commandNoError=$false
+   if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -ilike '*Accès refusé*') {write-ib1log "[$computer] Accès refusé." -colorLog Red}
+   else {
+     write-ib1log "[$computer] Erreur:" -colorLog Red
+     Add-Content -Path $logFile $_.Exception.message
+     $_.Exception.message}}
   if ($commandNoError) {
-    write-ib1log "[$SubNet.$index] Résultat de la commande:" -colorLog Green
+    write-ib1log "[$computer] Résultat de la commande:" -colorLog Green
     Add-Content -Path $logFile $commandOut
-    $commandOut}}}}}
+    $commandOut}}
+Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}}
   
 function complete-ib1Install{
 <#
@@ -861,13 +860,11 @@ get-ib1elevated $true
 compare-ib1PSVersion "4.0"
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
-Enable-PSRemoting -Force|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Option de confiance pour accepter les commandes de toutes machines."
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
-write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Redémarrage du service WinRM"
-Restart-Service winrm -Force
+write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
+Enable-PSRemoting -Force|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM"
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
   if (Get-HNSNetwork|Where-Object id -eq $defaultSwitchId) {
@@ -898,11 +895,11 @@ if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {
   write-ib1log "Supression de l'ancienne tâche ibInit" -DebugLog
   Get-ScheduledTask -TaskName 'Lancement ibInit'|unregister-scheduledTask -confirm:0}
 $moduleVersion=(get-Module -ListAvailable -Name ib1|sort-object|select-object -last 1).version.tostring()
-$PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& set-executionpolicy bypass -force; $secondsToWait=5; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force}"'
+$PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& set-executionpolicy bypass -force; $secondsToWait=10; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private"'
 $PSTask2= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
 write-ib1log "Création de la tâche de mise à jour du module et de lancement de ibInit.ps1" -DebugLog
 $trigger=New-ScheduledTaskTrigger -AtStartup
-Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest
+Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log 'Création des raccourcis sur le bureau' -DebugLog
 new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Questionnaire mi-parcours'
@@ -917,10 +914,10 @@ if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
   New-SmbShare partage -Path c:\partage}
 write-ib1log 'Activation de la connexion et des règles firewall pour RDP' -DebugLog
 set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminal Server' -name 'fDenyTSConnections' -Value 0
-Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction 0
-Enable-netFirewallRule -DisplayGroup 'File and Printer Sharing' -erroraction 0
-Enable-netFirewallRule -DisplayGroup "Partage de fichiers et d'imprimantes" -erroraction 0
-Enable-netFirewallRule -DisplayGroup 'Bureau à distance' -erroraction 0
+Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Enable-netFirewallRule -DisplayGroup 'File and Printer Sharing' -erroraction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Enable-netFirewallRule -DisplayGroup "Partage de fichiers et d'imprimantes" -erroraction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Enable-netFirewallRule -DisplayGroup 'Bureau à distance' -erroraction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
 set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
 write-ib1log 'Changement du mot de passe utilisateur' -DebugLog
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
@@ -983,5 +980,5 @@ if ((-not (Get-WmiObject -Class win32_product|where name -like '*chrome*')) -or 
 Set-Alias ibreset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, test-ib1PSDirect
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

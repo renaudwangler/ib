@@ -12,14 +12,14 @@ $logStart=$true
 function write-ib1log {
 [CmdletBinding(DefaultParameterSetName='TextLog')]
 param([string]$TextLog,[switch]$ErrorLog=$false,[switch]$DebugLog=$false,[switch]$warningLog=$false,[string]$colorLog='white',[string]$progressTitleLog='')
-$horodate=get-date -Format "[%d/%M/%y-%H:%m] "
+$horodate=get-date -Format "[%d/%M/%y-%H:mm] "
 if ($logStart) {
   Set-Variable -Name logStart -Value $false -Scope 1
   $launchCommand=(Get-PSCallStack|Where-Object command -INotLike "*<scriptblock>*"|Sort-Object)[0]
   if (Get-ChildItem -path $logFile -ErrorAction SilentlyContinue) {
     Add-Content -Path $logFile ''
     Add-Content -Path $logFile '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-'}
-  Add-Content -Path $logFile "$($horodate)Lancement de la commande '$($launchCommand.Command)'"
+  Add-Content -Path $logFile "$($horodate)Lancement de la commande '$($launchCommand.Command)' - Version $((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring())"
   if ($launchCommand.Arguments -inotlike '{}') {
     Add-Content -Path $logFile "    Arguments: $($launchCommand.Arguments)"}}
 if ($ErrorLog) {
@@ -48,7 +48,7 @@ param([string]$TextNotes,[string]$VMName,[switch]$clear=$false)
 if ($clear) {
   Get-VM|foreach {Set-VM $_ -Notes ''}
   write-ib1log "Les Notes des VMs ont été nettoyées." -DebugLog}
-$TextNotes=(get-date -Format "[%d/%M/%y-%H:%m-V")+(get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring()+']'+$TextNotes
+$TextNotes=(get-date -Format "[%d/%M/%y-%H:mm-V")+(get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring()+']'+$TextNotes
 Get-VM -VMName *$VMName* -ErrorAction SilentlyContinue|ForEach-Object {
   if ($_.Notes -ne '') {Set-VM $_ -Notes "$($_.Notes)`n$TextNotes" -ErrorAction SilentlyContinue}
   else {Set-VM $_ -Notes $TextNotes -ErrorAction SilentlyContinue}}}
@@ -275,8 +275,9 @@ bcdedit /timeout 30|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log "Installation du module ib1 dans le disque monté." -DebugLog
 New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1" -ErrorAction SilentlyContinue|Out-Null
 New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)" -ErrorAction SilentlyContinue|Out-Null
-Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\v1.0\Modules\ib1\$(get-ib1Version)\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
 $module=get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1
+Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\v1.0\Modules\ib1\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
 if ($restart) {
   write-ib1log "Redémarrage de la machine en fin d'opération." -DebugLog
   Restart-Computer}}}
@@ -464,7 +465,7 @@ PARAM(
 [string]$externalNetworkname='External Network')
 get-ib1elevated $true
 compare-ib1PSVersion "4.0"
-write-ib1log "La commande connect-ib1VMNet ne dervait plus être utile avec le vSwitch ibNat et sera bientôt supprimée." -warningLog
+write-ib1log "La commande connect-ib1VMNet ne devrait plus être utile avec le vSwitch ibNat et sera bientôt supprimée." -warningLog
 $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp|Get-NetAdapter
 if ($extNic.PhysicalMediaType -eq "Unspecified") {
   if ((Get-VMSwitch $externalNetworkname  -switchtype External -ErrorAction SilentlyContinue).NetAdapterInterfaceDescription -eq (Get-NetAdapter -Physical|where-object status -eq up).InterfaceDescription) {
@@ -826,7 +827,7 @@ Enable-PSRemoting -Force|Out-Null
 foreach ($computer in $computers.Keys) {
   $commandNoError=$true
   try {
-    if ($GetCred) {$commandOPut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred -ErrorAction Stop)}
+    if ($GetCred) {$commandOut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred -ErrorAction Stop)}
     else {$commandOut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -ErrorAction Stop)}}
   catch {
    $commandNoError=$false
@@ -836,9 +837,11 @@ foreach ($computer in $computers.Keys) {
      Add-Content -Path $logFile $_.Exception.message
      $_.Exception.message}}
   if ($commandNoError) {
-    write-ib1log "[$computer] Résultat de la commande:" -colorLog Green
-    Add-Content -Path $logFile $commandOut
-    $commandOut}}
+    if ($commandOut) {
+      write-ib1log "[$computer] Résultat de la commande:" -colorLog Green
+      Add-Content -Path $logFile $commandOut
+      $commandOut}
+    else {write-ib1log "[$computer] Commande executée." -colorLog Green}}}
 Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}}
   
 function complete-ib1Install{
@@ -974,11 +977,38 @@ if ((-not (Get-WmiObject -Class win32_product|where name -like '*chrome*')) -or 
   (new-object System.Net.WebClient).DownloadFile($chromeDL,"$env:TEMP\$ChromeMSI")
   & "$env:TEMP\$ChromeMSI"}}}
 
+function stop-ib1ClassRoom {
+<#
+.SYNOPSIS
+Cette commande permet d'arrêter toutes les machines du réseau local, en terminant par la machine sur laquelle est lançée la commande
+.PARAMETER Subnet
+Adresse de sous-réseau (si absent, le réseau local sera utilisé)
+Nota: Si ce parmaètre est renseigné, la machine locale ne sera pas stoppée en fin d'action.
+.PARAMETER Gateway
+Ce paramètre permet de spécifier l'adresse de la passerelle par défaut du réseau choisi sur laquelle la commande ne sera pas executée
+Ce paramètre n'est utile qu'en complément du paramètre -SubNet
+.PARAMETER GetCred
+Si ce switch n'est pas spécifié, l'identité de l'utilisateur actuellement connecté sera utilisé pour stopper les machines.
+#>
+param(
+[string]$Subnet,
+[switch]$GetCred)
+begin {get-ib1elevated $true;compare-ib1PSVersion "4.0"}
+process {
+if ($Subnet) {
+  if ($GetCred) {invoke-ib1NetCommand -Command 'stop-Computer -Force' -SubNet $Subnet -GateWay $GateWay -GetCred}
+  else {invoke-ib1NetCommand 'Stop-Computer -Force' -SubNet $Subnet -GateWay $GateWay}}
+else {
+  if ($GetCred) {invoke-ib1NetCommand -Command 'stop-Computer -Force' -NoLocal -GetCred}
+  else {invoke-ib1NetCommand 'Stop-Computer -Force' -NoLocal}
+  write-ib1log "Arrêt de la machine locale." -DebugLog
+  Stop-Computer -Force}}}
+
 #######################
 #  Gestion du module  #
 #######################
-Set-Alias ibreset reset-ib1VM
+Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

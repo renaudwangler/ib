@@ -1,3 +1,8 @@
+﻿**Version 1.4.2:**
+- Nouvelle commande "stop-ib1ClassRoom" pour arrêter toutes les machines du réseau local.
+- Correction de l'insertion du module ib1 dans le disque virtuel lors de la commande "mount-ib1VHDBoot" pour compatibilité versions < w10/2016.
+- Ajout de la version du module dans le log de lancement
+
 **Version 1.4.1:**
 - Remplacement des ">>$null" par des "|out-null"
 - Suppression des valeurs "$false" par défaut pour les paramètres de type "switch"

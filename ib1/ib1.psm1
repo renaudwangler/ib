@@ -275,9 +275,16 @@ bcdedit /timeout 30|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log "Installation du module ib1 dans le disque monté." -DebugLog
 New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1" -ErrorAction SilentlyContinue|Out-Null
 New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)" -ErrorAction SilentlyContinue|Out-Null
-Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\v1.0\Modules\ib1\$(get-ib1Version)\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
 $module=get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1
-Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\v1.0\Modules\ib1\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+write-ib1log "Montage du registre 'Software' du VHD" -DebugLog
+reg load HKLM\ib-offline $dLetter\Windows\System32\config\SOFTWARE
+New-PSDrive -Name "ib-offline" -PSProvider Registry -Root HKLM\ib-offline
+write-ib1log "Création de l'entrée de registre 'Run' pour la configuration WinRm" -DebugLog
+New-ItemProperty -Path ib-offline:\Microsoft\Windows\CurrentVersion\Run -Name ibInit -Value 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -command "& set-executionpolicy bypass -force;enable-psremoting --SkipNetworkProfileCheck -Force"' -PropertyType string
+Remove-PSDrive "ib-offline"
+reg unload HKLM\ib-offline
 if ($restart) {
   write-ib1log "Redémarrage de la machine en fin d'opération." -DebugLog
   Restart-Computer}}}
@@ -863,7 +870,7 @@ get-ib1elevated $true
 compare-ib1PSVersion "4.0"
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Option de confiance pour accepter les commandes de toutes machines."
+write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Option de confiance pour toutes machines."
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."

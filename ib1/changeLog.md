@@ -1,4 +1,17 @@
-﻿**Version 1.4.3:**
+﻿**Version 1.5.2:**
+ - Correction installation lecteur Skillpipe
+ - Correction commande 'new-ib1Nat' pour switch existant non interne.
+
+**Version 1.5:**
+ - Nouvelle commande 'new-ib1Nat' pour créer/configurer le réseau NAT
+
+**Version 1.4.4:**
+ - Correction du paramètre '-First' de la commande 'start-ib1SavedVMs' pour filtrer le cas de plusieurs VM aux noms correspondant.
+ - Ajout de changement de registre pour la commande 'switch-ib1VMfr'.
+ - Suppression de la déclaration des 'TrustedHosts' pour la commande 'complete-ib1Setup'
+ - Désactivation des services BITS et DoSVC dans la commande 'complete-ib1Setup'
+
+**Version 1.4.3:**
 - Correction du chemin du module ib1 pour "mount-ib1VHDBoot"
 - Ajout d'une clef de registre "Run" dans "mount-ib1VHDBoot"
 

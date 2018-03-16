@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.4.3'
+ModuleVersion = '1.5.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -75,7 +75,7 @@ FunctionsToExport = 'install-ib1Chrome', 'complete-ib1Install', 'invoke-ib1NetCo
                'connect-ib1VMNet', 'set-ib1TSSecondScreen', 
                'import-ib1TrustedCertificate', 'set-ib1VMCheckpointType', 
                'repair-ib1VMNetwork', 'Copy-ib1VM', 'start-ib1SavedVMs', 'get-ib1Log', 
-               'get-ib1Version', 'stop-ib1ClassRoom'
+               'get-ib1Version', 'stop-ib1ClassRoom', 'new-ib1Nat'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

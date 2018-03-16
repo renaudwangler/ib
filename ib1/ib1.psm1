@@ -6,6 +6,7 @@ $ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5
 $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
 $driverFolder='C:\Dell'
 $logFile="$env:TEMP\ib1.log"
+$skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
 
@@ -133,12 +134,13 @@ if ($ibElevationNeeded) {
 else { return $false}}}
 
 function start-ib1VMWait ($SWVmname) {
-  if ((get-vm $SWVmname).state -inotlike "*running*") {
-    Start-VM $SWVmname
-    while ((get-vm $SWVmname).heartbeat -notlike '*ok*') {
-      write-ib1log -progressTitleLog "Démarrage de $SWVmname" "Attente de signal de démarrage réussi de la VM '$((get-vm $SWVmname).heartbeat)'"
+  if ((get-vm *$SWVmname*).state -inotlike "*running*") {
+    $vm=get-vm *$SWVmname*
+    Start-VM -VM $vm
+    while ((get-vm $vm.name).heartbeat -notlike '*ok*') {
+      write-ib1log -progressTitleLog "Démarrage de $($vm.name)" "Attente de signal de démarrage réussi de la VM."
       start-sleep 2}
-    write-ib1log -progressTitleLog "Démarrage de $SWVmname"}}
+    write-ib1log -progressTitleLog "Démarrage de $($vm.name)"}}
 
 function get-ib1VM ($gVMName) {
   if ($gVMName -eq '') {
@@ -383,7 +385,6 @@ $VMs2switch=get-ib1VM $VMName
 foreach ($VM2switch in $VMs2switch) {
   if ($VM2switch.state -ine 'off') {write-ib1log "La VM $($VM2switch.name) n'est pas éteinte et ne sera pas traitée" -warningLog}
   else {
-    write-ib1log "Changement des paramêtres lingustiques de la VM $($VM2switch.name)" -DebugLog
     write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Montage du disque virtuel."
     if ($VM2switch.generation -eq 1) {
       $vhdPath=($VM2switch|Get-VMHardDiskDrive|where-object {$_.ControllerNumber -eq 0 -and $_.controllerLocation -eq 0 -and $_.controllerType -like 'IDE'}).path}
@@ -422,6 +423,17 @@ foreach ($VM2switch in $VMs2switch) {
         write-ib1log "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -ErrorLog}
       elseif ($LASTEXITCODE -ne 0) {
         write-ib1log "Problème pendant le changemement de langue de la VM '$($VM2switch.name)'. Merci de vérifier!' (Détail éventuel de l'erreur dans le log, utilisez éventuellement les checkpoint pour annuler complètement)." -warningLog}
+      write-ib1log "Plus: Modifications du registre pour le clavier." -DebugLog
+      reg load "HKLM\$($vm2Switch.Name)-DEFAULT" "$($partLetter):\Windows\System32\config\DEFAULT"|Out-Null
+      Remove-ItemProperty -Path "HKLM:\$($vm2Switch.Name)-DEFAULT\Keyboard Layout\Preload" -Name *
+      new-ItemProperty -path "HKLM:\$($vm2Switch.Name)-DEFAULT\Keyboard Layout\Preload" -Name 1 -Value '0000040c'|Add-Content -Path $logFile -Encoding UTF8
+      reg load "HKLM\$($vm2Switch.Name)-SYSTEM" "$($partLetter):\Windows\System32\config\SYSTEM"|Out-Null
+      Get-ChildItem "HKLM:\$($vm2Switch.Name)-SYSTEM\ControlSet001\Control\Keyboard Layouts"|where-object {$_.name -INotLike '*0000040c*'}|Remove-Item
+      [gc]::collect()
+      Start-Sleep 1
+      [gc]::collect()
+      reg unload "HKLM\$($vm2Switch.Name)-DEFAULT"|Out-Null
+      reg unload "HKLM\$($vm2Switch.Name)-SYSTEM"|Out-Null
       write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Démontage du disque."
       dismount-vhd $vhdpath
       if ($oldSignature -ne 0) {
@@ -711,7 +723,10 @@ PARAM(
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ($FirstRepairNet -and $First -eq $null) {write-ib1log "Le paramètre '-FirstRepairNet' ne peut être passé sans le paramètre '-First'" -ErrorLog}
-if ($First -ne '') {$FirstVM2start=get-ib1VM $First}
+if ($First -ne '') {
+  $FirstVM2start=get-vm -Name *$First* -ErrorAction SilentlyContinue|where state -ilike 'saved'
+  if ($FirstVM2start.count -gt 1) {write-ib1log "iL y a $($FirstVM2start.count) VMs qui correspondent au nom '$First'" -ErrorLog}
+  elseif ($FirstVM2start.count -eq 0) {write-ib1log "iL y n'y a aucune VM enregistrée qui corresponde au nom '$First'" -ErrorLog}}
 if ($DontRevert -eq $false) {
   write-ib1log "Rétablissement des VMs avant démarrage" -DebugLog
   reset-ib1VM}
@@ -870,28 +885,14 @@ get-ib1elevated $true
 compare-ib1PSVersion "4.0"
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Option de confiance pour toutes machines."
-Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
+#write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Option de confiance pour toutes machines."
+#Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
 Enable-PSRemoting -Force|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM"
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
-  if (Get-HNSNetwork|Where-Object id -eq $defaultSwitchId) {
-    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" 'Suppression du réseau virtuel par défaut'
-    Get-HNSNetwork|Where-Object id -eq $defaultSwitchId|Remove-HNSNetwork}
-  if (get-VMSwitch|where-object {$_.name -like '*ibNat*'}) {
-    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Création du vSwitch 'ibNat'"
-    $ibNat=get-VMSwitch|where-object {$_.name -like '*ibNat*'}}
-  else {
-    $ibNat=New-VMSwitch -SwitchName 'ibNat' -switchType Internal}
-  write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Configuration du vSwitch 'ibNat'"
-  $ibNatAdapter=(get-NetAdapter|where-object {$_.name -like '*ibNat*'}).ifIndex
-  remove-NetIpAddress -IPAddress $GatewayIP -confirm:0 -ErrorAction 0
-  remove-NetNat -confirm:0 -ErrorAction 0
-  Start-Sleep 10
-  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter
-  new-NetNat -name ibNat -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"
+  new-ib1Nat
   if ((get-VMHost).EnableEnhancedSessionMode) {
     write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Désactivation de la stratégie de session avançée d'Hyper-V."
     Set-VMHost -EnableEnhancedSessionMode $false}
@@ -932,8 +933,7 @@ set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\W
 write-ib1log 'Changement du mot de passe utilisateur' -DebugLog
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
 write-ib1log 'Désactivation des mises à jour automatiques' -DebugLog
-get-service *wuauserv*|Stop-Service
-Get-Service *wuauserv*|Set-Service -StartupType Disabled
+@('wuauserv','BITS','DoSvc')|foreach {Get-Service *$_*|stop-service; Get-Service *$_*|set-service -StartupType disabled -Status Stopped}
 write-ib1log "Configuration des options d'alimentation" -DebugLog
 powercfg /hibernate off
 powercfg /SETACTIVE SCHEME_BALANCED
@@ -943,20 +943,20 @@ powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
 powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
 if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
   write-ib1log -progressTitleLog "Installation Skillpipe" "Test du fichier d'installation."
-  $CheckFileRequest=[System.Net.WebRequest]::Create('https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exes')
+  $CheckFileRequest=[System.Net.WebRequest]::Create($skillpipeUrl)
   $CheckFileResponse=$CheckFileRequest.GetResponse()
   $CheckFileStatus=[int]$CheckFileResponse.StatusCode
   If ([int]$CheckFileResponse.StatusCode -eq 200) {
     $CheckFileResponse.Close()
     md $env:Public\Downloads\skillpipe
     write-ib1log -progressTitleLog "Installation Skillpipe" "Téléchargement du fichier d'installation."
-    Invoke-WebRequest -Uri https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe -OutFile $env:Public\desktop\SkillpipeReaderSetup.exe
+    Invoke-WebRequest -Uri $skillpipeUrl -OutFile $env:Public\desktop\SkillpipeReaderSetup.exe
     write-ib1log -progressTitleLog "Installation Skillpipe" "Extraction de SkillPipeReaderSetup.exe"
     start-process $env:Public\desktop\skillpipeReaderSetup.exe /extract:$env:Public\Downloads\skillpipe -wait
     write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation de Visual C++"
     Start-Process $env:Public\Downloads\skillpipe\vcredist_x86.exe /passive -Wait
     write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation MSI du lecteur Skillpipe."
-    start-process $env:windir\system32\msiexec.exe "/package $env:Public\Downloads\skillpipe\Clients.WPFSetup.msi /quiet" -wait
+    start-process $env:Public\desktop\skillpipeReaderSetup.exe -argumentList '/qn' -wait
     write-ib1log -progressTitleLog "Installation Skillpipe"}
   else {
     write-ib1log "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible" -warningLog
@@ -966,6 +966,54 @@ if (-not(Get-Childitem -Path "$env:Public\desktop\présentation stagiaire*")) {
   invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/Presentation.ppsx -OutFile "$env:Public\desktop\Présentation Stagiaire.ppsx"}
 write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
 install-ib1Chrome}
+
+function new-ib1Nat{
+<#
+.SYNOPSIS
+Cette commande permet de créer/paramètrer le réseau NAT d'un hyper-v 2016/windows 10
+.PARAMETER Name
+Nom du switch virtuel utilisé. si non spécifié, un switch virtuel nommé 'ibNat' sera créé.
+Si un vSwitch existant est mentionné, il sera relié au nat, si un vSwitch portant ce nom existe déja il sera lié au réseau Nat.
+.PARAMETER GatewayIP
+Adresse IP de la passerelle par défaut (pour le switch virtuel NAT). Valeur par défaut : 172.16.0.1
+.PARAMETER GatewaySubnet
+Adresse de sous-réseau pour le sous-réseau local du NAT. Valeur par défaut : 172.16.0.0/24
+.PARAMETER GatewayMask
+Longeur du masque de sous-réseau de la passerelle pour le NAT. valeur par défaut : 24
+#>
+param(
+[string]$Name='ibNat',
+[string]$GatewayIP='172.16.0.1',
+[string]$GatewaySubnet='172.16.0.0',
+[string]$GatewayMask=24)
+begin {
+  get-ib1elevated $true
+  compare-ib1PSVersion "5.0"}
+process {
+if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
+  if (Get-HNSNetwork|Where-Object id -eq $defaultSwitchId) {
+    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" 'Suppression du réseau virtuel nat par défaut'
+    Get-HNSNetwork|Where-Object id -eq $defaultSwitchId|Remove-HNSNetwork}
+  if (get-VMSwitch|where-object {$_.name -like "*$Name*"}) {
+    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Récupération du vSwitch '$Name'"
+    $ibNat=get-VMSwitch|where-object {$_.name -like "*$name*"}
+    if ($ibNat.SwitchType -inotlike 'internal') {
+      write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Passage du Switch '$($ibNat.Name)' en Interne."
+      Set-VMSwitch -VMSwitch $ibNat -SwitchType Internal}}
+  else {
+    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Création du vSwitch '$Name'"
+    $ibNat=New-VMSwitch -SwitchName $Name -switchType Internal|Add-Content -Path $logFile -Encoding UTF8
+    $ibNat=get-VMSwitch|where-object {$_.name -like "*$name*"}}
+  write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Configuration du vSwitch '$($ibNat.name)'"
+  $ibNatAdapter=(get-NetAdapter|where-object {$_.name -ilike "*$($ibNat.name)*"}).ifIndex
+  remove-NetIpAddress -IPAddress $GatewayIP -confirm:0 -ErrorAction 0
+  remove-NetNat -confirm:0 -ErrorAction 0
+  Start-Sleep 10
+  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter|Add-Content -Path $logFile -Encoding UTF8
+  new-NetNat -name $ibNat.name -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"|Add-Content -Path $logFile -Encoding UTF8
+  write-ib1log -progressTitleLog "Paramètrage de Hyper-V"}
+else {write-ib1log "La fonctionnalité Hyper-V n'est pas installée, merci de vérifier !" -ErrorLog}}}
+
 
 function install-ib1Chrome {
 <#
@@ -1017,5 +1065,5 @@ else {
 Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

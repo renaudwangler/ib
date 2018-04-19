@@ -71,7 +71,7 @@ param(
 process{
   $TPDVM=Get-VM -VMName *$VMName* -ErrorAction SilentlyContinue|Where-Object state -ILike *running*
   if ($TPDVM.count -ne 1) {
-    write-ib1log 'Impossible de trouver une et une seule VM allumée correspondant au nom '$VMName'.' -warningLog
+    write-ib1log "Impossible de trouver une et une seule VM allumée correspondant au nom '$VMName'." -warningLog
     return $false}
   else {
     if ($TPDVM.Version -lt 8) {
@@ -81,7 +81,21 @@ process{
     return $true}}}
 
 function get-ib1NetComputers {
-param([string]$subNet)
+param([string]$subNet,[bool]$Nolocal=$false)
+if ($SubNet -and $SubNet -ne '') {
+  echo "valeur de subnet '$subnet'"
+  if ($NoLocal) {write-ib1log "Le paramètre -NoLocal n'est pas compatible avec le paramètre -SubNet." -ErrorLog}
+  if ($SubNet.Split('.') -lt 0 -or $SubNet.Split('.') -gt 255 -or $SubNet.split('.').Count -ne 3) {write-ib1log "La syntaxe du paramètre -SubNet ne semble pas correcte: merci de vérifier !" -ErrorLog}}
+else {
+  write-ib1log "Récupération des informations sur le réseau local" -DebugLog
+  $ipConfiguration=(Get-NetIPConfiguration|where {$_.NetAdapter.Status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*hyper-v*'})
+  if ($ipConfiguration.count -eq 0) {
+    $ipConfiguration=(Get-NetIPConfiguration|where {$_.NetAdapter.Status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*'})}
+  if (($ipConfiguration.count -gt 1) -or ($ipConfiguration.count -eq 0)) {
+    write-ib1log "Le paramètre -SubNet peut être omis si une et une seule carte réseau locale est connectée au réseau" -ErrorLog}
+  $ipAddress=($ipConfiguration|Get-NetIPAddress -AddressFamily ipv4).IPAddress
+  $Gateway=$ipConfiguration.ipv4defaultgateway.nexthop
+  $subNet=$ipAddress.split('.')[0]+'.'+$ipAddress.split('.')[1]+'.'+$ipAddress.split('.')[2]}
   $netComputers=[ordered]@{}
   [System.Collections.ArrayList]$pingJobs=@()
   write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24" "Lancement des jobs..."
@@ -142,15 +156,17 @@ function start-ib1VMWait ($SWVmname) {
       start-sleep 2}
     write-ib1log -progressTitleLog "Démarrage de $($vm.name)"}}
 
-function get-ib1VM ($gVMName) {
-  if ($gVMName -eq '') {
+function get-ib1VM {
+param([string]$VMName,[bool]$exactVMName=$false)
+  if ($VMName -eq '') {
   try { $gResult=Get-VM -ErrorAction stop }
   catch {
     write-ib1log "Impossible de trouver des machines virtuelles sur ce Windows." -ErrorLog}}
   else {
-  try { $gResult=Get-VM -VMName *$gVMName* -ErrorAction stop }
-  catch {
-  write-ib1log "Impossible de trouver une machine virtuelle '$gVMName'." -ErrorLog}}
+    if (!($exactVMName)) {$VMName="*$VMName*"}
+    try { $gResult=Get-VM -VMName $VMName -ErrorAction stop }
+    catch {
+    write-ib1log "Impossible de trouver une machine virtuelle '$VMName'." -ErrorLog}}
   return $gResult}
 
 function set-ib1VMCheckpointType {
@@ -160,6 +176,8 @@ Cette commande permet de modifier le type de checkpoint sur les VMs pour le pass
 (pratique pour les environnement ou l'on souhaite (re)démarrer des VMs dans un était précis -enregistrées- )
 .PARAMETER VMName
 Nom de la VMs à modifier. si ce parametre est omis toutes les VMs qui sont en checkpoint "Production" seront passées en "standard".
+.PARAMETER exactVMName
+Permet de spécifier que le nom de la VM fourni est précisément le nom de la VM à traiter.
 .EXAMPLE
 set-ib1VMCheckpointType -VMName 'lon-dc1'
 Modifie le type de checkpoint de la VM 'lon-dc1'.
@@ -170,10 +188,11 @@ Modifie le type de checkpoints pour toutes les VMs trouvées sur l'hyperviseur.
 [CmdletBinding(
 DefaultParameterSetName='VMName')]
 PARAM(
-[string]$VMName)
+[string]$VMName,
+[switch]$exactVMName)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
-$VMs2Set=get-ib1VM $VMName
+$VMs2Set=get-ib1VM -VMName $VMName -exactVMName $exactVMName
 foreach ($VM2Set in $VMs2Set) {
   if ($VM2Set.checkpointType -ilike '*standard*') {write-ib1log "Les checkpoints de la VM '$($VM2Set.vmName)' sont déja en mode standard." -warningLog}
   else {
@@ -191,6 +210,8 @@ Nom de la VMs à  retablir. si ce parametre est omis toutes les VMs seront rét
 N'arrete pas les VMs allumées avant de les rétablir
 .PARAMETER poweroff
 Eteind la machine hôte après avoir rétabli toutes les VMs.
+.PARAMETER exactVMName
+Permet de spécifier que le nom de la VM fourni est précisément le nom de la VM à traiter.
 .EXAMPLE
 reset-ib1VM -VMName 'lon-dc1'
 Rétablit la VM 'lon-dc1' à son dernier point de controle.
@@ -203,10 +224,11 @@ DefaultParameterSetName='keepVMUp')]
 PARAM(
 [switch]$keepVMUp=$false,
 [string]$VMName,
-[switch]$powerOff=$false)
+[switch]$powerOff=$false,
+[switch]$exactVMName)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
-$VMs2Reset=get-ib1VM $VMName
+$VMs2Reset=get-ib1VM -VMName $VMName -exactVMName $exactVMName
 foreach ($VM2reset in $VMs2Reset) {
   if ($snapshot=Get-VMSnapshot -VMName $VM2reset.vmname|sort-object creationtime|select-object -last 1 -ErrorAction SilentlyContinue) {
     if (-not $keepVMUp -and $VM2reset.state -ieq 'running') {
@@ -328,6 +350,8 @@ Cette commande permet de changer le clavier d'une marchine virtuelle en Francais
 (Ne fonctionne que sur les VMs éteintes au moment ou la commande est lancée)
 .PARAMETER VMName
 Nom de la VM sur laquelle agir (agit sur toutes les VMs si paramètre non spécifié)
+.PARAMETER exactVMName
+Permet de spécifier que le nom de la VM fourni est précisément le nom de la VM à traiter.
 .PARAMETER VHDFile
 Nom du fichier VHD de disque Virtuel sur lequel agir (permet de changer la langue même si le VHD n'est pas monté dans une VM)
 .PARAMETER Checkpoint
@@ -342,7 +366,8 @@ PARAM(
 [string]$VMName='',
 [string]$VHDFile='',
 [switch]$noCheckpoint=$true,
-[switch]$Checkpoint=$false)
+[switch]$Checkpoint=$false,
+[switch]$exactVMName)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ($noCheckpoint -eq $false) {write-ib1log "Le paramètre -noCheckpoint est obsolète, merci de consulter l'aide en ligne (get-help)" -ErrorLog}
@@ -381,7 +406,7 @@ if ($VHDFile -ne '') {
   mount-vhd -Path $VHDFile -Passthru|Get-Disk|Set-Disk -Signature $oldSignature
   dismount-vhd $VHDFile}
   break}
-$VMs2switch=get-ib1VM $VMName
+$VMs2switch=get-ib1VM -VMName $VMName -exactVMName $exactVMName
 foreach ($VM2switch in $VMs2switch) {
   if ($VM2switch.state -ine 'off') {write-ib1log "La VM $($VM2switch.name) n'est pas éteinte et ne sera pas traitée" -warningLog}
   else {
@@ -574,6 +599,8 @@ Cette commande permet de copier une machine virtuelle existante en en créant un
 (Ne fonctionne que sur les VMs éteintes au moment ou la commande est lancée)
 .PARAMETER VMName
 Nom de la VM à copier (agit sur toutes les VMs si paramêtre non spécifié)
+.PARAMETER exactVMName
+Permet de spécifier que le nom de la VM fourni est précisément le nom de la VM à traiter.
 .PARAMETER VMsuffix
 suffixe à rajouter après le nom de la VM résultat (sera séparé du nom de la VM par un tiret "-")
 .PARAMETER VMprefix
@@ -590,12 +617,13 @@ PARAM(
 [string]$VMName='',
 [string]$VMsuffix='',
 [string]$VMprefix='',
-[switch]$noCheckpoint=$false)
+[switch]$noCheckpoint=$false,
+[switch]$exactVMName)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"; if ($VMsuffix -eq '' -and $VMprefix -eq '') {write-ib1log "Attention, commande nécessitant soit un préfixe, soit un suffixe pour le nom de la VM clonée." -ErrorLog}}
 process {
 if ($VMsuffix -ne '') {$VMsuffix="-$VMsuffix"}
 if ($VMprefix -ne '') {$VMprefix="-$VMprefix"}
-$VMs2copy=get-ib1VM $VMName
+$VMs2copy=get-ib1VM -VMName $VMName -exactVMName $exactVMName
 foreach ($VM2copy in $VMs2copy) {
   if ($VM2copy.state -ine 'off') {write-ib1log "La VM $($VM2copy.name) n'est pas éteinte et ne sera pas traitée" -warningLog}
   else {
@@ -661,6 +689,8 @@ Cette commande est particulièrement utile sur un DC première machine virtuelle
 Prérequis : cette commande utilise du Powershell Direct et ne fonctionne que si la VM est en version 8/2012 au minimum.
 .PARAMETER VMName
 Nom de la VMs à vérifier (si ce paramètre est omis, toutes les VMs allumées seront vérifiées - Attention à l'ordre).
+.PARAMETER exactVMName
+Permet de spécifier que le nom de la VM fourni est précisément le nom de la VM à traiter.
 .PARAMETER userName
 Nom d'utilisateur (sous la forme 'Domain\user' si nécessaire).
 .PARAMETER userPass
@@ -675,10 +705,11 @@ PARAM(
 [string]$VMName,
 [parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Nom de connexion de l'administrateur de la VM.")]
 [string]$userName,
-[string]$userPass='')
+[string]$userPass='',
+[switch]$exactVMName)
 begin{get-ib1elevated $true; compare-ib1PSVersion "5.0"}
 process {
-$VMs2Repair=get-ib1VM $VMName
+$VMs2Repair=get-ib1VM -VMName $VMName -exactVMName $exactVMName
 if ($userPass -eq '') {$userPass2=read-host "Mot de passe de '$userName'" -AsSecureString} else {$userPass2=ConvertTo-SecureString $userPass -AsPlainText -Force}
 $cred=New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName,$userPass2
 foreach ($VM2repair in $VMs2Repair) {
@@ -790,6 +821,59 @@ if ($icon -ne '') {$shortcut.IconLocation=$Icon}
 write-ib1log "Création du raccourci." -DebugLog
 $shortcut.save()}}
 
+function invoke-ib1Clean {
+<#
+.SYNOPSIS
+Cette commande permet de lancer le nettoyage de toutes les machines du réseau local
+.PARAMETER Delay
+Ancienneté (en jours, 7 par défaut) maximum des éléments qui seront supprimés lors du nettoyage
+.PARAMETER SubNet
+Ce paramètre permet de spécifier (sous la forme X.Y.Z) le sous-réseau sur lequel lancer le nettoyage.
+Par défaut, le sous-réseau local connecté à la machine est utilisé.
+.PARAMETER GetCred
+Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser pour la connexion WinRM et le nettoyage
+S'il est omis, les identifiants de l'utilisateur connecté localement seront utilisés.
+.EXAMPLE
+invoke-ib1Clean
+Supprime les élents plus anciens que 7 jours des machines du réseau local.
+#>
+[CmdletBinding(DefaultParameterSetName='delay')]
+param(
+[int]$Delay=7,
+[string]$SubNet,
+[switch]$GetCred)
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+#$subNet=get-ib1Subnet -subnet $SubNet
+if ($GetCred) {
+  $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
+  if (-not $cred) {write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
+    break}}
+$computers=get-ib1NetComputers $SubNet
+write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
+Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
+$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
+Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
+Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
+Enable-PSRemoting -Force|Out-Null
+$command='$userDir=(get-item $env:USERPROFILE).parent.FullName;$dirsToClean=@("Desktop","Documents","Downloads");$userSubDirs=Get-ChildItem $userDir;foreach ($userSubDir in $userSubDirs) {foreach ($dirToClean in $dirsToClean) {Get-ChildItem "$userDir\$userSubDir\$dirToClean"|where lastWriteTime -GE (get-date).AddDays(-'+$Delay+')}}'
+foreach ($computer in $computers.Keys) {
+  $commandNoError=$true
+  try {
+    if ($GetCred) {$commandOut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred -ErrorAction Stop)}
+    else {$commandOut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -ErrorAction Stop)}}
+  catch {
+   $commandNoError=$false
+   if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -ilike '*Accès refusé*') {write-ib1log "[$computer] Accès refusé." -colorLog Red}
+   else {
+     write-ib1log "[$computer] Erreur:" -colorLog Red
+     Add-Content -Path $logFile $_.Exception.message
+     $_.Exception.message}}
+  if ($commandNoError) {
+    write-ib1log "[$computer] Machine nettoyée." -colorLog Green}}
+Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}}
+
+
 function invoke-ib1netCommand {
 <#
 .SYNOPSIS
@@ -821,22 +905,13 @@ param(
 [switch]$GetCred)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
-if ($SubNet) {
-  if ($NoLocal) {write-ib1log "Le paramètre -NoLocal n'est pas compatible avec le paramètre -SubNet." -ErrorLog}
-  if ($SubNet.Split('.') -lt 0 -or $SubNet.Split('.') -gt 255 -or $SubNet.split('.').Count -ne 3) {write-ib1log "La syntaxe du paramètre -SubNet ne semble pas correcte: merci de vérifier !" -ErrorLog}}
-else {
-  write-ib1log "Récupération des informations sur le réseau local" -DebugLog
-  $ipConfiguration=(Get-NetIPConfiguration|where {$_.NetAdapter.Status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*hyper-v*'})
-  if (($ipConfiguration.count -gt 1) -or ($ipConfiguration.count -eq 0)) {write-ib1log "Le paramètre -SubNet peut être omis si une et une seule carte réseau locale est connectée au réseau" -ErrorLog}
-  $ipAddress=($ipConfiguration|Get-NetIPAddress -AddressFamily ipv4).IPAddress
-  $Gateway=$ipConfiguration.ipv4defaultgateway.nexthop
-  $subNet=$ipAddress.split('.')[0]+'.'+$ipAddress.split('.')[1]+'.'+$ipAddress.split('.')[2]}
+#$subNet=get-ib1Subnet -subnet $SubNet -nolocal $NoLocal
 if ($GetCred) {
   $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
   if (-not $cred) {
     write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
     break}}
-$computers=get-ib1NetComputers $SubNet
+$computers=get-ib1NetComputers $SubNet -Nolocal $NoLocal
 if ($GateWay) {$computers.remove($GateWay)}
 if ($NoLocal) {$computers.remove($ipAddress)}
 if ($computers.count -eq 0) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
@@ -1014,7 +1089,6 @@ if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).stat
   write-ib1log -progressTitleLog "Paramètrage de Hyper-V"}
 else {write-ib1log "La fonctionnalité Hyper-V n'est pas installée, merci de vérifier !" -ErrorLog}}}
 
-
 function install-ib1Chrome {
 <#
 .SYNOPSIS
@@ -1065,5 +1139,5 @@ else {
 Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

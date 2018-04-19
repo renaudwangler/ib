@@ -1,4 +1,9 @@
-﻿**Version 1.5.2:**
+﻿**Version 1.6:**
+ - Ajout de la commande invoke-ib1Clean
+ - Ajout de l'option -exactVMName pour les commandes set-ib1VMCheckpointType, reset-ib1VM, switch-ib1VMFr, copy-ib1VM, repair-ib1VMNetwork
+ - Prise en compte du cas ou la carte réseau est branchée sur un vSwitch externe pour les commandes -invoke-ib1Command et invoke-ib1Clean
+
+**Version 1.5.2:**
  - Correction installation lecteur Skillpipe
  - Correction commande 'new-ib1Nat' pour switch existant non interne.
 

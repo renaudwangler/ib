@@ -108,6 +108,8 @@ else {
       write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24" "La machine '$($pingResult.Address)' a répondu au ping."
       $netComputers[$pingResult.address]=$true}}
   write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24"
+  if ($NoLocal) {$computers.remove($ipAddress)}
+  if ($computers.count -eq 0) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
   return $netComputers}
 
 function get-ib1Log {
@@ -856,7 +858,7 @@ $saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 Enable-PSRemoting -Force|Out-Null
-$command='$userDir=(get-item $env:USERPROFILE).parent.FullName;$dirsToClean=@("Desktop","Documents","Downloads");$userSubDirs=Get-ChildItem $userDir;foreach ($userSubDir in $userSubDirs) {foreach ($dirToClean in $dirsToClean) {Get-ChildItem "$userDir\$userSubDir\$dirToClean"|where lastWriteTime -GE (get-date).AddDays(-'+$Delay+')}}'
+$command='$userDir=(get-item $env:USERPROFILE).parent.FullName;$dirsToClean=@("Desktop","Documents","Downloads");$userSubDirs=Get-ChildItem $userDir;foreach ($userSubDir in $userSubDirs) {foreach ($dirToClean in $dirsToClean) {Get-ChildItem "$userDir\$userSubDir\$dirToClean"|where lastWriteTime -GE (get-date).AddDays(-'+$Delay+')|remove-item -recurse -force}}'
 foreach ($computer in $computers.Keys) {
   $commandNoError=$true
   try {
@@ -905,7 +907,6 @@ param(
 [switch]$GetCred)
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
-#$subNet=get-ib1Subnet -subnet $SubNet -nolocal $NoLocal
 if ($GetCred) {
   $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
   if (-not $cred) {
@@ -913,8 +914,6 @@ if ($GetCred) {
     break}}
 $computers=get-ib1NetComputers $SubNet -Nolocal $NoLocal
 if ($GateWay) {$computers.remove($GateWay)}
-if ($NoLocal) {$computers.remove($ipAddress)}
-if ($computers.count -eq 0) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
 write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 $saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value

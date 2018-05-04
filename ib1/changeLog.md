@@ -1,4 +1,8 @@
-﻿**Version 1.6.1:**
+﻿**Version 1.6.2:**
+ -Correction de la commande stop-ib1Classroom pour l'extinction de la machine locale en dernier.
+ -Corrections de la commande new-ib1Nat pour tester nom exact du vSwitch (et pas un nom contenant le paramètre passé)
+
+**Version 1.6.1:**
  - Correction de l'option -noLocal de la commande invoke-ib1NetCommand
  - Correction de la commande invoke-ib1Clean pour effectuer la suppression.
 

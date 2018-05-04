@@ -108,7 +108,7 @@ else {
       write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24" "La machine '$($pingResult.Address)' a répondu au ping."
       $netComputers[$pingResult.address]=$true}}
   write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24"
-  if ($NoLocal) {$computers.remove($ipAddress)}
+  if ($NoLocal) {$netComputers.remove($ipAddress)}
   if ($computers.count -eq 0) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
   return $netComputers}
 
@@ -1070,7 +1070,7 @@ if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).stat
     Get-HNSNetwork|Where-Object id -eq $defaultSwitchId|Remove-HNSNetwork}
   if (get-VMSwitch|where-object {$_.name -like "*$Name*"}) {
     write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Récupération du vSwitch '$Name'"
-    $ibNat=get-VMSwitch|where-object {$_.name -like "*$name*"}
+    $ibNat=get-VMSwitch|where-object {$_.name -like $name}
     if ($ibNat.SwitchType -inotlike 'internal') {
       write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Passage du Switch '$($ibNat.Name)' en Interne."
       Set-VMSwitch -VMSwitch $ibNat -SwitchType Internal}}
@@ -1079,7 +1079,7 @@ if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).stat
     $ibNat=New-VMSwitch -SwitchName $Name -switchType Internal|Add-Content -Path $logFile -Encoding UTF8
     $ibNat=get-VMSwitch|where-object {$_.name -like "*$name*"}}
   write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Configuration du vSwitch '$($ibNat.name)'"
-  $ibNatAdapter=(get-NetAdapter|where-object {$_.name -ilike "*$($ibNat.name)*"}).ifIndex
+  $ibNatAdapter=(get-NetAdapter|where-object {$_.name -ilike "*($($ibNat.name))*"}).ifIndex
   remove-NetIpAddress -IPAddress $GatewayIP -confirm:0 -ErrorAction 0
   remove-NetNat -confirm:0 -ErrorAction 0
   Start-Sleep 10

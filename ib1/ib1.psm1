@@ -109,7 +109,7 @@ else {
       $netComputers[$pingResult.address]=$true}}
   write-ib1log -progressTitleLog "Ping du réseau $subNet.0/24"
   if ($NoLocal) {$netComputers.remove($ipAddress)}
-  if ($computers.count -eq 0) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
+  if ($netComputers.count -eq 0) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
   return $netComputers}
 
 function get-ib1Log {
@@ -848,7 +848,7 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 #$subNet=get-ib1Subnet -subnet $SubNet
 if ($GetCred) {
-  $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
+  $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter le nettoyage"
   if (-not $cred) {write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
     break}}
 $computers=get-ib1NetComputers $SubNet
@@ -875,6 +875,55 @@ foreach ($computer in $computers.Keys) {
     write-ib1log "[$computer] Machine nettoyée." -colorLog Green}}
 Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}}
 
+function invoke-ib1Rearm {
+<#
+.SYNOPSIS
+Cette commande permet de lancer le réarmement Windows de toutes les machines du réseau local
+.PARAMETER SubNet
+Ce paramètre permet de spécifier (sous la forme X.Y.Z) le sous-réseau sur lequel lancer le nettoyage.
+Par défaut, le sous-réseau local connecté à la machine est utilisé.
+.PARAMETER GetCred
+Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser pour la connexion WinRM et le nettoyage
+S'il est omis, les identifiants de l'utilisateur connecté localement seront utilisés.
+.EXAMPLE
+invoke-ib1Rearm
+Réarme le système Windows des machines du réseau local, suivi d'un redémarage.
+#>
+param(
+[string]$SubNet,
+[switch]$GetCred)
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+if ($GetCred) {
+  $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter le réarmement"
+  if (-not $cred) {write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
+    break}}
+$computers=get-ib1NetComputers $SubNet -Nolocal $true
+write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
+Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
+$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
+Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
+Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
+Enable-PSRemoting -Force|Out-Null
+$command="$env:windir\system32\slmgr.vbs -rearm"
+foreach ($computer in $computers.Keys) {
+  $commandNoError=$true
+  try {
+    if ($GetCred) {$commandOut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred -ErrorAction Stop)}
+    else {$commandOut=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -ErrorAction Stop)}}
+  catch {
+   $commandNoError=$false
+   if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -ilike '*Accès refusé*') {write-ib1log "[$computer] Accès refusé." -colorLog Red}
+   else {
+     write-ib1log "[$computer] Erreur:" -colorLog Red
+     Add-Content -Path $logFile $_.Exception.message
+     $_.Exception.message}}
+  if ($commandNoError) {
+    if ($GetCred) {invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create('restart-computer')) -Credential $cred}
+    else {invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create('restart-computer -force'))}
+    write-ib1log "[$computer] Machine réarmée, redémarrage en cours." -colorLog Green}}
+write-ib1log "Pensez à réarmer la machine locale si nécessaire..." -warningLog
+Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}}
 
 function invoke-ib1netCommand {
 <#
@@ -1138,5 +1187,5 @@ else {
 Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

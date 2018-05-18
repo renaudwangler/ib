@@ -919,10 +919,12 @@ foreach ($computer in $computers.Keys) {
      Add-Content -Path $logFile $_.Exception.message
      $_.Exception.message}}
   if ($commandNoError) {
-    if ($GetCred) {invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create('restart-computer')) -Credential $cred}
+    if ($GetCred) {invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create('restart-computer -force')) -Credential $cred}
     else {invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create('restart-computer -force'))}
     write-ib1log "[$computer] Machine réarmée, redémarrage en cours." -colorLog Green}}
-write-ib1log "Pensez à réarmer la machine locale si nécessaire..." -warningLog
+if ($subnet) {
+  invoke-command -ScriptBlock ([scriptBlock]::create($command))
+  write-ib1log "Machine locale réarmée, pensez à la redémarrer..." -warningLog}
 Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}}
 
 function invoke-ib1netCommand {

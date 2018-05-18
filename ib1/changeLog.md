@@ -1,6 +1,10 @@
+﻿**Version 1.7.1:**
+ - Ajout du rearm de la machine locale pour la commande invoke-ib1rearm
+
 **Version 1.7:**
  - Correction des commandes invoke-ib1NetCommand invoke-ib1Stop et invoke-ib1Clean
  - Nouvelle commande invoke-ib1Rearm pour réarmer les OS Windows d'une salle
+
 **Version 1.6.2:**
  - Correction de la commande stop-ib1Classroom pour l'extinction de la machine locale en dernier.
  - Corrections de la commande new-ib1Nat pour tester nom exact du vSwitch (et pas un nom contenant le paramètre passé)

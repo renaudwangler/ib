@@ -1,4 +1,10 @@
-﻿**Version 1.7.1:**
+﻿**Version 1.7.3:**
+ - La commande invoke-ib1Clean nettoie désormais l'hisorique/cache de Internet Explorer et Chrome
+
+**Version 1.7.2:**
+ - La commande complete-ib1Setup n'ajoute plus de raccourci vers \\pc-formateur\partage s'il existe déja !
+
+**Version 1.7.1:**
  - Ajout du rearm de la machine locale pour la commande invoke-ib1rearm
 
 **Version 1.7:**

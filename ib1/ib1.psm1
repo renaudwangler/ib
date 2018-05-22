@@ -858,7 +858,7 @@ $saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 Enable-PSRemoting -Force|Out-Null
-$command='$userDir=(get-item $env:USERPROFILE).parent.FullName;$dirsToClean=@("Desktop","Documents","Downloads");$userSubDirs=Get-ChildItem $userDir;foreach ($userSubDir in $userSubDirs) {foreach ($dirToClean in $dirsToClean) {Get-ChildItem "$userDir\$userSubDir\$dirToClean"|where lastWriteTime -GE (get-date).AddDays(-'+$Delay+')|remove-item -recurse -force}}'
+$command='$userDir=(get-item $env:USERPROFILE).parent.FullName;$dirsToClean=@("Desktop","Documents","Downloads","AppData\Local\google\Chrome\User Data\Default");$userSubDirs=Get-ChildItem $userDir;foreach ($userSubDir in $userSubDirs) {foreach ($dirToClean in $dirsToClean) {Get-ChildItem -recurse "$userDir\$userSubDir\$dirToClean"|where lastWriteTime -GE (get-date).AddDays(-'+$Delay+')|remove-item -recurse -force}};runDll32.exe inetCpl.cpl,ClearMyTracksByProcess 255;'
 foreach ($computer in $computers.Keys) {
   $commandNoError=$true
   try {
@@ -1041,7 +1041,10 @@ new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -ti
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Questionnaire mi-parcours'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluation fin de formation'
 new-ib1Shortcut -URL 'https://docs.google.com/forms/d/e/1FAIpQLSfH3FiI3_0Gdqx7sIDtdYyjJqFHHgZa2p75m8zev7bk2sT2eA/viewform?c=0&w=1' -title 'Evaluation du distanciel'
-new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'
+$ShortcutShell=New-Object -ComObject WScript.Shell
+$formateurShortcut=$true
+Get-ChildItem -Recurse $env:Public\desktop,$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like '\\pc-formateur\partage') {$formateurShortcut=$false}}
+if ($formateurShortcut) { new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'}
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'
 new-ib1Shortcut -File '%SystemRoot%\System32\WindowsPowershell\v1.0\powershell.exe' -title 'Windows PowerShell'
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {

@@ -1,4 +1,7 @@
-﻿**Version 1.7.3:**
+﻿**Version 1.8:**
+ - Nouvelle commande get-ib1Repo pour télécharger localement le contenu d'un repo Git
+
+**Version 1.7.3:**
  - La commande invoke-ib1Clean nettoie désormais l'hisorique/cache de Internet Explorer et Chrome
 
 **Version 1.7.2:**

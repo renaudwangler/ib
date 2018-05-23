@@ -7,8 +7,12 @@ $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment K
 $driverFolder='C:\Dell'
 $logFile="$env:TEMP\ib1.log"
 $skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
+$mslearnGitUrl='https://api.github.com/repos/MicrosoftLearning/'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
+$repoParam=@{
+  'M10979'=@{'repo'='10979-MicrosoftAzureFundamentals';'srcPath'='AllFiles';'destPath'='C:\test10979'}
+  'm20533'=@{'repo'='20533-ImplementingMicrosoftAzureInfrastructureSolutions';'srcPath'='Allfiles';'destPath'='C:\test20533'}}
 
 function write-ib1log {
 [CmdletBinding(DefaultParameterSetName='TextLog')]
@@ -170,6 +174,63 @@ param([string]$VMName,[bool]$exactVMName=$false)
     catch {
     write-ib1log "Impossible de trouver une machine virtuelle '$VMName'." -ErrorLog}}
   return $gResult}
+
+function get-ib1Repo {
+<#
+.SYNOPSIS
+Cette commande permet de récupérer en local le contenu d'un repositery Git.
+.PARAMETER Repo
+Nom du repositery sur GitHub
+.PARAMETER srcPath
+Chemin des fichiers à récupérer dans le Repositery
+.PARAMETER destPath
+Chemin local ou seront posés les fichier récupérés du Git.
+.PARAMETER course
+Référence du stage pour paramètrage simplifié (remplaçe les 3 paramètres précédents).
+.EXAMPLE
+get-ib1Repo -repo '10979-MicrosoftAzureFundamentals' -srcPath 'Allfiles' -destPath 'c:\10979'
+Récupère les fichiers contenu dans le répertoire 'AllFiles' du repo '10979' et le copie dans le repertoire local c:\10979
+.EXAMPLE
+get-ib1Repo -course m10979
+Récupère les fichiers pour le stage m10979
+
+#>
+[CmdletBinding(
+DefaultParameterSetName='VMName')]
+PARAM(
+[string]$Repo,
+[string]$srcPath,
+[string]$destPath='E:',
+[string]$course='')
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+if ($course -ne '') {
+  if (-not $repoParam.$course) {write-ib1log "Le paramètre simplifié -course ne peut avoir que l'une des valeurs suivantes: $($repoParam.Keys). Merci de vérifier!" -ErrorLog}
+  $repo=$repoParam.$course.repo
+  $srcPath=$repoParam.$course.srcPath
+  $destpath=$repoParam.$course.destPath}
+if (-not $repo -or $repo -eq '') {write-ib1log "Le paramétre -Repo est manquant, merci de vérifier !" -ErrorLog}
+if (-not $srcPath -or $srcPath -eq '') {write-ib1log "Le paramétre -srcPath est manquant, merci de vérifier !" -ErrorLog}
+$srcFolder=$mslearnGitUrl+$repo+'/zipball'
+$destZip=$env:TEMP+'\'+$repo+'.zip'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+write-ib1log "Récupération du fichier '$srcFolder' dans '$destZip'." -DebugLog
+Start-BitsTransfer -Source $srcFolder -Destination $destZip
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+write-ib1log "Création du dossier '$destPath'." -DebugLog
+New-Item -Path $destPath -ItemType Directory -Force|Out-Null
+$zip=[IO.Compression.ZipFile]::OpenRead($destZip)
+$zip.Entries|Where-Object {$_.FullName -like "*$repo*/$srcPath/*"}|ForEach-Object {
+  $destName=$_.FullName -replace "(?:[^\/]*)\/$srcPath"
+  if ($_.Name -eq '') {
+    write-ib1log -progressTitleLog "Décompression des fichiers." "Création du dossier '$destName'."
+    New-Item -Path $destPath$destName -ItemType Directory -Force|Out-Null}
+  else {
+    write-ib1log -progressTitleLog "Décompression des fichiers." "Décompression du fichier '$($_.Name)'."
+    if(![System.IO.File]::Exists($destPath+$destName)) {[IO.Compression.ZipFileExtensions]::ExtractToFile($_,$destPath+$destName)}}}
+$zip.dispose()
+write-ib1log -progressTitleLog "Décompression des fichiers."
+Remove-Item -Path $destZip -Force}}
 
 function set-ib1VMCheckpointType {
 <#
@@ -1192,5 +1253,5 @@ else {
 Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

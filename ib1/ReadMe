@@ -28,3 +28,4 @@ Fonctions contenues dans le mdoule en version 1.5 (se référer à l'aide)
 - new-ib1Nat
 - invoke-ib1Clean
 - invoke-ib1Rearm
+- get-ib1Repo

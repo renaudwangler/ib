@@ -11,8 +11,8 @@ $mslearnGitUrl='https://api.github.com/repos/MicrosoftLearning/'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
 $repoParam=@{
-  'M10979'=@{'repo'='10979-MicrosoftAzureFundamentals';'srcPath'='AllFiles';'destPath'='C:\test10979'}
-  'm20533'=@{'repo'='20533-ImplementingMicrosoftAzureInfrastructureSolutions';'srcPath'='Allfiles';'destPath'='C:\test20533'}}
+  'M10979'=@{'repo'='10979-MicrosoftAzureFundamentals';'srcPath'='AllFiles';'destPath'='E:\'}
+  'm20533'=@{'repo'='20533-ImplementingMicrosoftAzureInfrastructureSolutions';'srcPath'='Allfiles';'destPath'='E:\'}}
 
 function write-ib1log {
 [CmdletBinding(DefaultParameterSetName='TextLog')]
@@ -800,6 +800,7 @@ function start-ib1SavedVMs {
 Cette commande permet de démarrer les VMs qui sont en état "Enregistré" sur un un serveur Hyper-V
 .PARAMETER First
 Nom de la première VMs à démarrer. si ce paramètre est fourni, la commande attendra que cette VM soit correctement démarrée avant de démarrer les suivantes.
+(Le nom à forunir doit être l'exacte FIN du nom de la VM)
 .PARAMETER FirstRepairNet
 Vérifie que le réseau de la première VM démarrée (spécifié par le paramètre "First") est bien en mode "Domaine" avant de démarrer les autres.
 .PARAMETER DontRevert
@@ -818,9 +819,9 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ($FirstRepairNet -and $First -eq $null) {write-ib1log "Le paramètre '-FirstRepairNet' ne peut être passé sans le paramètre '-First'" -ErrorLog}
 if ($First -ne '') {
-  $FirstVM2start=get-vm -Name *$First* -ErrorAction SilentlyContinue|where state -ilike 'saved'
+  $FirstVM2start=get-vm -Name *$First -ErrorAction SilentlyContinue
   if ($FirstVM2start.count -gt 1) {write-ib1log "iL y a $($FirstVM2start.count) VMs qui correspondent au nom '$First'" -ErrorLog}
-  elseif ($FirstVM2start.count -eq 0) {write-ib1log "iL y n'y a aucune VM enregistrée qui corresponde au nom '$First'" -ErrorLog}}
+  elseif ($FirstVM2start.count -eq 0) {write-ib1log "Il y n'y a aucune VM enregistrée qui corresponde au nom '$First'" -ErrorLog}}
 if ($DontRevert -eq $false) {
   write-ib1log "Rétablissement des VMs avant démarrage" -DebugLog
   reset-ib1VM}

@@ -1,4 +1,7 @@
-﻿**Version 1.8:**
+﻿**Version 1.8.1:**
+ - Correction/modification de comportement de l'option -First de la commande start-ib1SavedVMs
+
+**Version 1.8:**
  - Nouvelle commande get-ib1Repo pour télécharger localement le contenu d'un repo Git
 
 **Version 1.7.3:**

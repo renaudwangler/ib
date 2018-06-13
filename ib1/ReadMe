@@ -29,3 +29,4 @@ Fonctions contenues dans le mdoule en version 1.5 (se référer à l'aide)
 - invoke-ib1Clean
 - invoke-ib1Rearm
 - get-ib1Repo
+- set-ib1VMExternalMac

@@ -193,7 +193,6 @@ Récupère les fichiers contenu dans le répertoire 'AllFiles' du repo '10979' e
 .EXAMPLE
 get-ib1Repo -course m10979
 Récupère les fichiers pour le stage m10979
-
 #>
 [CmdletBinding(
 DefaultParameterSetName='VMName')]
@@ -224,7 +223,7 @@ $zip.Entries|Where-Object {$_.FullName -like "*$repo*/$srcPath/*"}|ForEach-Objec
   $destName=$_.FullName -replace "(?:[^\/]*)\/$srcPath"
   if ($_.Name -eq '') {
     write-ib1log -progressTitleLog "Décompression des fichiers." "Création du dossier '$destName'."
-    New-Item -Path $destPath$destName -ItemType Directory -Force|Out-Null}
+    New-Item -Path $destPath$destName -ItemType Directory -Force -ErrorAction SilentlyContinue |Out-Null}
   else {
     write-ib1log -progressTitleLog "Décompression des fichiers." "Décompression du fichier '$($_.Name)'."
     if(![System.IO.File]::Exists($destPath+$destName)) {[IO.Compression.ZipFileExtensions]::ExtractToFile($_,$destPath+$destName)}}}
@@ -756,10 +755,8 @@ Nom de la VMs à vérifier (si ce paramètre est omis, toutes les VMs allumées
 Permet de spécifier que le nom de la VM fourni est précisément le nom de la VM à traiter.
 .PARAMETER userName
 Nom d'utilisateur (sous la forme 'Domain\user' si nécessaire).
-.PARAMETER userPass
-Mot de passe de l'utilisateur, (sera demandé si non fourni dans la commande)
 .EXAMPLE
-repair-ib1VMNetwork -VMName 'lon-dc1' -username 'adatum\administrator' -userpass 'Pa55w.rd'
+repair-ib1VMNetwork -VMName 'lon-dc1' -username 'adatum\administrator'
 Se connecte sur la VM lon-dc1 pour vérifier l'état de sa carte réseau et la relance si elle ne s'est pas découverte en réseau de domaine.
 #>
 [CmdletBinding(
@@ -768,12 +765,11 @@ PARAM(
 [string]$VMName,
 [parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Nom de connexion de l'administrateur de la VM.")]
 [string]$userName,
-[string]$userPass='',
 [switch]$exactVMName)
 begin{get-ib1elevated $true; compare-ib1PSVersion "5.0"}
 process {
 $VMs2Repair=get-ib1VM -VMName $VMName -exactVMName $exactVMName
-if ($userPass -eq '') {$userPass2=read-host "Mot de passe de '$userName'" -AsSecureString} else {$userPass2=ConvertTo-SecureString $userPass -AsPlainText -Force}
+$userPass2=read-host "Mot de passe de '$userName'" -AsSecureString
 $cred=New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName,$userPass2
 foreach ($VM2repair in $VMs2Repair) {
   if ((get-vm $VM2repair.name).heartbeat -notlike '*OK*') {write-ib1log "La VM '$($VM2repair.name)' n'est pas dans un état démarré correct, son réseau ne sera pas vérifié." -warningLog}
@@ -920,7 +916,7 @@ $saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
 Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 Enable-PSRemoting -Force|Out-Null
-$command='$userDir=(get-item $env:USERPROFILE).parent.FullName;$dirsToClean=@("Desktop","Documents","Downloads","AppData\Local\google\Chrome\User Data\Default");$userSubDirs=Get-ChildItem $userDir;foreach ($userSubDir in $userSubDirs) {foreach ($dirToClean in $dirsToClean) {Get-ChildItem -recurse "$userDir\$userSubDir\$dirToClean"|where lastWriteTime -GE (get-date).AddDays(-'+$Delay+')|remove-item -recurse -force}};runDll32.exe inetCpl.cpl,ClearMyTracksByProcess 255;'
+$command='$userDir=(get-item $env:USERPROFILE).parent.FullName;$dirsToClean=@("Desktop","Documents","Downloads","AppData\Local\google\Chrome\User Data\Default");$userSubDirs=Get-ChildItem $userDir;foreach ($userSubDir in $userSubDirs) {foreach ($dirToClean in $dirsToClean) {Get-ChildItem -recurse "$userDir\$userSubDir\$dirToClean"|where lastWriteTime -GE (get-date).AddDays(-'+$Delay+')|remove-item -recurse -force}};runDll32.exe inetCpl.cpl,ClearMyTracksByProcess 255;Remove-Item -Path ''C:\$Recycle.Bin'' -Recurse -Force'
 foreach ($computer in $computers.Keys) {
   $commandNoError=$true
   try {
@@ -1157,6 +1153,36 @@ if (-not(Get-Childitem -Path "$env:Public\desktop\présentation stagiaire*")) {
 write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
 install-ib1Chrome}
 
+function set-ib1VMExternalMac{
+<#
+.SYNOPSIS
+Cette commande permet de changer les adresses MAC des cartes réseau des VM relié a un switch externe
+Le dernier octet de l'adresse MAC fixé sera celui de l'adresse IP de la machine physique
+L'avnt dernier octet de l'adresse MAC fixé sera un incrément pour chaque carte/VM, commençant à 0.
+[Attention] : nécessite un seul switch externe.
+[Attention] : ne traite pas les VMs allumées
+#>
+begin {
+  get-ib1elevated $true
+  compare-ib1PSVersion "5.0"}
+process {
+$extSwitch=(Get-VMSwitch|where switchtype -like '*external').Name
+$vmNics=get-vm|Get-VMNetworkAdapter|where SwitchName -eq $extSwitch
+$localIp=Get-NetIPAddress -AddressFamily IPv4|where InterfaceAlias -like "*$extSwitch*"
+if ($localIP.count -and $localIp.count -ne 1) {
+write-ib1log "Lprobléme avec récupération de l'adresse IP de la carte réseau." -ErrorLog}
+else {
+  $nicCount=0  
+  foreach ($vmnic in $vmNics) {
+    if ((get-vm -Name $vmnic.vmName).state -notlike 'off') { write-ib1log "- La VM '$($vmnic.VMName)' n'est pas éteinte et ne sera pas traitée..." -warningLog}
+    else {
+    $newMac=([string]$vmnic.MacAddress.substring(0,8))+('{0:x2}' -f $nicCount)+'{0:x2}' -f [int]$localIp.IPAddress.split('.')[3]
+    write-ib1log "- Traitement de la carte '$($vmnic.Name)' de la VM '$($vmnic.VMName)' (changement de l'adresse Mac de '$($vmnic.MacAddress)' vers '$newMac')." -DebugLog
+    Set-VMNetworkAdapter -VMNetworkAdapter $vmnic -StaticMacAddress $newMac
+    $nicCount ++}}}
+
+}}
+
 function new-ib1Nat{
 <#
 .SYNOPSIS
@@ -1254,5 +1280,5 @@ else {
 Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

@@ -1,4 +1,12 @@
-﻿**Version 1.8.1:**
+﻿**Version 1.9:**
+ - Nouvelle commande set-ib1VMExternalMac
+ - Ajout du vidage des corbeilles à la comande invoke-ib1clean
+
+**Version 1.8.2:**
+ - Suppression du message d'erreur sur dossier déja existant dans la commande "get-ib1repo"
+ - Suppression du paramètre userPass dans la commande "repair-ib1VmNet"
+
+**Version 1.8.1:**
  - Correction/modification de comportement de l'option -First de la commande start-ib1SavedVMs
 
 **Version 1.8:**

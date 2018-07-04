@@ -87,8 +87,7 @@ else {
   else { $vpnclient=New-AzureRmVpnClientConfiguration -Name $gw.name -ResourceGroupName $prefix -AuthenticationMethod eaptls}
   if (![System.IO.File]::Exists($env:TEMP+'\'+$prefix+'.xml')) {
   $destZip=$env:TEMP+'\'+$prefix+'.zip'
-  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-  Start-BitsTransfer -Source $vpnClient.VpnProfileSASUrl -Destination $destZip
+  Invoke-WebRequest -Uri $vpnClient.VpnProfileSASUrl -OutFile $destZip
   Add-Type -AssemblyName System.IO.Compression.FileSystem
   $zip=[IO.Compression.ZipFile]::OpenRead($destZip)
   $zip.Entries|ForEach-Object {if($_.name -like '*.xml') {[IO.Compression.ZipFileExtensions]::ExtractToFile($_,$env:TEMP+'\'+$prefix+'.xml')}}
@@ -100,7 +99,7 @@ else {
   Add-VpnConnection -Name $prefix-ike -ServerAddress $vpnSettings.VpnServer -TunnelType ikev2 -AuthenticationMethod MachineCertificate -AllUserConnection -DnsSuffix "$prefix.ad" -SplitTunneling
   if (Get-VpnConnection -Name $prefix-sstp -AllUserConnection -ErrorAction SilentlyContinue) {Remove-VpnConnection -AllUserConnection -Name $prefix-sstp -Force}
   $eapConf=New-EapConfiguration -Tls -UserCertificate
- Add-VpnConnection -Name $prefix-sstp -ServerAddress $vpnSettings.VpnServer -AllUserConnection -TunnelType sstp -AuthenticationMethod Eap -EapConfigXmlStream $eapConf.EapConfigXmlStream -DnsSuffix "$prefix.ad" -SplitTunneling}
+  Add-VpnConnection -Name $prefix-sstp -ServerAddress $vpnSettings.VpnServer -AllUserConnection -TunnelType sstp -AuthenticationMethod Eap -EapConfigXmlStream $eapConf.EapConfigXmlStream -DnsSuffix "$prefix.ad" -SplitTunneling}
 
 
 $rasphone=Get-Content -Path $env:ProgramData\microsoft\network\connections\pbk\rasphone.pbk

@@ -36,8 +36,8 @@ if (!(Get-AzureRmADServicePrincipal|where applicationId -like $addsAppid)) {New-
 Register-AzureRmResourceProvider -ProviderNamespace Microsoft.AAD|Out-Null
 if (!(Get-AzureRmResource|where resourceId -like "/subscriptions/$((Get-AzureRmSubscription).Id)/resourceGroups/$prefix/providers/Microsoft.AAD/DomainServices/*")) {
   echo "Mise en place du domaine géré (AADDS) nommé '$prefix.ad'."
-  $addsDomain=New-AzureRmResource -ResourceId "/subscriptions/$((Get-AzureRmSubscription).Id)/resourceGroups/$prefix/providers/Microsoft.AAD/DomainServices/$prefix" -Location $location -Properties @{"DomainName"="$prefix.ad"; "SubnetId"="/subscriptions/$((Get-AzureRmSubscription).Id)/resourceGroups/$prefix/providers/Microsoft.Network/virtualNetworks/$prefix/subnets/subnet1"} -ApiVersion 2017-06-01 -Force
-  echo "Se connecter avec le compte $prefix-'admin@$domainName' pour changer son mot de passe !"}
+  $addsDomain=New-AzureRmResource -ResourceId "/subscriptions/$((Get-AzureRmSubscription).Id)/resourceGroups/$prefix/providers/Microsoft.AAD/DomainServices/$prefix" -Location $location -Properties @{"DomainName"="$prefix.ad"; "SubnetId"="/subscriptions/$((Get-AzureRmSubscription).Id)/resourceGroups/$prefix/providers/Microsoft.Network/virtualNetworks/$prefix/subnets/subnet1"} -ApiVersion 2017-06-01 -Force}
+else {echo "Le domaine ADDS se créé se nomme '$prefix.ad'."}  
 
 while (!(Get-AzureRmLoadBalancer -ResourceGroupName $prefix) -or (Get-AzureRmNetworkInterface -ResourceGroupName $prefix).count -ne 2 -or ((Get-AzureRmVirtualNetworkGateway -Name "$prefix-gw" -ResourceGroupName $prefix).provisioningState -notlike 'succeeded')) {
   echo 'Attente de fin des opérations de création...'

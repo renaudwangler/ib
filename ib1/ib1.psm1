@@ -11,8 +11,8 @@ $mslearnGitUrl='https://api.github.com/repos/MicrosoftLearning/'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
 $repoParam=@{
-  'M10979'=@{'repo'='10979-MicrosoftAzureFundamentals';'srcPath'='AllFiles';'destPath'='E:\'}
-  'm20533'=@{'repo'='20533-ImplementingMicrosoftAzureInfrastructureSolutions';'srcPath'='Allfiles';'destPath'='E:\'}}
+  'M10979'=@{'repo'='10979-MicrosoftAzureFundamentals';'srcPath'='AllFiles';'destPath'='E:\';'shortcut'='MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions';'vmName'='mia-cl1'}
+  'm20533'=@{'repo'='20533-ImplementingMicrosoftAzureInfrastructureSolutions';'srcPath'='Allfiles';'destPath'='F:\';'shortcut'='MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions';'vmName'='mia-cl1'}}
 
 function write-ib1log {
 [CmdletBinding(DefaultParameterSetName='TextLog')]
@@ -187,6 +187,8 @@ Chemin des fichiers à récupérer dans le Repositery
 Chemin local ou seront posés les fichier récupérés du Git.
 .PARAMETER course
 Référence du stage pour paramètrage simplifié (remplaçe les 3 paramètres précédents).
+Nota : Si utilisé dans la VM, le paramètre "course" récupère les fichiers des labs,
+       Si utilisé hors VM, le paramètre "course" crée un raccourci vers les instructions des ateliers.
 .EXAMPLE
 get-ib1Repo -repo '10979-MicrosoftAzureFundamentals' -srcPath 'Allfiles' -destPath 'c:\10979'
 Récupère les fichiers contenu dans le répertoire 'AllFiles' du repo '10979' et le copie dans le repertoire local c:\10979
@@ -205,19 +207,23 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ($course -ne '') {
   if (-not $repoParam.$course) {write-ib1log "Le paramètre simplifié -course ne peut avoir que l'une des valeurs suivantes: $($repoParam.Keys). Merci de vérifier!" -ErrorLog}
+  if ($env:COMPUTERNAME -notlike $repoParam.$course.vmName) {
+    write-ib1log "Création du raccourci pour les instructions d'atelier '$course' sur le bureau."
+    new-ib1Shortcut -URL "https://github.com/$($repoParam.$course.shortcut)" -title "instructions d'atelier - $course"
+    break}
   $repo=$repoParam.$course.repo
   $srcPath=$repoParam.$course.srcPath
   $destpath=$repoParam.$course.destPath}
 if (-not $repo -or $repo -eq '') {write-ib1log "Le paramétre -Repo est manquant, merci de vérifier !" -ErrorLog}
 if (-not $srcPath -or $srcPath -eq '') {write-ib1log "Le paramétre -srcPath est manquant, merci de vérifier !" -ErrorLog}
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $srcFolder=$mslearnGitUrl+$repo+'/zipball'
 $destZip=$env:TEMP+'\'+$repo+'.zip'
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 write-ib1log "Récupération du fichier '$srcFolder' dans '$destZip'." -DebugLog
-Start-BitsTransfer -Source $srcFolder -Destination $destZip
+Invoke-WebRequest -Uri $srcFolder -OutFile $destZip
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 write-ib1log "Création du dossier '$destPath'." -DebugLog
-New-Item -Path $destPath -ItemType Directory -Force|Out-Null
+if ($destPath.Length -gt 3) {New-Item -Path $destPath -ItemType Directory -Force|Out-Null}
 $zip=[IO.Compression.ZipFile]::OpenRead($destZip)
 $zip.Entries|Where-Object {$_.FullName -like "*$repo*/$srcPath/*"}|ForEach-Object {
   $destName=$_.FullName -replace "(?:[^\/]*)\/$srcPath"

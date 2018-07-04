@@ -1,4 +1,9 @@
-﻿**Version 1.9:**
+﻿**Version 1.9.1:**
+ - Changement du téléchargement de get-ib1repo pour passer par DL web standard
+ - Ajout de la création du raccourci web vers les instructions d'atelier dans get-ib1repo
+ - Mise à jour du lecteur (E: vers F:) pour get-ib1repo -course m20533
+
+**Version 1.9:**
  - Nouvelle commande set-ib1VMExternalMac
  - Ajout du vidage des corbeilles à la comande invoke-ib1clean
 

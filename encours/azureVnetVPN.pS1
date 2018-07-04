@@ -1,6 +1,6 @@
 if ((Get-Module azurerm -ListAvailable).count -eq 0) {Install-Module azurerm -Force}
 if ((Get-Module azuread -ListAvailable).count -eq 0) {Install-Module azuread -Force}
-while (!(Get-AzureRmContext)) {Login-AzureRmAccount|Out-Null}
+while (!(Get-AzureRmContext) -or (Get-AzureRmContext).Tenant.Id -eq $null) {Login-AzureRmAccount|Out-Null}
 
 $prefix=''
 while ($prefix -eq '') {$prefix=read-host -Prompt 'Nom du ressource group à instancier'}

@@ -32,7 +32,7 @@ if (!(Get-AzureRmVirtualNetworkGateway -Name "$prefix-gw" -ResourceGroupName $pr
 
 #Création de l'AADDS
 $addsAppid='2565bd9d-da50-47d4-8b85-4c97f669dc36'
-if (!(Get-AzureRmADServicePrincipal|where applicationId -like $addsAppid)) {New-AzureRmADServicePrincipal -ApplicationId $addsAppid}
+if (!(Get-AzureRmADServicePrincipal|where applicationId -like $addsAppid)) {New-AzureRmADServicePrincipal -ApplicationId $addsAppid|out-null}
 Register-AzureRmResourceProvider -ProviderNamespace Microsoft.AAD|Out-Null
 if (!(Get-AzureRmResource|where resourceId -like "/subscriptions/$((Get-AzureRmSubscription).Id)/resourceGroups/$prefix/providers/Microsoft.AAD/DomainServices/*")) {
   echo "Mise en place du domaine géré (AADDS) nommé '$prefix.ad'."

@@ -1,4 +1,7 @@
 if ((Get-Module azurerm -ListAvailable).count -eq 0) {Install-Module azurerm -Force}
+if ((Get-Module azurerm -ListAvailable|where version -ge '6.0.0').count -eq 0) {
+  echo 'Erreur: Mettre à jour le module Azure RM pour utiliser ce script SVP!'
+  break}
 if ((Get-Module azuread -ListAvailable).count -eq 0) {Install-Module azuread -Force}
 while (!(Get-AzureRmContext) -or (Get-AzureRmContext).Tenant.Id -eq $null) {Login-AzureRmAccount|Out-Null}
 

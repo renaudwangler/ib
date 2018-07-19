@@ -57,7 +57,7 @@ if (Get-AzureRmADUser|where displayName -like $prefix-admin) {
 else {
   echo "Création du compte utilisateur '$prefix-admin@$domainName'."
   $adminUser=New-AzureRmADUser -DisplayName $prefix-admin -UserPrincipalName $prefix-admin@$domainName -Password (Read-Host -Prompt "Mot de passe pour le compte '$prefix-admin'" -AsSecureString) -MailNickname $prefix-admin}
-echo "Connectez-vous avec le compte '$prefix-admin@$domainName' !"
+echo "lancez le 'Server Manager' avec le compte '$prefix-admin@$domainName' !"
 if (Get-AzureRmADGroup|where displayName -like 'AAD DC Administrators' -erroraction silentlyContinue) {
   $adminGroup=Get-AzureRmADGroup|where displayName -like 'AAD DC Administrators'}
 else {

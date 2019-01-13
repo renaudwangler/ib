@@ -8,11 +8,17 @@ $driverFolder='C:\Dell'
 $logFile="$env:TEMP\ib1.log"
 $skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
 $mslearnGitUrl='https://api.github.com/repos/MicrosoftLearning/'
+$mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
 $repoParam=@{
   'M10979'=@{'repo'='10979-MicrosoftAzureFundamentals';'srcPath'='AllFiles';'destPath'='E:\';'shortcut'='MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions';'vmName'='mia-cl1'}
   'm20533'=@{'repo'='20533-ImplementingMicrosoftAzureInfrastructureSolutions';'srcPath'='Allfiles';'destPath'='F:\';'shortcut'='MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions';'vmName'='mia-cl1'}}
+$gitParam=@{
+  'm10979'='new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions" -title "Ateliers stage m10979";if ($env:COMPUTERNAME -like "mia-cl1") {get-ib1Git 10979-MicrosoftAzureFundamentals -srcPath Allfiles -destPath E:\}';
+  'm20533'='new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions" -title "Ateliers stage m20533";if ($env:COMPUTERNAME -like "mia-cl1") {get-ib1Git 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfile -destPath F:\}';
+  'msaz100'='get-ib1Git AZ-100-MicrosoftAzureInfrastructureDeployment;$dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\AZ-100-MicrosoftAzureInfrastructureDeployment\";remove-item "$destAZ-100T03A-ENU-LabFiles.zip -force;remove-item "$destAZ-100T04A-ENU-LabFiles.zip -force';
+  'msaz101'='get-ib1Git AZ-101-MicrosoftAzureIntegrationandSecurity;$dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\AZ-101-MicrosoftAzureIntegrationandSecurity\";remove-item "$destAZ-101T03A-ENU-LabFiles.zip" -force;remove-item "$destAZ-101T04A-ENU-LabFiles.zip" -force'}
 
 function write-ib1log {
 [CmdletBinding(DefaultParameterSetName='TextLog')]
@@ -174,6 +180,76 @@ param([string]$VMName,[bool]$exactVMName=$false)
     catch {
     write-ib1log "Impossible de trouver une machine virtuelle '$VMName'." -ErrorLog}}
   return $gResult}
+
+function get-ib1Git {
+<#
+.SYNOPSIS
+Cette commande permet de copier en local le contenu d'un repositery Git.
+.PARAMETER Repo
+Nom du repositery sur GitHub (sera préfixé de l'indentifiant MS learning en l'absence de caractère "/")
+.PARAMETER srcPath
+Chemin des fichiers à récupérer dans le Repositery (par défaut "/")
+.PARAMETER destPath
+Chemin local ou seront posés les fichier récupérés du Git (par défaut, sur le bureau de l'utilisateur actuel)
+.PARAMETER course
+Référence du stage pour paramètrage simplifié (remplaçe les 3 paramètres précédents pour les environnements prévus).
+.EXAMPLE
+get-ib1Git -repo '10979-MicrosoftAzureFundamentals' -srcPath 'Allfiles' -destPath 'c:\10979'
+Récupère les fichiers contenu dans le répertoire 'AllFiles' du repo '10979' et le copie dans le repertoire local c:\10979
+.EXAMPLE
+get-ib1Git -course m10979
+Récupère les fichiers pour le stage m10979
+#>
+[CmdletBinding(
+DefaultParameterSetName='Repo')]
+PARAM(
+[string]$Repo,
+[string]$srcPath='*',
+[string]$destPath='',
+[string]$course='')
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+if ($course -ne '') {
+  if (-not $gitParam.$course) {write-ib1log "Le paramètre simplifié -course ne peut avoir que l'une des valeurs suivantes: $($gitParam.Keys). Merci de vérifier!" -ErrorLog}
+  else {
+    write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
+    Invoke-Expression $gitParam.$course
+    break}}
+if (-not $Repo -or $Repo -eq '') {write-ib1log "Le paramétre -Repo est manquant, merci de vérifier !" -ErrorLog}
+if (-not $Repo.Contains('/')) {$repo=$mslearnGit+'/'+$Repo}
+#création du nom du répertoire local si non spécifié
+if ($destPath -eq '') {$destPath=[Environment]::GetFolderPath("CommonDesktopDirectory")+'\'+$Repo.substring($Repo.IndexOf('/')+1)}
+$ErrorActionPreference='silentlyContinue'
+$gitRequest=[System.Net.WebRequest]::Create("https://github.com/$Repo")
+$gitResponse=$gitRequest.GetResponse()
+if ([int]$gitResponse.StatusCode -ne 200) {write-ib1log "L'url 'https://github.com/$Repo' n'existe pas ou est injoignable." -ErrorLog}
+$ErrorActionPreference='continue'
+if (-not (Test-Path $destPath)) {
+  if (-not (Test-Path $destPath.substring(0,$destPath.LastIndexOf('\')))) {write-ib1log "Le répertoire '$destPath' n'existe pas et ne peut être créé." -ErrorLog}
+  else {
+    write-ib1log "Le répertoire '$destPath' n'existe pas et sera créé." -DebugLog
+    New-Item $destPath -ItemType Directory|Out-Null}}
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$srcFolder="https://api.github.com/repos/$Repo/zipball"
+$destZip=$env:TEMP+'\'+$Repo.substring($Repo.IndexOf('/')+1)+'.zip'
+write-ib1log "Récupération du fichier '$srcFolder' dans '$destZip'." -DebugLog
+Invoke-WebRequest -Uri $srcFolder -OutFile $destZip
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+if ($srcPath -eq '*') {$srcFind='*'} else {$srcFind="*/$srcPath*"}
+$zip=[IO.Compression.ZipFile]::OpenRead($destZip)
+$zip.Entries|Where-Object {$_.FullName -like $srcFind}|ForEach-Object {
+  echo $_.fullname
+  if ($srcPath -ne '*') {$destName=$_.FullName -replace "(?:[^\/]*)\/$srcPath"} else {$destName=$_.FullName.substring($_.FullName.IndexOf('/'))}
+  if ($_.Name -eq '') {
+    write-ib1log -progressTitleLog "Décompression des fichiers." "Création du dossier '$destName'."
+    New-Item -Path $destPath$destName -ItemType Directory -Force -ErrorAction SilentlyContinue |Out-Null}
+  elseif ($_.Name -notlike '*readme.md') {
+    write-ib1log -progressTitleLog "Décompression des fichiers." "Décompression du fichier '$($_.Name)'."
+    if(![System.IO.File]::Exists($destPath+$destName)) {[IO.Compression.ZipFileExtensions]::ExtractToFile($_,$destPath+$destName)}}}
+$zip.dispose()
+write-ib1log -progressTitleLog "Décompression des fichiers."
+Remove-Item -Path $destZip -Force}}
+
 
 function get-ib1Repo {
 <#
@@ -1071,17 +1147,14 @@ param(
 [string]$GatewaySubnet='172.16.0.0',
 [string]$GatewayMask=24)
 get-ib1elevated $true
-compare-ib1PSVersion "4.0"
+compare-ib1PSVersion "5.0"
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-#write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Option de confiance pour toutes machines."
-#Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
 Enable-PSRemoting -Force|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM"
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
-  new-ib1Nat
   if ((get-VMHost).EnableEnhancedSessionMode) {
     write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Désactivation de la stratégie de session avançée d'Hyper-V."
     Set-VMHost -EnableEnhancedSessionMode $false}
@@ -1286,5 +1359,5 @@ else {
 Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, get-ib1Git
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup

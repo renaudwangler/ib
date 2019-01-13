@@ -1,4 +1,8 @@
-﻿**Version 1.9.1:**
+﻿**Version 1.10.1:**
+ - Ajout d'une commande get-ib1Git plus générique que get-ib1Repo pour copier le contenu des repo Git en local
+ - Suppression de la création du réseau virtuel "ib1Nat" dans l'installation du master
+
+**Version 1.9.1:**
  - Changement du téléchargement de get-ib1repo pour passer par DL web standard
  - Ajout de la création du raccourci web vers les instructions d'atelier dans get-ib1repo
  - Mise à jour du lecteur (E: vers F:) pour get-ib1repo -course m20533

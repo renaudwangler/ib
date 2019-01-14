@@ -76,7 +76,7 @@ FunctionsToExport = 'install-ib1Chrome', 'complete-ib1Install', 'invoke-ib1NetCo
                'import-ib1TrustedCertificate', 'set-ib1VMCheckpointType', 
                'repair-ib1VMNetwork', 'Copy-ib1VM', 'start-ib1SavedVMs', 'get-ib1Log', 
                'get-ib1Version', 'stop-ib1ClassRoom', 'new-ib1Nat', 'invoke-ib1Clean', 
-               'invoke-ib1Rearm', 'get-ib1Repo', 'set-ib1VMExternalMac', 'get-ib1Git'
+               'invoke-ib1Rearm', 'get-ib1Repo', 'set-ib1VMExternalMac'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -85,7 +85,7 @@ CmdletsToExport = @()
 # VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'complete-ib1Setup'
+AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'complete-ib1Setup', 'get-ib1Git'
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()

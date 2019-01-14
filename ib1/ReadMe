@@ -9,7 +9,7 @@ Puis dans une commande powershell (En administrateur, avec executionPolicy en "B
 
 Pour mise à jour dans la Gallery Powershell : publish-module -path c:\ib1 -nugetapikey ....
 
-Fonctions contenues dans le mdoule en version 1.5 (se référer à l'aide)
+Fonctions contenues dans le module en version 1.10 (se référer à l'aide)
 - Reset-ib1VM
 - Mount-ib1VhdBoot
 - Remove-ib1VhdBoot

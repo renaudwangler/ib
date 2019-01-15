@@ -19,16 +19,17 @@ $repoParam=@{
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions" -title "Ateliers stage m20533";
   if ($env:COMPUTERNAME -like "pc-formateur") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
   'msaz100'='
-  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment;
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\AZ-100-MicrosoftAzureInfrastructureDeployment\";
-  rename-item -path $dest -newName "Ateliers MSAZ100" -errorAction SilentlyContinue;
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100\";
-  remove-item "$($dest)AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue;
-  remove-item "$($dest)AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue;
-  Add-Type -AssemblyName System.IO.Compression.FileSystem;
+  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment
+  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\AZ-100-MicrosoftAzureInfrastructureDeployment\"
+  rename-item -path $dest -newName "Ateliers MSAZ100" -errorAction SilentlyContinue
+  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100\"
+  remove-item "$($dest)AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+  remove-item "$($dest)AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
   get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
   get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
+  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/Master/ib1/extra/AZ-100IntroA.pptx -OutFile "$env:userprofile\documents\AZ-100IntroA.pptx"';
   'msaz101'='
   get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity;
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\AZ-101-MicrosoftAzureIntegrationandSecurity\";

@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.9.1'
+ModuleVersion = '1.10.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -85,7 +85,7 @@ CmdletsToExport = @()
 # VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'complete-ib1Setup'
+AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'complete-ib1Setup', 'get-ib1Git'
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()

@@ -40,7 +40,8 @@ $repoParam=@{
   Add-Type -AssemblyName System.IO.Compression.FileSystem
   get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
   get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}'}
+  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/Master/ib1/extra/AZ-101IntroA.pptx -OutFile "$env:userprofile\documents\AZ-101IntroA.pptx"'}
 
 
 function Unzip {

@@ -11,7 +11,7 @@ $mslearnGitUrl='https://api.github.com/repos/MicrosoftLearning/'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
-$repoParam=@{
+$courseParam=@{
   'm10979'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions" -title "Ateliers stage m10979";
   if ($env:COMPUTERNAME -like "pc-formateur") {get-ib1Repo 10979-MicrosoftAzureFundamentals -srcPath Allfiles -destPath E:\}';
@@ -19,29 +19,35 @@ $repoParam=@{
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions" -title "Ateliers stage m20533";
   if ($env:COMPUTERNAME -like "pc-formateur") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
   'msaz100'='
-  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\AZ-100-MicrosoftAzureInfrastructureDeployment\"
-  rename-item -path $dest -newName "Ateliers MSAZ100" -errorAction SilentlyContinue
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100\"
-  remove-item "$($dest)AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
+  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
   Add-Type -AssemblyName System.IO.Compression.FileSystem
+  remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+  remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
   get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
   get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
   get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100IntroA.pptx -OutFile "$env:userprofile\documents\AZ-100IntroA.pptx"';
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100IntroA.pptx -OutFile "$env:userprofile\documents\AZ-100IntroA.pptx"
+  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail"
+  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell"
+  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass"
+  install-module azureRM -maximumVersion 6.12.0 -force';
   'msaz101'='
-  get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity;
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\AZ-101-MicrosoftAzureIntegrationandSecurity\";
-  rename-item -path $dest -newName "Ateliers MSAZ101" -errorAction SilentlyContinue;
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ101\";
-  remove-item "$($dest)AZ-101T03A-ENU-LabFiles.zip" -force;
-  remove-item "$($dest)AZ-101T04A-ENU-LabFiles.zip" -force;
+  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ101"
+  get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest
   Add-Type -AssemblyName System.IO.Compression.FileSystem
+  remove-item "$($dest)\AZ-101T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+  remove-item "$($dest)\AZ-101T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
   get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
   get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
   get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-101IntroA.pptx -OutFile "$env:userprofile\documents\AZ-101IntroA.pptx"'}
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-101IntroA.pptx -OutFile "$env:userprofile\documents\AZ-101IntroA.pptx"
+  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail"
+  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell"
+  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass"
+  install-module azureRM -maximumVersion 6.12.0 -force'}
 
 
 function Unzip {
@@ -221,14 +227,10 @@ Chemin des fichiers à récupérer dans le Repositery (par défaut "/")
 .PARAMETER destPath
 Chemin local ou seront posés les fichier récupérés du Git (par défaut, sur le bureau de l'utilisateur actuel)
 .PARAMETER course
-Référence du stage pour paramètrage simplifié (remplaçe les 3 paramètres précédents).
-Valeurs possibles : m10979, m20533, msaz100 et msAZ101
+Paramètre obsolète, remplaçé par la commande install-ib1Course
 .EXAMPLE
 get-ib1Repo -repo '10979-MicrosoftAzureFundamentals' -srcPath 'Allfiles' -destPath 'c:\10979'
 Récupère les fichiers contenu dans le répertoire 'AllFiles' du repo '10979' et le copie dans le repertoire local c:\10979
-.EXAMPLE
-get-ib1Repo -course msAZ100
-Récupère les fichiers pour le stage msAZ100
 #>
 [CmdletBinding(
 DefaultParameterSetName='Repo')]
@@ -240,10 +242,10 @@ PARAM(
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ($course -ne '') {
-  if (-not $repoParam.$course) {write-ib1log "Le paramètre simplifié -course ne peut avoir que l'une des valeurs suivantes: $($repoParam.Keys). Merci de vérifier!" -ErrorLog}
+  if (-not $courseParam.$course) {write-ib1log "Le paramètre simplifié -course ne peut avoir que l'une des valeurs suivantes: $($courseParam.Keys). Merci de vérifier!" -ErrorLog}
   else {
     write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
-    Invoke-Expression $repoParam.$course
+    Invoke-Expression $courseParam.$course
     break}}
 if (-not $Repo -or $Repo -eq '') {write-ib1log "Le paramétre -Repo est manquant, merci de vérifier !" -ErrorLog}
 if (-not $Repo.Contains('/')) {$repo=$mslearnGit+'/'+$Repo}
@@ -279,6 +281,32 @@ $zip.dispose()
 write-ib1log -progressTitleLog "Décompression des fichiers."
 Remove-Item -Path $destZip -Force}}
 
+function install-ib1Course {
+<#
+.SYNOPSIS
+Cette commande permet de mettre en place les éléments nécessaire pour un stage.
+.PARAMETER course
+Référence du stage à mettre en place.
+Valeurs possibles : m10979, m20533, msaz100 et msAZ101
+.EXAMPLE
+install-ib1Course -course msAZ100
+Met en place l'environnement pour le stage msAZ100
+#>
+[CmdletBinding(
+DefaultParameterSetName='Course')]
+PARAM(
+[string]$course='')
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process {
+if ($course -eq '')  {
+$objPick=foreach($opt in $courseParam.Keys){new-object psobject -Property @{'Quel stage installer'=$opt}}
+$input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
+$course=$input.'Quel stage installer'}
+if (-not $courseParam.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $($courseParam.Keys). Merci de vérifier!" -ErrorLog}
+else {
+  write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
+  Invoke-Expression $courseParam.$course
+  break}}}
 
 function set-ib1VMCheckpointType {
 <#
@@ -1327,5 +1355,5 @@ Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
 Set-Alias get-ib1Git get-ib1repo
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac
-Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course
+Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git

@@ -30,3 +30,4 @@ Fonctions contenues dans le module en version 1.10 (se référer à l'aide)
 - invoke-ib1Rearm
 - get-ib1Repo
 - set-ib1VMExternalMac
+- install-ib1Course

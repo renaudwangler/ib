@@ -1,4 +1,9 @@
-﻿**Version 1.10.1:**
+﻿**Version 1.10.2:**
+ - Remplacement de l'option "-course" de la commande get-ib1repo par la nouvelle commande "install-ib1Course"
+ - Amélioration du script d'installation des stages msaz100 et msaz101
+ - Ajout de raccourcis vers les portails utiles pour les stages msaz100 et msaz101
+
+**Version 1.10.1:**
  - refonte de la commande get-ib1Repo pour gérer diverses sortes d'actions lors de préparation des stages, prête pour les stages m20533, m10979, msAZ100 et msAZ101
  - Suppression de la création du réseau virtuel "ib1Nat" dans l'installation du master
 

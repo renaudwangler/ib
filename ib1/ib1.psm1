@@ -7,7 +7,7 @@ $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment K
 $driverFolder='C:\Dell'
 $logFile="$env:TEMP\ib1.log"
 $skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
-$mslearnGitUrl='https://api.github.com/repos/MicrosoftLearning/'
+$ibppt='Présentation Société IB 2019.ppt'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
@@ -48,7 +48,6 @@ $courseParam=@{
   new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell"
   new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass"
   install-module azureRM -maximumVersion 6.12.0 -force'}
-
 
 function Unzip {
 param([string]$zipfile,[string]$outpath)
@@ -1143,7 +1142,7 @@ param(
 [string]$GatewayMask=24)
 get-ib1elevated $true
 compare-ib1PSVersion "5.0"
-write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Passage des réseaux en privé."
+write-ib1log -progressTitleLog "Mise en place des options nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
@@ -1221,9 +1220,9 @@ if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
   else {
     write-ib1log "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible" -warningLog
     $CheckFileResponse.Close()}}
-if (-not(Get-Childitem -Path "$env:Public\desktop\présentation stagiaire*")) {
-  write-ib1log "Copie de la présentation stagiaire sur le bureau depuis github." -DebugLog
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/Presentation.ppsx -OutFile "$env:Public\desktop\Présentation Stagiaire.ppsx"}
+if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt")) {
+  write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
+  invoke-webRequest -uri "https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt" -OutFile "$env:public\desktop\$ibppt"}
 write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
 install-ib1Chrome}
 

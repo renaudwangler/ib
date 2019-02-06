@@ -49,10 +49,12 @@ $courseParam=@{
   new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass"
   install-module azureRM -maximumVersion 6.12.0 -force'}
 
+function enable-ib1Office {
+& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName}
+
 function Unzip {
 param([string]$zipfile,[string]$outpath)
-  [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)
-}
+  [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)}
 
 function write-ib1log {
 [CmdletBinding(DefaultParameterSetName='TextLog')]
@@ -97,6 +99,38 @@ $TextNotes=(get-date -Format "[%d/%M/%y-%H:mm-V")+(get-module -ListAvailable -Na
 Get-VM -VMName *$VMName* -ErrorAction SilentlyContinue|ForEach-Object {
   if ($_.Notes -ne '') {Set-VM $_ -Notes "$($_.Notes)`n$TextNotes" -ErrorAction SilentlyContinue}
   else {Set-VM $_ -Notes $TextNotes -ErrorAction SilentlyContinue}}}
+
+function set-ib1ChromeLang {
+<#
+.SYNOPSIS
+Cette fonction change la langue de l'interface de Chrome, ainsi que la langue des sites visités.
+.PARAMETER web
+Code langue présenté aux sites visités par le navigateur (valeur par défaut 'en')
+.PARAMETER interface
+Code langue de l'interface du navigateur (valeur par défaut 'fr')
+.EXAMPLE
+set-ib1ChromeLang -web en -interface fr
+paramètre Chrome pour un affichage de son interface en Français et pour afficher la version anglaise des sites visités.
+#>
+[CmdletBinding(DefaultParameterSetName='web')]
+param([string]$web='en',[string]$interface='fr')
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process{
+write-ib1log "Modification de la langue des sites visités par Chrome en '$web'." -DebugLog
+$ChromePrefFile = Join-Path $env:LOCALAPPDATA 'Google\Chrome\User Data\default\Preferences'
+$Settings = Get-Content $ChromePrefFile | ConvertFrom-Json
+$Settings.intl.accept_languages=$web
+Set-Content -Path $ChromePrefFile (ConvertTo-Json -InputObject $Settings -Depth 12 -Compress)
+write-ib1log "Modification de la langue de l'interface de Chrome en '$interface'." -DebugLog
+$gooKey='HKLM:\SOFTWARE\Policies\Google'
+$gooVal='ApplicationLocaleValue'
+if (!(Test-Path $gooKey)) {New-Item -Path $gooKey}
+$gooKey+='\Chrome'
+if (!(Test-Path $gooKey)) {New-Item -Path $gooKey}
+if (Get-ItemProperty $gooKey -name $gooVal -ErrorAction SilentlyContinue ) {
+  Set-ItemProperty -Path $gooKey -Name $gooVal -Value $interface}
+else {
+  New-ItemProperty -Path $gooKey -Name $gooVal -Value $interface|Out-Null}}}
 
 function test-ib1PSDirect {
 <#
@@ -1354,5 +1388,5 @@ Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
 Set-Alias get-ib1Git get-ib1repo
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git

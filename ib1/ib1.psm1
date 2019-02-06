@@ -18,7 +18,7 @@ $courseParam=@{
   'm20533'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions" -title "Ateliers stage m20533";
   if ($env:COMPUTERNAME -like "pc-formateur") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
-  'msaz100'='
+  'msaz100old'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
   get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
   Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -31,26 +31,29 @@ $courseParam=@{
   invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100IntroA.pptx -OutFile "$env:userprofile\documents\AZ-100IntroA.pptx"
   new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail"
   new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell"
-  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass"
+  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "Azure - Validation pass"
+  install-module azureRM -maximumVersion 6.12.0 -force';
+  'msaz100'='
+  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
+  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest -srcPath Allfiles/labfiles
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100IntroA.pptx -OutFile "$env:userprofile\documents\AZ-100IntroA.pptx"
+  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
+  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
+  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "Azure - Validation pass" -dest $dest
+  new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/AZ-100-MicrosoftAzureInfrastructureDeployment/tree/master/Instructions" -title "Instructions Ateliers" -dest $dest
   install-module azureRM -maximumVersion 6.12.0 -force';
   'msaz101'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ101"
-  get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest
-  Add-Type -AssemblyName System.IO.Compression.FileSystem
-  remove-item "$($dest)\AZ-101T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)\AZ-101T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
-  get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
-  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}
+  get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest -srcPath Allfiles/labfiles
   invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-101IntroA.pptx -OutFile "$env:userprofile\documents\AZ-101IntroA.pptx"
-  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail"
-  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell"
-  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass"
+  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
+  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
+  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass" -dest $dest
+  new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/AZ-101-MicrosoftAzureIntegrationandSecurity/tree/master/Instructions" -title "Instructions Ateliers" -dest $dest
   install-module azureRM -maximumVersion 6.12.0 -force'}
 
 function enable-ib1Office {
-& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName}
+& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName|out-null}
 
 function Unzip {
 param([string]$zipfile,[string]$outpath)
@@ -331,10 +334,12 @@ PARAM(
 [string]$course='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
+set-ib1ChromeLang
+enable-ib1Office
 if ($course -eq '')  {
-$objPick=foreach($opt in $courseParam.Keys){new-object psobject -Property @{'Quel stage installer'=$opt}}
-$input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
-$course=$input.'Quel stage installer'}
+  $objPick=foreach($opt in $courseParam.Keys){new-object psobject -Property @{'Quel stage installer'=$opt}}
+  $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
+  $course=$input.'Quel stage installer'}
 if (-not $courseParam.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $($courseParam.Keys). Merci de vérifier!" -ErrorLog}
 else {
   write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
@@ -956,6 +961,8 @@ Si cette option est renseignée, le raccourci sera épinglé sur la barre des t�
 Cette option permet de rajouter des paramètres spécifiques après le fichier appelé
 .PARAMETER Icon
 Cette option permet de rajouter la référence de l'icône si nécessaire
+.PARAMETER Dest
+Emplacement du raccourci (par défaut sur le bureau)
 .EXAMPLE
 new-ib1Shortcut -URL 'https://www.ib-formation.fr'
 Crée un raccourci sur le bureau qui sera nommé en fonction du titre du site web
@@ -966,7 +973,8 @@ PARAM(
 [string]$title='',
 [switch]$TaskBar=$false,
 [string]$Params='',
-[string]$icon='')
+[string]$icon='',
+[string]$dest='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {write-ib1log "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -ErrorLog}
@@ -983,8 +991,9 @@ else {
   $title=$title+'.lnk'
   $target=$File}
 $WScriptShell=new-object -ComObject WScript.Shell
-if ($TaskBar) { $Folder="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$Folder="$env:Public\Desktop" }
-$shortcut=$WScriptShell.createShortCut("$Folder\$title")
+if ($dest -eq '') {
+  if ($TaskBar) { $dest="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$dest=[Environment]::GetFolderPath("CommonDesktopDirectory") }}
+$shortcut=$WScriptShell.createShortCut("$dest\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}
 if ($icon -ne '') {$shortcut.IconLocation=$Icon}

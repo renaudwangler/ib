@@ -1,4 +1,11 @@
-﻿**Version 1.10.2:**
+﻿**Version 1.11:**
+ - Nouvelle commande set-ib1ChromeLang pour la langue dans le navigateur
+ - Changement des installations des stages msaz100 et msaz101 avec nouveau format
+ - activation de Office dans la commande install-ib1Course
+ - Ajout du tour de table dans les intros des stages msaz100 et msaz101
+ - Ajout de diapos sur "Azure Automation" en extra pour msaz100
+
+**Version 1.10.2:**
  - Remplacement de l'option "-course" de la commande get-ib1repo par la nouvelle commande "install-ib1Course"
  - Amélioration du script d'installation des stages msaz100 et msaz101
  - Ajout de raccourcis vers les portails utiles pour les stages msaz100 et msaz101

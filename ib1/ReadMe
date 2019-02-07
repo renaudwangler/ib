@@ -9,7 +9,7 @@ Puis dans une commande powershell (En administrateur, avec executionPolicy en "B
 
 Pour mise à jour dans la Gallery Powershell : publish-module -path c:\ib1 -nugetapikey ....
 
-Fonctions contenues dans le module en version 1.10 (se référer à l'aide)
+Fonctions contenues dans le module en version 1.11 (se référer à l'aide)
 - Reset-ib1VM
 - Mount-ib1VhdBoot
 - Remove-ib1VhdBoot
@@ -31,3 +31,4 @@ Fonctions contenues dans le module en version 1.10 (se référer à l'aide)
 - get-ib1Repo
 - set-ib1VMExternalMac
 - install-ib1Course
+- set-ib1ChromeLang

@@ -11,6 +11,16 @@ $ibppt='Présentation Société IB 2019.ppt'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
+# 'msaz100old'='
+#  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
+#  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
+#  Add-Type -AssemblyName System.IO.Compression.FileSystem
+#  remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+#  remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+#  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
+#  get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
+#  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
+#  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
 $courseParam=@{
   'm10979'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions" -title "Ateliers stage m10979";
@@ -20,39 +30,30 @@ $courseParam=@{
   if ($env:COMPUTERNAME -like "pc-formateur") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
   'msaz100'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
-  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
-  Add-Type -AssemblyName System.IO.Compression.FileSystem
-  remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
-  get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
-  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100IntroA.pptx -OutFile "$env:userprofile\documents\AZ-100IntroA.pptx"
-  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail"
-  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell"
-  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass"
+  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest -srcPath Allfiles/labfiles
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100AIntro.pptx -OutFile "$env:userprofile\documents\AZ-100AIntro.pptx"
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-100A-Extra-Automation.pptx"
+  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
+  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
+  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "Azure - Validation pass" -dest $dest
+  new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/AZ-100-MicrosoftAzureInfrastructureDeployment/tree/master/Instructions" -title "Instructions Ateliers" -dest $dest
   install-module azureRM -maximumVersion 6.12.0 -force';
   'msaz101'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ101"
-  get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest
-  Add-Type -AssemblyName System.IO.Compression.FileSystem
-  remove-item "$($dest)\AZ-101T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)\AZ-101T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
-  get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
-  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-101IntroA.pptx -OutFile "$env:userprofile\documents\AZ-101IntroA.pptx"
-  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail"
-  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell"
-  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass"
+  get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest -srcPath Allfiles/labfiles
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-101AIntro.pptx -OutFile "$env:userprofile\documents\AZ-101AIntro.pptx"
+  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
+  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
+  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass" -dest $dest
+  new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/AZ-101-MicrosoftAzureIntegrationandSecurity/tree/master/Instructions" -title "Instructions Ateliers" -dest $dest
   install-module azureRM -maximumVersion 6.12.0 -force'}
+
+function enable-ib1Office {
+& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName|out-null}
 
 function Unzip {
 param([string]$zipfile,[string]$outpath)
-  [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)
-}
+  [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)}
 
 function write-ib1log {
 [CmdletBinding(DefaultParameterSetName='TextLog')]
@@ -97,6 +98,38 @@ $TextNotes=(get-date -Format "[%d/%M/%y-%H:mm-V")+(get-module -ListAvailable -Na
 Get-VM -VMName *$VMName* -ErrorAction SilentlyContinue|ForEach-Object {
   if ($_.Notes -ne '') {Set-VM $_ -Notes "$($_.Notes)`n$TextNotes" -ErrorAction SilentlyContinue}
   else {Set-VM $_ -Notes $TextNotes -ErrorAction SilentlyContinue}}}
+
+function set-ib1ChromeLang {
+<#
+.SYNOPSIS
+Cette fonction change la langue de l'interface de Chrome, ainsi que la langue des sites visités.
+.PARAMETER web
+Code langue présenté aux sites visités par le navigateur (valeur par défaut 'en')
+.PARAMETER interface
+Code langue de l'interface du navigateur (valeur par défaut 'fr')
+.EXAMPLE
+set-ib1ChromeLang -web en -interface fr
+paramètre Chrome pour un affichage de son interface en Français et pour afficher la version anglaise des sites visités.
+#>
+[CmdletBinding(DefaultParameterSetName='web')]
+param([string]$web='en',[string]$interface='fr')
+begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+process{
+write-ib1log "Modification de la langue des sites visités par Chrome en '$web'." -DebugLog
+$ChromePrefFile = Join-Path $env:LOCALAPPDATA 'Google\Chrome\User Data\default\Preferences'
+$Settings = Get-Content $ChromePrefFile | ConvertFrom-Json
+$Settings.intl.accept_languages=$web
+Set-Content -Path $ChromePrefFile (ConvertTo-Json -InputObject $Settings -Depth 12 -Compress)
+write-ib1log "Modification de la langue de l'interface de Chrome en '$interface'." -DebugLog
+$gooKey='HKLM:\SOFTWARE\Policies\Google'
+$gooVal='ApplicationLocaleValue'
+if (!(Test-Path $gooKey)) {New-Item -Path $gooKey}
+$gooKey+='\Chrome'
+if (!(Test-Path $gooKey)) {New-Item -Path $gooKey}
+if (Get-ItemProperty $gooKey -name $gooVal -ErrorAction SilentlyContinue ) {
+  Set-ItemProperty -Path $gooKey -Name $gooVal -Value $interface}
+else {
+  New-ItemProperty -Path $gooKey -Name $gooVal -Value $interface|Out-Null}}}
 
 function test-ib1PSDirect {
 <#
@@ -297,10 +330,12 @@ PARAM(
 [string]$course='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
+set-ib1ChromeLang
+enable-ib1Office
 if ($course -eq '')  {
-$objPick=foreach($opt in $courseParam.Keys){new-object psobject -Property @{'Quel stage installer'=$opt}}
-$input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
-$course=$input.'Quel stage installer'}
+  $objPick=foreach($opt in $courseParam.Keys){new-object psobject -Property @{'Quel stage installer'=$opt}}
+  $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
+  $course=$input.'Quel stage installer'}
 if (-not $courseParam.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $($courseParam.Keys). Merci de vérifier!" -ErrorLog}
 else {
   write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
@@ -922,6 +957,8 @@ Si cette option est renseignée, le raccourci sera épinglé sur la barre des t�
 Cette option permet de rajouter des paramètres spécifiques après le fichier appelé
 .PARAMETER Icon
 Cette option permet de rajouter la référence de l'icône si nécessaire
+.PARAMETER Dest
+Emplacement du raccourci (par défaut sur le bureau)
 .EXAMPLE
 new-ib1Shortcut -URL 'https://www.ib-formation.fr'
 Crée un raccourci sur le bureau qui sera nommé en fonction du titre du site web
@@ -932,7 +969,8 @@ PARAM(
 [string]$title='',
 [switch]$TaskBar=$false,
 [string]$Params='',
-[string]$icon='')
+[string]$icon='',
+[string]$dest='')
 begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {write-ib1log "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -ErrorLog}
@@ -949,8 +987,9 @@ else {
   $title=$title+'.lnk'
   $target=$File}
 $WScriptShell=new-object -ComObject WScript.Shell
-if ($TaskBar) { $Folder="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$Folder="$env:Public\Desktop" }
-$shortcut=$WScriptShell.createShortCut("$Folder\$title")
+if ($dest -eq '') {
+  if ($TaskBar) { $dest="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$dest=[Environment]::GetFolderPath("CommonDesktopDirectory") }}
+$shortcut=$WScriptShell.createShortCut("$dest\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}
 if ($icon -ne '') {$shortcut.IconLocation=$Icon}
@@ -1354,5 +1393,5 @@ Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
 Set-Alias get-ib1Git get-ib1repo
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git

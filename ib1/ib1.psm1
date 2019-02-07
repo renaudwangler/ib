@@ -11,6 +11,16 @@ $ibppt='Présentation Société IB 2019.ppt'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
+# 'msaz100old'='
+#  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
+#  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
+#  Add-Type -AssemblyName System.IO.Compression.FileSystem
+#  remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+#  remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+#  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
+#  get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
+#  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
+#  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
 $courseParam=@{
   'm10979'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions" -title "Ateliers stage m10979";
@@ -18,25 +28,11 @@ $courseParam=@{
   'm20533'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions" -title "Ateliers stage m20533";
   if ($env:COMPUTERNAME -like "pc-formateur") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
-  'msaz100old'='
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
-  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
-  Add-Type -AssemblyName System.IO.Compression.FileSystem
-  remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
-  get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
-  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100IntroA.pptx -OutFile "$env:userprofile\documents\AZ-100IntroA.pptx"
-  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail"
-  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell"
-  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "Azure - Validation pass"
-  install-module azureRM -maximumVersion 6.12.0 -force';
   'msaz100'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
   get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest -srcPath Allfiles/labfiles
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100IntroA.pptx -OutFile "$env:userprofile\documents\AZ-100IntroA.pptx"
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100AIntro.pptx -OutFile "$env:userprofile\documents\AZ-100AIntro.pptx"
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-100A-Extra-Automation.pptx"
   new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
   new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
   new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "Azure - Validation pass" -dest $dest
@@ -45,7 +41,7 @@ $courseParam=@{
   'msaz101'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ101"
   get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest -srcPath Allfiles/labfiles
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-101IntroA.pptx -OutFile "$env:userprofile\documents\AZ-101IntroA.pptx"
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-101AIntro.pptx -OutFile "$env:userprofile\documents\AZ-101AIntro.pptx"
   new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
   new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
   new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass" -dest $dest

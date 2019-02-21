@@ -1,4 +1,7 @@
-﻿**Version 1.11:**
+﻿**Version 1.11.1:**
+ - Correction nom de machine virtuelle pour installation des stages m10979 et m20533
+
+**Version 1.11:**
  - Nouvelle commande set-ib1ChromeLang pour la langue dans le navigateur
  - Changement des installations des stages msaz100 et msaz101 avec nouveau format
  - activation de Office dans la commande install-ib1Course

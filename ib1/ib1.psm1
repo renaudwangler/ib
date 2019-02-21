@@ -24,10 +24,10 @@ $logStart=$true
 $courseParam=@{
   'm10979'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions" -title "Ateliers stage m10979";
-  if ($env:COMPUTERNAME -like "pc-formateur") {get-ib1Repo 10979-MicrosoftAzureFundamentals -srcPath Allfiles -destPath E:\}';
+  if ($env:COMPUTERNAME -like "*mia-cl1*") {get-ib1Repo 10979-MicrosoftAzureFundamentals -srcPath Allfiles -destPath E:\}';
   'm20533'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions" -title "Ateliers stage m20533";
-  if ($env:COMPUTERNAME -like "pc-formateur") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
+  if ($env:COMPUTERNAME -like "*mia-cl1*") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
   'msaz100'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
   get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest -srcPath Allfiles/labfiles

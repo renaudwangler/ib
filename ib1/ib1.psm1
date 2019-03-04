@@ -58,6 +58,7 @@ $courseParam=@{
   ';
   'ms100'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MS100"
+  New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/MS-100AIntro.pptx -OutFile "$env:userprofile\documents\MS-100AIntro.pptx"
   new-ib1Shortcut -URL "https://lms.godeploy.it" -title "Labs Online" -dest $dest
   new-ib1Shortcut -URL "https://portal.office.com" -title "Office 365 - Portail principal" -dest $dest
@@ -70,6 +71,7 @@ $courseParam=@{
   if ($env:COMPUTERNAME -like "*mia-cl1*") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
   'msaz900'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Manipulations MSAZ900"
+  New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-900AIntro.pptx -OutFile "$env:userprofile\documents\AZ-900AIntro.pptx"
   new-ib1Shortcut -URL "https://azure.microsoft.com/en-us/free/" -title "Azure - Free Account" -dest $dest
   new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest

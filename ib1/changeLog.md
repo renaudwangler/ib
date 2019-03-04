@@ -1,4 +1,7 @@
-﻿**Version 1.11.2:**
+﻿**Version 1.11.3:**
+ - Correction de bug sur install ms100
+
+**Version 1.11.2:**
  - Ajout des installations des stages msaz900 et ms100
 
 **Version 1.11.1:**

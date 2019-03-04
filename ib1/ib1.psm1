@@ -22,12 +22,59 @@ $logStart=$true
 #  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
 #  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
 $courseParam=@{
+  'm20740c'='
+  $credential = New-Object System.Management.Automation.PSCredential ("administrator",(ConvertTo-SecureString "Pa55w.rd" -AsPlainText -Force))
+  if ($env:COMPUTERNAME -like "*host1*") {
+    set-ib1VMCheckpointType
+    switch-ib1VMFr
+    get-ib1VM|foreach-object {
+      echo "traitement de la VM ''$($_.VMName)''."
+      if ($_.VMName -like "DC1-B") {$ip="172.16.0.10"}
+      elseif ($_.VMName -like "SVR1-B") {$ip="172.16.0.21"}
+      elseif ($_.VMName -like "NVHOST2") {$ip="172.16.0.32"}
+      else {$ip="172.16.0.1"}
+      echo "Copie de la VM."
+      copy-ib1VM $_.VMName -VMSuffix 2
+      echo "Démarrage de la VM."
+      start-ib1VMWait $_.VMName
+      echo "Changement de la carte réseau."
+      #Pour chaque configuration IP, le masque est "255.255.0.0", la passerelle "172.16.0.1" et le DNS "172.16.0.10"
+      invoke-command -VMName "$($_.VMName)-2" -credential $credential -scriptBlock {#Placer ici la commande de changement d''adresse de la carte réseau branchée sur "Host Internal Network"}
+      echo "Réarmement."
+      invoke-command -VMName "$($_.VMName)-2" -credential $credential -scriptBlock {"slmgr -rearm"}
+      if ($_.VMName -like "NAT2") {invoke-command -VMName "$($_.VMName)-2" -credential $credential -scriptBlock {get-netconnectionprofile|set-netconnectionprofile -networkcategory private}}
+      echo "Arrêt de la VM (attente)."
+      get-VM -VMName "$($_.VMName)-2"|stop-VM -Force
+      while ((get-VM -VMName "$($_.VMName)-2").State -notlike "Off") {sleep -Milliseconds 600}
+    }
+    $nvHost2="20740C-LON-NVHOST2-2"
+    set-VMProcessor -VMName $nvHost2 -ExposeVirtualizationExtensions $true
+    get-VMNetWorkAdapter -VMName $nvHost2|Set-VMNetworkAdapter -MacAddressSpoofing On
+    Set-VM -VMName $nvhost2 -MemoryStartupBytes 4GB
+    echo "Dans la machine NAT-2, dans [Routing and Remote Access], ouvrir [IPv4] et, sur le [NAT], ajouter les deux interfaces."
+  }
+  elseif ($env:COMPUTERNAME -like "*host2*") {
+  }
+  ';
+  'ms100'='
+  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MS100"
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/MS-100AIntro.pptx -OutFile "$env:userprofile\documents\MS-100AIntro.pptx"
+  new-ib1Shortcut -URL "https://lms.godeploy.it" -title "Labs Online" -dest $dest
+  new-ib1Shortcut -URL "https://portal.office.com" -title "Office 365 - Portail principal" -dest $dest
+  new-ib1Shortcut -URL "https://admin.microsoft.com" -title "Microsoft 365 - Portail d''administration" -dest $dest';
   'm10979'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions" -title "Ateliers stage m10979";
   if ($env:COMPUTERNAME -like "*mia-cl1*") {get-ib1Repo 10979-MicrosoftAzureFundamentals -srcPath Allfiles -destPath E:\}';
   'm20533'='
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions" -title "Ateliers stage m20533";
   if ($env:COMPUTERNAME -like "*mia-cl1*") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
+  'msaz900'='
+  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Manipulations MSAZ900"
+  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-900AIntro.pptx -OutFile "$env:userprofile\documents\AZ-900AIntro.pptx"
+  new-ib1Shortcut -URL "https://azure.microsoft.com/en-us/free/" -title "Azure - Free Account" -dest $dest
+  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
+  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
+  install-module AZ -force';
   'msaz100'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
   get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest -srcPath Allfiles/labfiles
@@ -118,7 +165,7 @@ process{
 write-ib1log "Modification de la langue des sites visités par Chrome en '$web'." -DebugLog
 $ChromePrefFile = Join-Path $env:LOCALAPPDATA 'Google\Chrome\User Data\default\Preferences'
 $Settings = Get-Content $ChromePrefFile | ConvertFrom-Json
-$Settings.intl.accept_languages=$web
+$Settings.intl.accept_languages=$web|out-null
 Set-Content -Path $ChromePrefFile (ConvertTo-Json -InputObject $Settings -Depth 12 -Compress)
 write-ib1log "Modification de la langue de l'interface de Chrome en '$interface'." -DebugLog
 $gooKey='HKLM:\SOFTWARE\Policies\Google'

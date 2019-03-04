@@ -1,4 +1,7 @@
-﻿**Version 1.11.1:**
+﻿**Version 1.11.2:**
+ - Ajout des installations des stages msaz900 et ms100
+
+**Version 1.11.1:**
  - Correction nom de machine virtuelle pour installation des stages m10979 et m20533
 
 **Version 1.11:**

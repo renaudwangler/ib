@@ -1,4 +1,7 @@
-﻿**Version 1.11.5:**
+﻿**Version 1.11.6:**
+ - Correction de bugs
+
+**Version 1.11.5:**
  - Création de la commande set-ib1VMCusto
  - Réaménagement de l'installation du stage m20740c avec la commande précédente
 

@@ -27,25 +27,24 @@ $courseParam=@{
   if ($env:COMPUTERNAME -like "*host1*") {
     set-ib1VMCheckpointType
     switch-ib1VMFr -nocheckpoint
-    copy-ib1VM -vmsuffix 2 -nocheckpoint
-    $nvHost2="20740C-LON-NVHOST2-2"
+    copy-ib1VM -vmsuffix ib -nocheckpoint
+    $nvHost2="20740C-LON-NVHOST2-ib"
     set-VMProcessor -VMName $nvHost2 -ExposeVirtualizationExtensions $true
     get-VMNetWorkAdapter -VMName $nvHost2|Set-VMNetworkAdapter -MacAddressSpoofing On
     Set-VM -VMName $nvhost2 -MemoryStartupBytes 4GB
-    invoke-expression "set-ib1VMCusto -vmName dc1-b-2 -ipAddress ""172.16.0.10"" $ipConfig"
-    invoke-expression "set-ib1VMCusto -vmName svr1-b-2 -ipAddress ""172.16.0.21"" $ipconfig"
-    invoke-expression "set-ib1VMCusto -vmName nvhost2-2 -ipAddress ""172.16.0.32"" $ipconfig -switchName ""Host Internal Network"""
-    set-ib1VMCusto -vmName nat-2 -ipAddress "172.16.0.1" -VMcommand "while ((get-NetConnectionProfile).Name -like ''*identifying*'') {start-sleep -seconds 5};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private" -switchName "Host Internal Network" -rearm -user "administrator" -password "Pa55w.rd" -ipsubnet 16 -dNSServer "(''172.16.0.10'')"
-    echo "Dans la machine NAT-2, dans [Routing and Remote Access], ouvrir [IPv4] et, sur le [NAT], ajouter les deux interfaces."}
+    invoke-expression "set-ib1VMCusto -vmName dc1-b-ib -ipAddress ""172.16.0.10"" $ipConfig"
+    invoke-expression "set-ib1VMCusto -vmName svr1-b-ib -ipAddress ""172.16.0.21"" $ipconfig"
+    invoke-expression "set-ib1VMCusto -vmName nvhost2-ib -ipAddress ""172.16.0.32"" $ipconfig -switchName ""Host Internal Network"""
+    set-ib1VMCusto -vmName nat-ib -ipAddress "172.16.0.1" -VMcommand "while ((get-NetConnectionProfile).Name -like ''*identifying*'') {start-sleep -seconds 5};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private" -switchName "Host Internal Network" -rearm -user "administrator" -password "Pa55w.rd" -ipsubnet 16 -dNSServer "(''172.16.0.10'')"
+    echo "Dans la machine NAT-ib, dans [Routing and Remote Access], ouvrir [IPv4] et, sur le [NAT], ajouter les deux interfaces."}
 
   elseif ($env:COMPUTERNAME -like "*host2*") {
     set-ib1VMCheckpointType
     switch-ib1VMFr -nocheckpoint
-    copy-ib1VM -vmsuffix 2 -nocheckpoint
-    invoke-expression "set-ib1VMCusto -vmName dc1-b-2 -ipAddress ""172.16.0.10"" $ipConfig"
-    invoke-expression "set-ib1VMCusto -vmName nvhost-3-2 -ipAddress ""172.16.0.33"" $ipconfig -switchName ""Private Network"""
-    invoke-expression "set-ib1VMCusto -vmName nvhost-4-2 -ipAddress ""172.16.0.34"" $ipconfig -switchName ""Private Network"""
-  }';
+    copy-ib1VM -vmsuffix ib -nocheckpoint
+    invoke-expression "set-ib1VMCusto -vmName dc1-c-ib -ipAddress ""172.16.0.10"" $ipConfig"
+    invoke-expression "set-ib1VMCusto -vmName nvhost3-ib -ipAddress ""172.16.0.33"" $ipconfig -switchName ""Private Network"""
+    invoke-expression "set-ib1VMCusto -vmName nvhost4-ib -ipAddress ""172.16.0.34"" $ipconfig -switchName ""Private Network"""}';
   'ms100'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MS100"
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null

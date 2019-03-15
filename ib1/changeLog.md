@@ -1,4 +1,13 @@
-﻿**Version 1.11.3:**
+﻿**Version 1.11.5:**
+ - Création de la commande set-ib1VMCusto
+ - Réaménagement de l'installation du stage m20740c avec la commande précédente
+
+**Version 1.11.4:**
+ - Aménagement de la fonction d'activation de Office
+ - Aménagement de la fontion de changement de langue de Chrome
+ - Gestion des VMs copiées pour les stage m20740c
+
+**Version 1.11.3:**
  - Correction de bug sur install ms100
 
 **Version 1.11.2:**

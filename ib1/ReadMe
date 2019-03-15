@@ -32,3 +32,4 @@ Fonctions contenues dans le module en version 1.11 (se référer à l'aide)
 - set-ib1VMExternalMac
 - install-ib1Course
 - set-ib1ChromeLang
+- set-ib1VMCusto

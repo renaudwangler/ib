@@ -23,39 +23,29 @@ $logStart=$true
 #  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
 $courseParam=@{
   'm20740c'='
-  $credential = New-Object System.Management.Automation.PSCredential ("administrator",(ConvertTo-SecureString "Pa55w.rd" -AsPlainText -Force))
+  $ipConfig="-rearm -user ""adatum\administrator"" -password ""Pa55w.rd"" -ipSubnet 16 -dNSServers ""(''172.16.0.10'')"" -ipGateway ""172.16.0.1"""
   if ($env:COMPUTERNAME -like "*host1*") {
     set-ib1VMCheckpointType
-    switch-ib1VMFr
-    get-ib1VM|foreach-object {
-      echo "traitement de la VM ''$($_.VMName)''."
-      if ($_.VMName -like "DC1-B") {$ip="172.16.0.10"}
-      elseif ($_.VMName -like "SVR1-B") {$ip="172.16.0.21"}
-      elseif ($_.VMName -like "NVHOST2") {$ip="172.16.0.32"}
-      else {$ip="172.16.0.1"}
-      echo "Copie de la VM."
-      copy-ib1VM $_.VMName -VMSuffix 2
-      echo "Démarrage de la VM."
-      start-ib1VMWait $_.VMName
-      echo "Changement de la carte réseau."
-      #Pour chaque configuration IP, le masque est "255.255.0.0", la passerelle "172.16.0.1" et le DNS "172.16.0.10"
-      invoke-command -VMName "$($_.VMName)-2" -credential $credential -scriptBlock {#Placer ici la commande de changement d''adresse de la carte réseau branchée sur "Host Internal Network"}
-      echo "Réarmement."
-      invoke-command -VMName "$($_.VMName)-2" -credential $credential -scriptBlock {"slmgr -rearm"}
-      if ($_.VMName -like "NAT2") {invoke-command -VMName "$($_.VMName)-2" -credential $credential -scriptBlock {get-netconnectionprofile|set-netconnectionprofile -networkcategory private}}
-      echo "Arrêt de la VM (attente)."
-      get-VM -VMName "$($_.VMName)-2"|stop-VM -Force
-      while ((get-VM -VMName "$($_.VMName)-2").State -notlike "Off") {sleep -Milliseconds 600}
-    }
+    switch-ib1VMFr -nocheckpoint
+    copy-ib1VM -vmsuffix 2 -nocheckpoint
     $nvHost2="20740C-LON-NVHOST2-2"
     set-VMProcessor -VMName $nvHost2 -ExposeVirtualizationExtensions $true
     get-VMNetWorkAdapter -VMName $nvHost2|Set-VMNetworkAdapter -MacAddressSpoofing On
     Set-VM -VMName $nvhost2 -MemoryStartupBytes 4GB
-    echo "Dans la machine NAT-2, dans [Routing and Remote Access], ouvrir [IPv4] et, sur le [NAT], ajouter les deux interfaces."
-  }
+    invoke-expression "set-ib1VMCusto -vmName dc1-b-2 -ipAddress ""172.16.0.10"" $ipConfig"
+    invoke-expression "set-ib1VMCusto -vmName svr1-b-2 -ipAddress ""172.16.0.21"" $ipconfig"
+    invoke-expression "set-ib1VMCusto -vmName nvhost2-2 -ipAddress ""172.16.0.32"" $ipconfig -switchName ""Host Internal Network"""
+    set-ib1VMCusto -vmName nat-2 -ipAddress "172.16.0.1" -VMcommand "while ((get-NetConnectionProfile).Name -like ''*identifying*'') {start-sleep -seconds 5};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private" -switchName "Host Internal Network" -rearm -user "administrator" -password "Pa55w.rd" -ipsubnet 16 -dNSServer "(''172.16.0.10'')"
+    echo "Dans la machine NAT-2, dans [Routing and Remote Access], ouvrir [IPv4] et, sur le [NAT], ajouter les deux interfaces."}
+
   elseif ($env:COMPUTERNAME -like "*host2*") {
-  }
-  ';
+    set-ib1VMCheckpointType
+    switch-ib1VMFr -nocheckpoint
+    copy-ib1VM -vmsuffix 2 -nocheckpoint
+    invoke-expression "set-ib1VMCusto -vmName dc1-b-2 -ipAddress ""172.16.0.10"" $ipConfig"
+    invoke-expression "set-ib1VMCusto -vmName nvhost-3-2 -ipAddress ""172.16.0.33"" $ipconfig -switchName ""Private Network"""
+    invoke-expression "set-ib1VMCusto -vmName nvhost-4-2 -ipAddress ""172.16.0.34"" $ipconfig -switchName ""Private Network"""
+  }';
   'ms100'='
   $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MS100"
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
@@ -98,7 +88,8 @@ $courseParam=@{
   install-module azureRM -maximumVersion 6.12.0 -force'}
 
 function enable-ib1Office {
-& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName|out-null}
+$enablecommand=(Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName
+if ($enablecommand) {& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName}}
 
 function Unzip {
 param([string]$zipfile,[string]$outpath)
@@ -166,9 +157,10 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process{
 write-ib1log "Modification de la langue des sites visités par Chrome en '$web'." -DebugLog
 $ChromePrefFile = Join-Path $env:LOCALAPPDATA 'Google\Chrome\User Data\default\Preferences'
-$Settings = Get-Content $ChromePrefFile | ConvertFrom-Json
-$Settings.intl.accept_languages=$web|out-null
-Set-Content -Path $ChromePrefFile (ConvertTo-Json -InputObject $Settings -Depth 12 -Compress)
+$Settings = Get-Content $ChromePrefFile -ErrorAction SilentlyContinue| ConvertFrom-Json
+if ($settings.intl.accpet_labguages) {
+  $Settings.intl.accept_languages=$web|out-null
+  Set-Content -Path $ChromePrefFile (ConvertTo-Json -InputObject $Settings -Depth 12 -Compress)}
 write-ib1log "Modification de la langue de l'interface de Chrome en '$interface'." -DebugLog
 $gooKey='HKLM:\SOFTWARE\Policies\Google'
 $gooVal='ApplicationLocaleValue'
@@ -814,6 +806,109 @@ catch {write-ib1log "URL incrorrecte, le fichier '' est introuvable" -ErrorLog}
 write-ib1log "Insertion du certificat dans le magasin de certificats local." -DebugLog
 Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false|Add-Content -Path $logFile -Encoding UTF8}}
 
+function set-ib1VMCusto {
+<#
+.SYNOPSIS
+Cette commande permet de customiser le Windows contenu dans une machine virtuelle.
+.PARAMETER VMName
+Nom de la VM à customiser (agit sur toutes les VMs si paramêtre non spécifié)
+.PARAMETER exactVMName
+Permet de spécifier que le nom de la VM fourni est précisément le nom de la VM à traiter.
+.PARAMETER NoCheckpoint
+Un Checkpoint Hyper-V sera créé à l'issue de la customisation : utiliser le paramètre "-noCheckpoint" pour l'éviter
+.PARAMETER rearm
+Lance le réarmement du système d'exploitation de la machine
+.PARAMETER user
+Nom de l'utilisateur pour connexion au système de la VM ("Administrator" par défaut)
+.PARAMETER password
+Mot de passe de l'utilisateur pour connexion au système de la VM (obligatoire).
+.PARAMETER switchName
+Nom du switch virtuel sur lequel est branché la VM
+.PARAMETER ipAddress
+Adresse IP de la carte réseau
+.PARAMETER ipSubnet
+taille du masque de sous-réseau de la VM
+.PARAMETER ipGateway
+Passerelle par défaut de la carte de la VM (le cas échéant).
+.PARAMETER dNSServers
+serveur(s) DNS à paramètrer sur la carte de la VM (ne fonctionne qu'avec le paramètre ipAddress)
+Paramètre à formatter comme un tableau powershell, mais à  passer en chaine de caractère, voir exemple
+.PARAMETER VMcommand
+Commande à executer dans la VM en connexion directe
+.EXAMPLE
+set-ib1VMCusto -VMName lon-dc1 -rearm
+Réarme le système Windows contenu dans la VM "lon-dc1"
+.EXAMPLE
+set-ib1VMCusto -VMName lon-dc1 -password 'Pa55w.rd' -switchName 'Private Network' -ipAddress 172.16.0.10 -ipSubnet 24 -ipGateway 172.16.0.1 -dNSServers '(172.16.0.10)'
+Cette commande va changer la configuration IP de la carte réseau de la VM qui est branchée sur le witch "Private Network" de l'Hyper-V
+#>
+#>
+[CmdletBinding(
+DefaultParameterSetName='VMName')]
+PARAM(
+[string]$vmName,
+[switch]$rearm=$false,
+[string]$user='administrator',
+[parameter(Mandatory=$true)][string]$password,
+[string]$switchName,
+[string]$ipAddress,
+[string]$ipSubnet='24',
+[string]$ipGateway,
+[string]$dNSServers,
+[switch]$noCheckpoint,
+[string]$VMcommand)
+begin{get-ib1elevated $true; compare-ib1PSVersion "5.0";}
+process {
+if ($switchName) {if (!(Get-VMSwitch -Name "*$switchName*")) {write-ib1log "Erreur, switch virtuel '$switchName' introuvable ! Vérifier !" -ErrorLog}}
+$credential=New-Object System.Management.Automation.PSCredential ($user,(ConvertTo-SecureString $password -AsPlainText -Force))
+$VMs2custo=get-ib1VM -VMName $VMName
+foreach ($VM2custo in $VMs2custo) {
+  write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)'"
+  $vmState=$VM2custo.state
+  if ($VM2custo.state -notlike 'running') {
+    write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)." "Démarrage de la VM"
+    start-ib1VMWait $VM2custo.name}
+  if ($ipAddress) {
+    write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)." "Changement de la configuration IP"
+    $netAdapter='Get-NetAdapter'
+    if ($switchName) {
+      #récupération de la carte branchée au switch
+      $vmMac=(($VM2custo|get-VMNetworkAdapter|where-object {$_.switchName -like "*$switchName*"}).macAddress)
+      $vmMac=$vmMac.insert(2,"-").insert(5,"-").insert(8,"-").insert(11,"-").insert(14,"-")
+      $netAdapter+='|Where-Object { $_.macAddress -like '+"'$vmMac'}"}
+    $commandIP=$netAdapter+"|New-NetIPAddress -AddressFamily IPv4 -IPAddress $ipAddress -PrefixLength $ipSubnet"
+    $commandRemove=$netAdapter+'|Remove-NetIPAddress -errorAction silentlyContinue -confirm $false|out-null'
+    if ($ipGateway) {$commandIp+=" -DefaultGateway '$ipGateway'"}
+    set-ib1VMNotes $VM2custo.name -TextNotes "Customisation de la VM ($commandRemove)."
+    $commandRemove=[scriptblock]::Create($commandRemove)
+    Invoke-Command -VMName $VM2custo.name -Credential $credential -ScriptBlock $commandRemove
+    set-ib1VMNotes $VM2custo.name -TextNotes "Customisation de la VM ($commandIP)."
+    $commandIP=[scriptblock]::Create($commandIP+'|out-null')
+    Invoke-Command -VMName $VM2custo.name -Credential $credential -ScriptBlock $commandIP
+    if ($dNSServers) {
+      write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)." "Changement des serveurs DNS"
+      set-ib1VMNotes $VM2custo.name -TextNotes "Customisation de la VM (Set-DnsClientServerAddress -InterfaceAlias (($netAdapter).interfaceAlias) -ServerAddresses $dNSServers)."
+      $commandDNS=[scriptblock]::create("Set-DnsClientServerAddress -InterfaceAlias (($netAdapter).interfaceAlias) -ServerAddresses $dNSServers")
+      Invoke-Command -VMName $VM2custo.name -Credential $credential -ScriptBlock $commandDNS}}
+  if ($rearm) {
+    write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)." "Réarmement du système"
+    set-ib1VMNotes $VM2custo.name -TextNotes "Customisation de la VM (cscript c:\windows\system32\slmgr.vbs -rearm)."
+    Invoke-Command -VMName $VM2custo.name -Credential $credential -ScriptBlock {cscript c:\windows\system32\slmgr.vbs -rearm}|out-null}
+  if ($VMcommand) {
+    write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)." "Lancement de commande"
+    Start-Sleep -Seconds 10
+    set-ib1VMNotes $VM2custo.name -TextNotes "Customisation de la VM ($VMcommand)."
+    $command=[scriptblock]::Create($VMcommand+'|out-null')
+    Invoke-Command -VMName $VM2custo.name -Credential $credential -ScriptBlock $command}
+  if ($vmState -like 'Off') {
+    write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)." "Extinction de la VM."
+    Stop-VM $VM2custo -Force
+    while ($VM2custo.state -notlike 'Off') {sleep -Milliseconds 1000}}
+  if (-not $noCheckpoint) {
+    write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)." "Checkpoint de la VM."
+      Checkpoint-VM -VM $VM2custo -SnapshotName "Set-ib1VMCusto"}
+  write-ib1log -progressTitleLog "Traitement de la VM '$($VM2custo.name)."}}}
+
 function copy-ib1VM {
 <#
 .SYNOPSIS
@@ -899,7 +994,6 @@ foreach ($VM2copy in $VMs2copy) {
       write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Création du checkpoint ib1Copy"
       Checkpoint-VM -VM $newVM -SnapshotName "ib1Copy"}
   write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)"
-  set-ib1VMNotes $VM2copy.name "Création d'une copie de la VM."
   set-ib1VMNotes $newVM.Name -TextNotes "VM Copiée depuis '$($VM2copy.name)'."
   write-ib1log 'Pensez à mettre à jour la configuration IP des cartes réseau qui ont été créées dans la machine virtuelle.' -warningLog}}}
 
@@ -1442,5 +1536,5 @@ Set-Alias ibReset reset-ib1VM
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
 Set-Alias get-ib1Git get-ib1repo
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git

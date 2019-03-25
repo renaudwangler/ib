@@ -372,6 +372,15 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 set-ib1ChromeLang
 enable-ib1Office
+import-ib1TrustedCertificate
+$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt"
+if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt")) {
+  write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
+elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head).headers.'content-length') {
+  write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
+  Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
 if ($course -eq '')  {
   $objPick=foreach($opt in $courseParam.Keys){new-object psobject -Property @{'Quel stage installer'=$opt}}
   $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
@@ -1401,9 +1410,14 @@ if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
   else {
     write-ib1log "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible" -warningLog
     $CheckFileResponse.Close()}}
+$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt"
 if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt")) {
   write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  invoke-webRequest -uri "https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt" -OutFile "$env:public\desktop\$ibppt"}
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
+elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head).headers.'content-length') {
+  write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
+  Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
 write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
 install-ib1Chrome}
 

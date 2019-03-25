@@ -1,4 +1,7 @@
-﻿**Version 1.11.6:**
+﻿**Version 1.11.7:**
+ - Ajout de la copie de la présentation ib dans install-ib1course
+
+**Version 1.11.6:**
  - Correction de bugs
 
 **Version 1.11.5:**

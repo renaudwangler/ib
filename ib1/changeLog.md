@@ -1,4 +1,7 @@
-﻿**Version 1.11.7:**
+﻿**Version 1.12:**
+ - Modification de la version de la présentation stagiaires.
+
+**Version 1.11.7:**
  - Ajout de la copie de la présentation ib dans install-ib1course
 
 **Version 1.11.6:**

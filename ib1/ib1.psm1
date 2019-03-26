@@ -7,7 +7,7 @@ $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment K
 $driverFolder='C:\Dell'
 $logFile="$env:TEMP\ib1.log"
 $skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
-$ibppt='Présentation Société IB 2019.ppt'
+$ibppt='Présentation stagiaire automatique 2019.ppsx'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
@@ -22,12 +22,40 @@ $logStart=$true
 #  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
 #  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
 $courseParam=@{
+  'm20741b'='
+ $ipConfig="-rearm -user ""adatum\administrator"" -password ""Pa55w.rd"" -ipSubnet 16 -dNSServers ""(''172.16.0.10'')"" -ipGateway ""172.16.0.1"""
+  if ($env:COMPUTERNAME -like "*host1*") {
+    cscript c:\windows\system32\slmgr.vbs -rearm|out-null
+    $nic = Get-NetAdapter | where-object {$_.Status -eq "up" -and !$_.Virtual} | Get-NetIPInterface -AddressFamily IPv4 -ErrorAction SilentlyContinue
+    If ($nic.Dhcp -eq "Disabled") {
+      If (($nic|Get-NetIPConfiguration).Ipv4DefaultGateway) {$nic|Remove-NetRoute -Confirm:$false -errorAction silentlyContinue}
+      $nic|Set-NetIPInterface -DHCP Enabled}
+    $nic|Set-DnsClientServerAddress -ResetServerAddresses
+    if (Get-NetAdapter|Where-Object {$_.interfacedescription -like "*loopback*"}) {
+      $loop=Get-NetAdapter|Where-Object {$_.interfacedescription -like "*loopback*"}
+      if ($loop.name -ne "loopback") {$loop|Rename-NetAdapter -NewName loopback}}
+    else {
+      if (!(wait-ib1network -nicName $nic.name)) {write-ib1log "Le réseau ne semble pas fonctionnel, essayez de désactiver/réactiver la carte ''$($nic.name)'' puis relancez la commande." -errorLog}
+      Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force|out-null
+      Install-Module -Name LoopbackAdapter -MinimumVersion 1.2.0.0 -Force -SkipPublisherCheck|out-null
+      $loop = New-LoopbackAdapter -Name loopback -Force -warningaction silentlycontinue|out-null}
+    Get-VMSwitch|where name -like "*Private Network*"|Set-VMSwitch -SwitchType Internal
+    start-sleep -seconds 20
+    Remove-NetIPAddress 172.16.0.30 -defaultGateway 172.16.0.1 -confirm:$false -errorAction silentlyContinue
+    $vNic = Get-NetAdapter | where-object {$_.Status -eq "up" -and $_.Virtual -and $_.Name -like "*$((Get-VMSwitch|where SwitchType -like "Internal").name)*"}
+    New-NetIPAddress -InterfaceAlias $vNic.InterfaceAlias -IPAddress "172.16.0.30" -PrefixLength 16 -AddressFamily ipv4 -defaultGateway "172.16.0.1"|out-null
+    Set-DnsClientServerAddress -InterfaceAlias $vNic.InterfaceAlias -ServerAddresses ("172.16.0.10")
+    if (!(get-vm *dc1-b).notes.Contains("Switch clavier FR")) {switch-ib1VMFr -nocheckpoint}
+    if (!(get-vm -name *dc1-b-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint -WarningAction SilentlyContinue}
+    invoke-expression "set-ib1VMCusto -vmName dc1-b-ib -ipAddress ""172.16.0.10"" $ipConfig" -errorAction silentlyContinue
+    invoke-expression "set-ib1VMCusto -vmName svr1-b-ib -ipAddress ""172.16.0.21"" $ipconfig" -errorAction silentlyContinue
+    invoke-expression "set-ib1VMCusto -vmName cl1-b-ib -ipAddress ""172.16.0.50"" $ipconfig -switchName ""Private Network""" -errorAction silentlyContinue}';
   'm20740c'='
   $ipConfig="-rearm -user ""adatum\administrator"" -password ""Pa55w.rd"" -ipSubnet 16 -dNSServers ""(''172.16.0.10'')"" -ipGateway ""172.16.0.1"""
   if ($env:COMPUTERNAME -like "*host1*") {
     set-ib1VMCheckpointType
-    switch-ib1VMFr -nocheckpoint
-    copy-ib1VM -vmsuffix ib -nocheckpoint
+    if (!(get-vm *dc1-b).notes.Contains("Switch clavier FR")) {switch-ib1VMFr -nocheckpoint}
+    if (!(get-vm -name *dc1-b-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint}
     $nvHost2="20740C-LON-NVHOST2-ib"
     set-VMProcessor -VMName $nvHost2 -ExposeVirtualizationExtensions $true
     get-VMNetWorkAdapter -VMName $nvHost2|Set-VMNetworkAdapter -MacAddressSpoofing On
@@ -37,11 +65,10 @@ $courseParam=@{
     invoke-expression "set-ib1VMCusto -vmName nvhost2-ib -ipAddress ""172.16.0.32"" $ipconfig -switchName ""Host Internal Network"""
     set-ib1VMCusto -vmName nat-ib -ipAddress "172.16.0.1" -VMcommand "while ((get-NetConnectionProfile).Name -like ''*identifying*'') {start-sleep -seconds 5};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private" -switchName "Host Internal Network" -rearm -user "administrator" -password "Pa55w.rd" -ipsubnet 16 -dNSServer "(''172.16.0.10'')"
     echo "Dans la machine NAT-ib, dans [Routing and Remote Access], ouvrir [IPv4] et, sur le [NAT], ajouter les deux interfaces."}
-
   elseif ($env:COMPUTERNAME -like "*host2*") {
     set-ib1VMCheckpointType
-    switch-ib1VMFr -nocheckpoint
-    copy-ib1VM -vmsuffix ib -nocheckpoint
+    if (!(get-vm *dc1-c).notes.Contains("Switch clavier FR")) {switch-ib1VMFr -nocheckpoint}
+    if (!(get-vm -name *dc1-c-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint}
     invoke-expression "set-ib1VMCusto -vmName dc1-c-ib -ipAddress ""172.16.0.10"" $ipConfig"
     invoke-expression "set-ib1VMCusto -vmName nvhost3-ib -ipAddress ""172.16.0.33"" $ipconfig -switchName ""Private Network"""
     invoke-expression "set-ib1VMCusto -vmName nvhost4-ib -ipAddress ""172.16.0.34"" $ipconfig -switchName ""Private Network"""}';
@@ -85,6 +112,15 @@ $courseParam=@{
   new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass" -dest $dest
   new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/AZ-101-MicrosoftAzureIntegrationandSecurity/tree/master/Instructions" -title "Instructions Ateliers" -dest $dest
   install-module azureRM -maximumVersion 6.12.0 -force'}
+
+function wait-ib1Network {
+param([string]$nicName,$maxwait=10)
+write-ib1log "Attente du réseau ipV4 sur la carte '$nicName' pendant $($maxwait/2) minutes maximum."
+while (((Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4).addressState -notLike 'Preferred' -or (Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4).IPAddress -like "169.254.*") -and $maxwait -gt 0) {
+  Start-Sleep -Seconds 30
+  $maxwait --}
+  if ($maxwait -gt 0) {return $true}
+  else {return $false}}
 
 function enable-ib1Office {
 $enablecommand=(Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName
@@ -163,11 +199,11 @@ if ($settings.intl.accpet_labguages) {
 write-ib1log "Modification de la langue de l'interface de Chrome en '$interface'." -DebugLog
 $gooKey='HKLM:\SOFTWARE\Policies\Google'
 $gooVal='ApplicationLocaleValue'
-if (!(Test-Path $gooKey)) {New-Item -Path $gooKey}
+if (!(Test-Path $gooKey)) {New-Item -Path $gooKey|Out-Null}
 $gooKey+='\Chrome'
-if (!(Test-Path $gooKey)) {New-Item -Path $gooKey}
+if (!(Test-Path $gooKey)) {New-Item -Path $gooKey|Out-Null}
 if (Get-ItemProperty $gooKey -name $gooVal -ErrorAction SilentlyContinue ) {
-  Set-ItemProperty -Path $gooKey -Name $gooVal -Value $interface}
+  Set-ItemProperty -Path $gooKey -Name $gooVal -Value $interface|Out-Null}
 else {
   New-ItemProperty -Path $gooKey -Name $gooVal -Value $interface|Out-Null}}}
 
@@ -372,15 +408,6 @@ begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process {
 set-ib1ChromeLang
 enable-ib1Office
-import-ib1TrustedCertificate
-$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt"
-if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt")) {
-  write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
-elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head).headers.'content-length') {
-  write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
 if ($course -eq '')  {
   $objPick=foreach($opt in $courseParam.Keys){new-object psobject -Property @{'Quel stage installer'=$opt}}
   $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
@@ -388,8 +415,16 @@ if ($course -eq '')  {
 if (-not $courseParam.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $($courseParam.Keys). Merci de vérifier!" -ErrorLog}
 else {
   write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
-  Invoke-Expression $courseParam.$course
-  break}}}
+Invoke-Expression $courseParam.$course}
+import-ib1TrustedCertificate
+$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt"
+if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
+  write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
+elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head).headers.'content-length') {
+  write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
+  Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}}}
 
 function set-ib1VMCheckpointType {
 <#
@@ -731,7 +766,6 @@ PARAM(
 [string]$externalNetworkname='External Network')
 get-ib1elevated $true
 compare-ib1PSVersion "4.0"
-write-ib1log "La commande connect-ib1VMNet ne devrait plus être utile avec le vSwitch ibNat et sera bientôt supprimée." -warningLog
 $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp|Get-NetAdapter
 if ($extNic.PhysicalMediaType -eq "Unspecified") {
   if ((Get-VMSwitch $externalNetworkname  -switchtype External -ErrorAction SilentlyContinue).NetAdapterInterfaceDescription -eq (Get-NetAdapter -Physical|where-object status -eq up).InterfaceDescription) {
@@ -884,7 +918,7 @@ foreach ($VM2custo in $VMs2custo) {
       $vmMac=(($VM2custo|get-VMNetworkAdapter|where-object {$_.switchName -like "*$switchName*"}).macAddress)
       $vmMac=$vmMac.insert(2,"-").insert(5,"-").insert(8,"-").insert(11,"-").insert(14,"-")
       $netAdapter+='|Where-Object { $_.macAddress -like '+"'$vmMac'}"}
-    $commandIP=$netAdapter+"|New-NetIPAddress -AddressFamily IPv4 -IPAddress $ipAddress -PrefixLength $ipSubnet"
+    $commandIP=$netAdapter+"|New-NetIPAddress -errorAction silentlyContinue -AddressFamily IPv4 -IPAddress $ipAddress -PrefixLength $ipSubnet"
     $commandRemove=$netAdapter+'|Remove-NetIPAddress -errorAction silentlyContinue -confirm $false|out-null'
     if ($ipGateway) {$commandIp+=" -DefaultGateway '$ipGateway'"}
     set-ib1VMNotes $VM2custo.name -TextNotes "Customisation de la VM ($commandRemove)."

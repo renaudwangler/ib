@@ -1,4 +1,8 @@
-﻿**Version 1.12:**
+﻿**Version 1.12.1:**
+ - Ajout du stage m20741b à la commande install-ib1Course
+ - Simplification=Suppression de la compatibilité de certaines commande avec Powershell 4.x devenue inutile
+
+**Version 1.12:**
  - Modification de la version de la présentation stagiaires.
 
 **Version 1.11.7:**

@@ -22,8 +22,11 @@ $logStart=$true
 #  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
 #  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
 $courseParam=@{
+  'noCourse'='
+  write-ib1Log "Aucune customisation particulière. Check générique."
+  ';
   'm20741b'='
- $ipConfig="-rearm -user ""adatum\administrator"" -password ""Pa55w.rd"" -ipSubnet 16 -dNSServers ""(''172.16.0.10'')"" -ipGateway ""172.16.0.1"""
+  $ipConfig="-rearm -user ""adatum\administrator"" -password ""Pa55w.rd"" -ipSubnet 16 -dNSServers ""(''172.16.0.10'')"" -ipGateway ""172.16.0.1"""
   if ($env:COMPUTERNAME -like "*host1*") {
     cscript c:\windows\system32\slmgr.vbs -rearm|out-null
     $nic = Get-NetAdapter | where-object {$_.Status -eq "up" -and !$_.Virtual} | Get-NetIPInterface -AddressFamily IPv4 -ErrorAction SilentlyContinue
@@ -31,11 +34,11 @@ $courseParam=@{
       If (($nic|Get-NetIPConfiguration).Ipv4DefaultGateway) {$nic|Remove-NetRoute -Confirm:$false -errorAction silentlyContinue}
       $nic|Set-NetIPInterface -DHCP Enabled}
     $nic|Set-DnsClientServerAddress -ResetServerAddresses
+    if (!(wait-ib1network -nicName $nic.interfaceAlias)) {write-ib1log "Le réseau ne semble pas fonctionnel, essayez de désactiver/réactiver la carte ''$($nic.name)'' puis relancez la commande." -errorLog}
     if (Get-NetAdapter|Where-Object {$_.interfacedescription -like "*loopback*"}) {
       $loop=Get-NetAdapter|Where-Object {$_.interfacedescription -like "*loopback*"}
       if ($loop.name -ne "loopback") {$loop|Rename-NetAdapter -NewName loopback}}
     else {
-      if (!(wait-ib1network -nicName $nic.name)) {write-ib1log "Le réseau ne semble pas fonctionnel, essayez de désactiver/réactiver la carte ''$($nic.name)'' puis relancez la commande." -errorLog}
       Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force|out-null
       Install-Module -Name LoopbackAdapter -MinimumVersion 1.2.0.0 -Force -SkipPublisherCheck|out-null
       $loop = New-LoopbackAdapter -Name loopback -Force -warningaction silentlycontinue|out-null}
@@ -188,7 +191,7 @@ paramètre Chrome pour un affichage de son interface en Français et pour affich
 #>
 [CmdletBinding(DefaultParameterSetName='web')]
 param([string]$web='en',[string]$interface='fr')
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process{
 write-ib1log "Modification de la langue des sites visités par Chrome en '$web'." -DebugLog
 $ChromePrefFile = Join-Path $env:LOCALAPPDATA 'Google\Chrome\User Data\default\Preferences'
@@ -220,7 +223,6 @@ renvoie $true si des commandes peuvent être passées sur la VM 20410D-LON-DC1
 [CmdletBinding(DefaultParameterSetName='VMname')]
 param(
 [parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Machine virtuelle à tester pour PowerShell Direct")][string]$VMName)
-#begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
 process{
   $TPDVM=Get-VM -VMName *$VMName* -ErrorAction SilentlyContinue|Where-Object state -ILike *running*
   if ($TPDVM.count -ne 1) {
@@ -290,9 +292,6 @@ Affiche la version du module
 #>
 (get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring()}
 
-function compare-ib1PSVersion ($ibVersion='4.0') {
-if ($PSVersionTable.PSCompatibleVersions -notcontains $ibVersion) {
-  write-ib1log "Attention, script  fonctionnant au mieux avec Powershell $ibVersion" -warningLog}}
 
 function get-ib1elevated ($ibElevationNeeded=$false) {
 if ((New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
@@ -347,7 +346,7 @@ PARAM(
 [string]$srcPath='*',
 [string]$destPath='',
 [string]$course='')
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 if ($course -ne '') {
   if (-not $courseParam.$course) {write-ib1log "Le paramètre simplifié -course ne peut avoir que l'une des valeurs suivantes: $($courseParam.Keys). Merci de vérifier!" -ErrorLog}
@@ -404,7 +403,7 @@ Met en place l'environnement pour le stage msAZ100
 DefaultParameterSetName='Course')]
 PARAM(
 [string]$course='')
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 set-ib1ChromeLang
 enable-ib1Office
@@ -447,7 +446,7 @@ DefaultParameterSetName='VMName')]
 PARAM(
 [string]$VMName,
 [switch]$exactVMName)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 $VMs2Set=get-ib1VM -VMName $VMName -exactVMName $exactVMName
 foreach ($VM2Set in $VMs2Set) {
@@ -483,7 +482,7 @@ PARAM(
 [string]$VMName,
 [switch]$powerOff=$false,
 [switch]$exactVMName)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 $VMs2Reset=get-ib1VM -VMName $VMName -exactVMName $exactVMName
 foreach ($VM2reset in $VMs2Reset) {
@@ -526,7 +525,7 @@ PARAM(
 [switch]$restart=$false,
 [switch]$noDrivers=$false,
 [string]$copyFolder='')
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 if (($copyFolder -ne '') -and -not (test-path $copyFolder)) {
   write-ib1log "Le dossier '$copyFolder' n'existe pas, merci de vérifier !" -ErrorLog}
@@ -585,7 +584,7 @@ supprimer l'entrée par defaut du BCD et redémarre la machine.
 DefaultParameterSetName='restart')]
 PARAM(
 [switch]$restart=$false)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 $bcdVHDs=@()
 foreach ($line in bcdedit) {
@@ -625,7 +624,7 @@ PARAM(
 [switch]$noCheckpoint=$true,
 [switch]$Checkpoint=$false,
 [switch]$exactVMName)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 if ($noCheckpoint -eq $false) {write-ib1log "Le paramètre -noCheckpoint est obsolète, merci de consulter l'aide en ligne (get-help)" -ErrorLog}
 if ($VHDFile -ne '') {
@@ -765,7 +764,6 @@ PARAM(
 [parameter(Mandatory=$false,ValueFromPipeLine=$true,HelpMessage='Nom du réseau virtuel a connecter au réseau externe.')]
 [string]$externalNetworkname='External Network')
 get-ib1elevated $true
-compare-ib1PSVersion "4.0"
 $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp|Get-NetAdapter
 if ($extNic.PhysicalMediaType -eq "Unspecified") {
   if ((Get-VMSwitch $externalNetworkname  -switchtype External -ErrorAction SilentlyContinue).NetAdapterInterfaceDescription -eq (Get-NetAdapter -Physical|where-object status -eq up).InterfaceDescription) {
@@ -806,7 +804,6 @@ DefaultParameterSetName='TSCFilename')]
 PARAM(
 [parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage='Nom du fichier RDP a modifier.')]
 [string]$TSCFilename)
-begin {compare-ib1PSVersion "4.0"}
 process {
 if (Test-Path $TSCFilename) {
   $oldFile=Get-Content $TSCFilename
@@ -839,7 +836,7 @@ DefaultParameterSetName='CertificateUrl')]
 PARAM(
 [parameter(ValueFromPipeLine=$false,HelpMessage='Url du certificat à importer')]
 [string]$CertificateUrl='')
-begin {compare-ib1PSVersion "4.0";get-ib1elevated $true}
+begin {get-ib1elevated $true}
 process {
 if ($CertificateUrl -eq '') {$CertificateUrl='http://mars.ib-formation.fr/marsca.cer'}
 $fileName=split-path $CertificateUrl -leaf
@@ -899,7 +896,7 @@ PARAM(
 [string]$dNSServers,
 [switch]$noCheckpoint,
 [string]$VMcommand)
-begin{get-ib1elevated $true; compare-ib1PSVersion "5.0";}
+begin{get-ib1elevated $true}
 process {
 if ($switchName) {if (!(Get-VMSwitch -Name "*$switchName*")) {write-ib1log "Erreur, switch virtuel '$switchName' introuvable ! Vérifier !" -ErrorLog}}
 $credential=New-Object System.Management.Automation.PSCredential ($user,(ConvertTo-SecureString $password -AsPlainText -Force))
@@ -978,7 +975,7 @@ PARAM(
 [string]$VMprefix='',
 [switch]$noCheckpoint=$false,
 [switch]$exactVMName)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"; if ($VMsuffix -eq '' -and $VMprefix -eq '') {write-ib1log "Attention, commande nécessitant soit un préfixe, soit un suffixe pour le nom de la VM clonée." -ErrorLog}}
+begin{get-ib1elevated $true; if ($VMsuffix -eq '' -and $VMprefix -eq '') {write-ib1log "Attention, commande nécessitant soit un préfixe, soit un suffixe pour le nom de la VM clonée." -ErrorLog}}
 process {
 if ($VMsuffix -ne '') {$VMsuffix="-$VMsuffix"}
 if ($VMprefix -ne '') {$VMprefix="-$VMprefix"}
@@ -1062,7 +1059,7 @@ PARAM(
 [parameter(Mandatory=$true,ValueFromPipeLine=$true,HelpMessage="Nom de connexion de l'administrateur de la VM.")]
 [string]$userName,
 [switch]$exactVMName)
-begin{get-ib1elevated $true; compare-ib1PSVersion "5.0"}
+begin{get-ib1elevated $true}
 process {
 $VMs2Repair=get-ib1VM -VMName $VMName -exactVMName $exactVMName
 $userPass2=read-host "Mot de passe de '$userName'" -AsSecureString
@@ -1107,7 +1104,7 @@ PARAM(
 [switch]$DontRevert=$false,
 [string]$First='',
 [switch]$FirstRepairNet=$false)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 if ($FirstRepairNet -and $First -eq $null) {write-ib1log "Le paramètre '-FirstRepairNet' ne peut être passé sans le paramètre '-First'" -ErrorLog}
 if ($First -ne '') {
@@ -1156,7 +1153,7 @@ PARAM(
 [string]$Params='',
 [string]$icon='',
 [string]$dest='')
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 if ((($File -eq '') -and ($URL -eq '')) -or (($File -ne '') -and ($URL -ne ''))) {write-ib1log "Cette commande nécessite un et un seul paramètre '-File' ou '-URL'" -ErrorLog}
 if ($URL -ne '') {
@@ -1202,7 +1199,7 @@ param(
 [int]$Delay=7,
 [string]$SubNet,
 [switch]$GetCred)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 #$subNet=get-ib1Subnet -subnet $SubNet
 if ($GetCred) {
@@ -1250,7 +1247,7 @@ Réarme le système Windows des machines du réseau local, suivi d'un redémarag
 param(
 [string]$SubNet,
 [switch]$GetCred)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 if ($GetCred) {
   $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter le réarmement"
@@ -1314,7 +1311,7 @@ param(
 [string]$SubNet,
 [string]$GateWay,
 [switch]$GetCred)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 if ($GetCred) {
   $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
@@ -1365,7 +1362,6 @@ param(
 [string]$GatewaySubnet='172.16.0.0',
 [string]$GatewayMask=24)
 get-ib1elevated $true
-compare-ib1PSVersion "5.0"
 write-ib1log -progressTitleLog "Mise en place des options nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
@@ -1464,9 +1460,7 @@ L'avnt dernier octet de l'adresse MAC fixé sera un incrément pour chaque carte
 [Attention] : nécessite un seul switch externe.
 [Attention] : ne traite pas les VMs allumées
 #>
-begin {
-  get-ib1elevated $true
-  compare-ib1PSVersion "5.0"}
+begin {get-ib1elevated $true}
 process {
 $extSwitch=(Get-VMSwitch|where switchtype -like '*external').Name
 $vmNics=get-vm|Get-VMNetworkAdapter|where SwitchName -eq $extSwitch
@@ -1504,9 +1498,7 @@ param(
 [string]$GatewayIP='172.16.0.1',
 [string]$GatewaySubnet='172.16.0.0',
 [string]$GatewayMask=24)
-begin {
-  get-ib1elevated $true
-  compare-ib1PSVersion "5.0"}
+begin {get-ib1elevated $true}
 process {
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
   if (Get-HNSNetwork|Where-Object id -eq $defaultSwitchId) {
@@ -1541,7 +1533,7 @@ Lance l'installation même si une version de Chrome est déja présente.
 #>
 PARAM(
 [switch]$Force=$false)
-begin{get-ib1elevated $true; compare-ib1PSVersion "4.0"}
+begin{get-ib1elevated $true}
 process {
 $ChromeMSI = "GoogleChromeStandaloneEnterprise.msi"
 $ChromeDL="https://dl.google.com/tag/s/appguid={8A69D345-D564-463C-AFF1-A69D9E530F96}&iid={00000000-0000-0000-0000-000000000000}&lang=en&browser=3&usagestats=0&appname=Google%2520Chrome&needsadmin=prefers/edgedl/chrome/install/$ChromeMSI"
@@ -1565,7 +1557,7 @@ Si ce switch n'est pas spécifié, l'identité de l'utilisateur actuellement con
 param(
 [string]$Subnet,
 [switch]$GetCred)
-begin {get-ib1elevated $true;compare-ib1PSVersion "4.0"}
+begin {get-ib1elevated $true}
 process {
 if ($Subnet) {
   if ($GetCred) {invoke-ib1NetCommand -Command 'stop-Computer -Force' -SubNet $Subnet -GateWay $GateWay -GetCred}

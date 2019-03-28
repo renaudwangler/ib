@@ -1,4 +1,7 @@
-﻿**Version 1.12.1:**
+﻿**Version 2.0.:**
+ - Refonte du module avec utilisation de fichiers externes pour la customisation des stages
+
+**Version 1.12.1:**
  - Ajout du stage m20741b à la commande install-ib1Course
  - Simplification=Suppression de la compatibilité de certaines commande avec Powershell 4.x devenue inutile
 

@@ -11,110 +11,37 @@ $ibppt='Présentation stagiaire automatique 2019.ppsx'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
-# 'msaz100old'='
-#  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
-#  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
-#  Add-Type -AssemblyName System.IO.Compression.FileSystem
-#  remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-#  remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-#  remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
-#  get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
-#  get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-#  get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
-$courseParam=@{
-  'noCourse'='
-  write-ib1Log "Aucune customisation particulière. Check générique."
-  ';
-  'm20741b'='
-  $ipConfig="-rearm -user ""adatum\administrator"" -password ""Pa55w.rd"" -ipSubnet 16 -dNSServers ""(''172.16.0.10'')"" -ipGateway ""172.16.0.1"""
-  if ($env:COMPUTERNAME -like "*host1*") {
-    cscript c:\windows\system32\slmgr.vbs -rearm|out-null
-    $nic = Get-NetAdapter | where-object {$_.Status -eq "up" -and !$_.Virtual} | Get-NetIPInterface -AddressFamily IPv4 -ErrorAction SilentlyContinue
-    If ($nic.Dhcp -eq "Disabled") {
-      If (($nic|Get-NetIPConfiguration).Ipv4DefaultGateway) {$nic|Remove-NetRoute -Confirm:$false -errorAction silentlyContinue}
-      $nic|Set-NetIPInterface -DHCP Enabled}
-    $nic|Set-DnsClientServerAddress -ResetServerAddresses
-    if (!(wait-ib1network -nicName $nic.interfaceAlias)) {write-ib1log "Le réseau ne semble pas fonctionnel, essayez de désactiver/réactiver la carte ''$($nic.name)'' puis relancez la commande." -errorLog}
-    if (Get-NetAdapter|Where-Object {$_.interfacedescription -like "*loopback*"}) {
-      $loop=Get-NetAdapter|Where-Object {$_.interfacedescription -like "*loopback*"}
-      if ($loop.name -ne "loopback") {$loop|Rename-NetAdapter -NewName loopback}}
-    else {
-      Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force|out-null
-      Install-Module -Name LoopbackAdapter -MinimumVersion 1.2.0.0 -Force -SkipPublisherCheck|out-null
-      $loop = New-LoopbackAdapter -Name loopback -Force -warningaction silentlycontinue|out-null}
-    Get-VMSwitch|where name -like "*Private Network*"|Set-VMSwitch -SwitchType Internal
-    start-sleep -seconds 20
-    Remove-NetIPAddress 172.16.0.30 -defaultGateway 172.16.0.1 -confirm:$false -errorAction silentlyContinue
-    $vNic = Get-NetAdapter | where-object {$_.Status -eq "up" -and $_.Virtual -and $_.Name -like "*$((Get-VMSwitch|where SwitchType -like "Internal").name)*"}
-    New-NetIPAddress -InterfaceAlias $vNic.InterfaceAlias -IPAddress "172.16.0.30" -PrefixLength 16 -AddressFamily ipv4 -defaultGateway "172.16.0.1"|out-null
-    Set-DnsClientServerAddress -InterfaceAlias $vNic.InterfaceAlias -ServerAddresses ("172.16.0.10")
-    if (!(get-vm *dc1-b).notes.Contains("Switch clavier FR")) {switch-ib1VMFr -nocheckpoint}
-    if (!(get-vm -name *dc1-b-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint -WarningAction SilentlyContinue}
-    invoke-expression "set-ib1VMCusto -vmName dc1-b-ib -ipAddress ""172.16.0.10"" $ipConfig" -errorAction silentlyContinue
-    invoke-expression "set-ib1VMCusto -vmName svr1-b-ib -ipAddress ""172.16.0.21"" $ipconfig" -errorAction silentlyContinue
-    invoke-expression "set-ib1VMCusto -vmName cl1-b-ib -ipAddress ""172.16.0.50"" $ipconfig -switchName ""Private Network""" -errorAction silentlyContinue}';
-  'm20740c'='
-  $ipConfig="-rearm -user ""adatum\administrator"" -password ""Pa55w.rd"" -ipSubnet 16 -dNSServers ""(''172.16.0.10'')"" -ipGateway ""172.16.0.1"""
-  if ($env:COMPUTERNAME -like "*host1*") {
-    set-ib1VMCheckpointType
-    if (!(get-vm *dc1-b).notes.Contains("Switch clavier FR")) {switch-ib1VMFr -nocheckpoint}
-    if (!(get-vm -name *dc1-b-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint}
-    $nvHost2="20740C-LON-NVHOST2-ib"
-    set-VMProcessor -VMName $nvHost2 -ExposeVirtualizationExtensions $true
-    get-VMNetWorkAdapter -VMName $nvHost2|Set-VMNetworkAdapter -MacAddressSpoofing On
-    Set-VM -VMName $nvhost2 -MemoryStartupBytes 4GB
-    invoke-expression "set-ib1VMCusto -vmName dc1-b-ib -ipAddress ""172.16.0.10"" $ipConfig"
-    invoke-expression "set-ib1VMCusto -vmName svr1-b-ib -ipAddress ""172.16.0.21"" $ipconfig"
-    invoke-expression "set-ib1VMCusto -vmName nvhost2-ib -ipAddress ""172.16.0.32"" $ipconfig -switchName ""Host Internal Network"""
-    set-ib1VMCusto -vmName nat-ib -ipAddress "172.16.0.1" -VMcommand "while ((get-NetConnectionProfile).Name -like ''*identifying*'') {start-sleep -seconds 5};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private" -switchName "Host Internal Network" -rearm -user "administrator" -password "Pa55w.rd" -ipsubnet 16 -dNSServer "(''172.16.0.10'')"
-    echo "Dans la machine NAT-ib, dans [Routing and Remote Access], ouvrir [IPv4] et, sur le [NAT], ajouter les deux interfaces."}
-  elseif ($env:COMPUTERNAME -like "*host2*") {
-    set-ib1VMCheckpointType
-    if (!(get-vm *dc1-c).notes.Contains("Switch clavier FR")) {switch-ib1VMFr -nocheckpoint}
-    if (!(get-vm -name *dc1-c-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint}
-    invoke-expression "set-ib1VMCusto -vmName dc1-c-ib -ipAddress ""172.16.0.10"" $ipConfig"
-    invoke-expression "set-ib1VMCusto -vmName nvhost3-ib -ipAddress ""172.16.0.33"" $ipconfig -switchName ""Private Network"""
-    invoke-expression "set-ib1VMCusto -vmName nvhost4-ib -ipAddress ""172.16.0.34"" $ipconfig -switchName ""Private Network"""}';
-  'ms100'='
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MS100"
-  New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/MS-100AIntro.pptx -OutFile "$env:userprofile\documents\MS-100AIntro.pptx"
-  new-ib1Shortcut -URL "https://lms.godeploy.it" -title "Labs Online" -dest $dest
-  new-ib1Shortcut -URL "https://portal.office.com" -title "Office 365 - Portail principal" -dest $dest
-  new-ib1Shortcut -URL "https://admin.microsoft.com" -title "Microsoft 365 - Portail d''administration" -dest $dest';
-  'm10979'='
-  new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions" -title "Ateliers stage m10979";
-  if ($env:COMPUTERNAME -like "*mia-cl1*") {get-ib1Repo 10979-MicrosoftAzureFundamentals -srcPath Allfiles -destPath E:\}';
-  'm20533'='
-  new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions" -title "Ateliers stage m20533";
-  if ($env:COMPUTERNAME -like "*mia-cl1*") {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}';
-  'msaz900'='
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Manipulations MSAZ900"
-  New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-900AIntro.pptx -OutFile "$env:userprofile\documents\AZ-900AIntro.pptx"
-  new-ib1Shortcut -URL "https://azure.microsoft.com/en-us/free/" -title "Azure - Free Account" -dest $dest
-  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
-  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
-  install-module AZ -force';
-  'msaz100'='
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
-  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest -srcPath Allfiles/labfiles
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100AIntro.pptx -OutFile "$env:userprofile\documents\AZ-100AIntro.pptx"
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-100AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-100A-Extra-Automation.pptx"
-  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
-  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
-  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "Azure - Validation pass" -dest $dest
-  new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/AZ-100-MicrosoftAzureInfrastructureDeployment/tree/master/Instructions" -title "Instructions Ateliers" -dest $dest
-  install-module azureRM -maximumVersion 6.12.0 -force';
-  'msaz101'='
-  $dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ101"
-  get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest -srcPath Allfiles/labfiles
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/AZ-101AIntro.pptx -OutFile "$env:userprofile\documents\AZ-101AIntro.pptx"
-  new-ib1Shortcut -URL "https://portal.azure.com" -title "Azure - Portail" -dest $dest
-  new-ib1Shortcut -URL "https://shell.azure.com" -title "Azure - Cloud Shell" -dest $dest
-  new-ib1Shortcut -URL "https://www.microsoftazurepass.com" -title "AZure - Validation pass" -dest $dest
-  new-ib1Shortcut -URL "https://github.com/MicrosoftLearning/AZ-101-MicrosoftAzureIntegrationandSecurity/tree/master/Instructions" -title "Instructions Ateliers" -dest $dest
-  install-module azureRM -maximumVersion 6.12.0 -force'}
+
+function read-ib1CourseFile {
+param([string]$fileName,[string]$newLine='')
+$filename="$($env:ProgramFiles)\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\$fileName"
+$return=@{}
+$newref=''
+foreach ($line in Get-Content $fileName) {if ($line[0] -ne '#' -or $line.startswith('# ') -or $line.startswith('## ')) {
+  if ($line[0] -eq '#' -and $line[1] -ne '#') {
+    if ($newref -ne '') {
+      if ($newLine -ne "`n") {$newVal=$newVal.substring(0,$newVal.length -6)}
+    $return|Add-Member -NotePropertyName $newref -NotePropertyValue $newVal}
+  $newVal=''  
+  $newref=$line.Substring(2)}
+  else {$newVal+="$line$newLine"}}}
+return $return}
+
+function set-ib1md2html {
+param([string]$chaine)
+return $chaine -replace ("(## )(.*?)<br/>",'<h2>$2</h2>') -replace "(\*\*|__)(.*?)\1",'<strong>$2</strong>' -replace "(``````)(.*?)\1",'<code>$2</code>' -replace "(\*|_)(.*?)\1",'<em>$2</em>' -replace "\n -( *)",'<li>'}
+#+ -replace "`n",'<br/>'}
+
+function set-ib1CourseHelp {
+param([string]$course)
+$courseDocs=read-ib1CourseFile -fileName courses.md "<br/>`n"
+$courseBody=set-ib1md2html $courseDocs.intro
+if ($courseDocs.$course) {$courseBody+="<hr/>$(set-ib1md2html $courseDocs.$course)"}
+$courseBody+="<hr/>$(set-ib1md2html $courseDocs.outro)"
+$courseBody=$courseBody -replace ("##course##",$course)
+if ($course -eq '') {$course='Stage ib'}
+$courseBody > "$env:ALLUSERSPROFILE\desktop\$course - readme.html"}
+
 
 function wait-ib1Network {
 param([string]$nicName,$maxwait=10)
@@ -127,7 +54,7 @@ while (((Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4).addressSt
 
 function enable-ib1Office {
 $enablecommand=(Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName
-if ($enablecommand) {& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName}}
+if ($enablecommand) {& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName|out-null}}
 
 function Unzip {
 param([string]$zipfile,[string]$outpath)
@@ -348,12 +275,7 @@ PARAM(
 [string]$course='')
 begin{get-ib1elevated $true}
 process {
-if ($course -ne '') {
-  if (-not $courseParam.$course) {write-ib1log "Le paramètre simplifié -course ne peut avoir que l'une des valeurs suivantes: $($courseParam.Keys). Merci de vérifier!" -ErrorLog}
-  else {
-    write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
-    Invoke-Expression $courseParam.$course
-    break}}
+if ($course -ne '') {install-ib1Course -course $course}
 if (-not $Repo -or $Repo -eq '') {write-ib1log "Le paramétre -Repo est manquant, merci de vérifier !" -ErrorLog}
 if (-not $Repo.Contains('/')) {$repo=$mslearnGit+'/'+$Repo}
 #création du nom du répertoire local si non spécifié
@@ -394,7 +316,7 @@ function install-ib1Course {
 Cette commande permet de mettre en place les éléments nécessaire pour un stage.
 .PARAMETER course
 Référence du stage à mettre en place.
-Valeurs possibles : m10979, m20533, msaz100 et msAZ101
+Valeurs possibles : stages référencés dans les fichiers courses.ps1 et courses.md
 .EXAMPLE
 install-ib1Course -course msAZ100
 Met en place l'environnement pour le stage msAZ100
@@ -407,14 +329,17 @@ begin{get-ib1elevated $true}
 process {
 set-ib1ChromeLang
 enable-ib1Office
+$courseCommands=(read-ib1CourseFile -fileName courses.ps1 -newLine "`n")
+$courseCommands.psobject.Properties.Remove('courses.ps1')
 if ($course -eq '')  {
-  $objPick=foreach($opt in $courseParam.Keys){new-object psobject -Property @{'Quel stage installer'=$opt}}
+  $objPick=foreach ($courseCommand in ($courseCommands|Get-Member -MemberType NoteProperty)) {New-Object psobject -Property @{'Quel stage installer'=$courseCommand.Name}}
   $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
   $course=$input.'Quel stage installer'}
-if (-not $courseParam.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $($courseParam.Keys). Merci de vérifier!" -ErrorLog}
-else {
+if ($course -ne '' -and -not $courseCommands.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $(($courseCommands|Get-Member -MemberType NoteProperty).name -join ', '). Merci de vérifier!" -ErrorLog}
+elseif ($course -ne '') {
   write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
-Invoke-Expression $courseParam.$course}
+  Invoke-Expression (read-ib1CourseFile -fileName courses.ps1 -newLine "`n").$course}
+set-ib1CourseHelp -course $course
 import-ib1TrustedCertificate
 $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt"
 if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
@@ -1170,7 +1095,7 @@ else {
   $target=$File}
 $WScriptShell=new-object -ComObject WScript.Shell
 if ($dest -eq '') {
-  if ($TaskBar) { $dest="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$dest=[Environment]::GetFolderPath("CommonDesktopDirectory") }}
+  if ($TaskBar) { $dest="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$dest="$env:ALLUSERSPROFILE\desktop"}}
 $shortcut=$WScriptShell.createShortCut("$dest\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}

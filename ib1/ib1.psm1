@@ -768,7 +768,7 @@ $fileName=split-path $CertificateUrl -leaf
 try {invoke-webrequest $CertificateUrl -OutFile "$($env:USERPROFILE)\downloads\$fileName" -ErrorAction stop}
 catch {write-ib1log "URL incrorrecte, le fichier '' est introuvable" -ErrorLog}
 write-ib1log "Insertion du certificat dans le magasin de certificats local." -DebugLog
-Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false|Add-Content -Path $logFile -Encoding UTF8}}
+Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false|Add-Content -Path $logFile -Encoding UTF8|Out-Null}}
 
 function set-ib1VMCusto {
 <#
@@ -1497,7 +1497,7 @@ else {
 #  Gestion du module  #
 #######################
 Set-Alias ibReset reset-ib1VM
-Set-Alias ibSetup setup-ib1Course
+Set-Alias ibSetup install-ib1Course
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
 Set-Alias get-ib1Git get-ib1repo

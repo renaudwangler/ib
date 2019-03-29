@@ -7,7 +7,7 @@ Afin de réaliser l'atelier, il faudra lancer la commande suivante, pour redéma
 
 **Attention:** La réalisation de cet atelier nécessite qu'au moins une carte réseau ethernet soit branchée (le wifi seul ne suffit pas).
 
-Une fois la machine redémarrée sur lon-host1, lancer la commande ```install-ib1course ##course##```
+Une fois la machine redémarrée sur lon-host1, lancer la commande ```ibSetup ##course##```
 Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
  - Réarmant les machines (reboot du host nécessaire ensuite)
  - Corrigeant la configuration réseau
@@ -24,7 +24,7 @@ Afin de réaliser l'atelier, il faudra lancer la commande suivante pour redémar
 
 **Attention:** La réalisation de cet atelier nécessite qu'au moins une carte réseau ethernet soit branchée (le wifi seul ne suffit pas).
 
-Une fois la machine redémarrée sur lon-host1, **avant la tâche 2 de l'exercice 1** lancer la commande ```install-ib1course ##course##```
+Une fois la machine redémarrée sur lon-host1, **avant la tâche 2 de l'exercice 1** lancer la commande ```ibSetup ##course##```
 Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
  - Réarmant les machines,
  - Passant le clavier en Français,
@@ -39,7 +39,7 @@ Afin de réaliser l'atelier, il faudra lancer la commande suivante pour redémar
 
 **Attention:** La réalisation de cet atelier nécessite qu'au moins une carte réseau ethernet soit branchée (le wifi seul ne suffit pas).
 
-Une fois la machine redémarrée sur lon-host1, **après le point 6 de la tâche 1 de l'exercice 1** lancer la commande ```install-ib1course ##course##```
+Une fois la machine redémarrée sur lon-host1, **après le point 6 de la tâche 1 de l'exercice 1** lancer la commande ```ibSetup ##course##```
 Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
  - Réarmant les machines,
  - Passant le clavier en Français,
@@ -60,7 +60,9 @@ Un raccourci "**Ateliers stage m10979**" a été plaçé sur le bureau vers les 
 # m20533
 Un raccourci "**Ateliers stage m20533**" a été plaçé sur le bureau vers les instructions d'ateliers.
 
-Lancer la commande suivante *dans la machine virtuelle "MIA-CL1"* pour y installer les éléments utiles à la formation: ```install-ib1Course ##course##```
+Lancer les commande suivantes *dans la machine virtuelle "MIA-CL1"* pour y installer les éléments utiles à la formation:
+```install-module ib1
+ibSetup ##course##```
 
 # msaz900
 Un dossier "**Manipulations MSAZ900**" a été plaçé sur le bureau qui contient :

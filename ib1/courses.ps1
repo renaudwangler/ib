@@ -29,10 +29,10 @@ break
     New-NetIPAddress -InterfaceAlias $vNic.InterfaceAlias -IPAddress '172.16.0.30' -PrefixLength 16 -AddressFamily ipv4 -defaultGateway '172.16.0.1'|out-null
     Set-DnsClientServerAddress -InterfaceAlias $vNic.InterfaceAlias -ServerAddresses ('172.16.0.10')
     if (!(get-vm *dc1-b).notes.Contains('Switch clavier FR')) {switch-ib1VMFr -nocheckpoint}
-    if (!(get-vm -name *dc1-b-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint -WarningAction SilentlyContinue}
-    invoke-expression "set-ib1VMCusto -vmName dc1-b-ib -ipAddress '172.16.0.10' $ipConfig" -errorAction silentlyContinue
-    invoke-expression "set-ib1VMCusto -vmName svr1-b-ib -ipAddress '172.16.0.21' $ipconfig" -errorAction silentlyContinue
-    invoke-expression "set-ib1VMCusto -vmName cl1-b-ib -ipAddress '172.16.0.50' $ipconfig -switchName 'Private Network'" -errorAction silentlyContinue}
+    if (!(get-vm *dc1-b-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint -WarningAction SilentlyContinue}
+    if (!(get-vm *dc1-b-ib*).Notes.Contains('Customisation de la VM')) {invoke-expression "set-ib1VMCusto -vmName dc1-b-ib -ipAddress '172.16.0.10' $ipConfig" -errorAction silentlyContinue}
+    if (!(get-vm *svr1-b-ib*).Notes.Contains('Customisation de la VM')) {invoke-expression "set-ib1VMCusto -vmName svr1-b-ib -ipAddress '172.16.0.21' $ipconfig" -errorAction silentlyContinue}
+    if (!(get-vm *cl1-b-ib*).Notes.Contains('Customisation de la VM')) {invoke-expression "set-ib1VMCusto -vmName cl1-b-ib -ipAddress '172.16.0.50' $ipconfig -switchName 'Private Network'" -errorAction silentlyContinue}}
 
 # m20740c
   $ipConfig='-rearm -user "adatum\administrator" -password "Pa55w.rd" -ipSubnet 16 -dNSServers "(''172.16.0.10'')" -ipGateway "172.16.0.1"'

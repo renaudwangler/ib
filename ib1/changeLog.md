@@ -1,4 +1,8 @@
-﻿**Version 2.1:**
+﻿**Version 2.1.1:**
+ - Remplacement de "install-ib1Course" par son alias "ibSetup" dans l'aide de courses.md
+ - correction de l'alias ibSetup
+
+**Version 2.1:**
  - Sortie des éléments complémentaires (dossier "extra") du dossier du module.
  - Allias "ibsetup" pour la commande "install-ib1Course"
  - Correction message d'erreur sur attente de réseau IP d'une carte

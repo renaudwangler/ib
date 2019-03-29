@@ -5,6 +5,12 @@
 #[Attention] les commentaires dans ce fichier ne doivent pas comporter d'espace après le #
 break
 
+# m20742b
+if (!(get-vm *lon-dc1).notes.Contains('Switch clavier FR')) {switch-ib1VMFr}
+connect-ib1VMNet "External Network"
+set-ib1VMExternalMac
+
+
 # m20741b
   $ipConfig='-rearm -user "adatum\administrator" -password "Pa55w.rd" -ipSubnet 16 -dNSServers "(''172.16.0.10'')" -ipGateway "172.16.0.1"'
   if ($env:COMPUTERNAME -like "*host1*") {

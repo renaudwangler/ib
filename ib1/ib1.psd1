@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.1.1'
+ModuleVersion = '2.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -57,7 +57,7 @@ PowerShellVersion = '5.0'
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-# ScriptsToProcess = @()
+ScriptsToProcess = '.\moduleImport.ps1'
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -115,7 +115,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = '2.1.1'
+        ReleaseNotes = '2.2'
 
         # Prerelease string of this module
         # Prerelease = ''

@@ -323,14 +323,15 @@ Met en place l'environnement pour le stage msAZ100
 #>
 [CmdletBinding(
 DefaultParameterSetName='Course')]
-PARAM(
-[string]$course='')
+PARAM([string]$course='',[switch]$Force=$false)
 begin{get-ib1elevated $true}
 process {
 set-ib1ChromeLang
 enable-ib1Office
+if ($env:ibSetup -ne $null -and !$force) {write-ib1log "La commande 'ibSetup' a déja été lançée ($($env:ibSetup)). utilisez le tag -Force pour la relancer." -ErrorLog}
 $courseCommands=(read-ib1CourseFile -fileName courses.ps1 -newLine "`n")
 $courseCommands.psobject.Properties.Remove('courses.ps1')
+if ($course -eq '' -and $env:ibCourse -ne $null) {$course=$env:ibCourse}
 if ($course -eq '')  {
   $objPick=foreach ($courseCommand in ($courseCommands|Get-Member -MemberType NoteProperty)) {New-Object psobject -Property @{'Quel stage installer'=$courseCommand.Name}}
   $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
@@ -338,8 +339,11 @@ if ($course -eq '')  {
 if ($course -ne '' -and -not $courseCommands.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $(($courseCommands|Get-Member -MemberType NoteProperty).name -join ', '). Merci de vérifier!" -ErrorLog}
 elseif ($course -ne '') {
   write-ib1log "Mise en place de l'environnement pour le stage '$course'."
-  Invoke-Expression (read-ib1CourseFile -fileName courses.ps1 -newLine "`n").$course}
-set-ib1CourseHelp -course $course
+  Invoke-Expression (read-ib1CourseFile -fileName courses.ps1 -newLine "`n").$course
+  if ($env:ibCourse -eq $null) {
+    [System.Environment]::SetEnvironmentVariable('ibCourse',$course,[System.EnvironmentVariableTarget]::Machine)
+    $env:ibCourse=$course}}
+set-ib1CourseHelp $course
 import-ib1TrustedCertificate
 $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
 if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
@@ -348,7 +352,9 @@ if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyC
 elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head).headers.'content-length') {
   write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
   Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}}}
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
+  [System.Environment]::SetEnvironmentVariable('ibSetup',(Get-Date -Format 'MMdd'),[System.EnvironmentVariableTarget]::Machine)
+  $env:ibSetup=(Get-Date -Format 'MMdd')}}
 
 function set-ib1VMCheckpointType {
 <#

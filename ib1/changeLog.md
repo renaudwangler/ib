@@ -1,4 +1,9 @@
-﻿**Version 2.1.1:**
+﻿**Version 2.2:**
+ - Utilisation de la déclaration du module pour lancer un script à l'import
+ - Repèrage de certains stages MS depuis la présence de VMs spécifiques
+ - Utilisation de variables système pour divers objectifs
+
+**Version 2.1.1:**
  - Remplacement de "install-ib1Course" par son alias "ibSetup" dans l'aide de courses.md
  - correction de l'alias ibSetup
 

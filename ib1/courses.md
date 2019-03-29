@@ -1,5 +1,15 @@
 ﻿#[Attention] les commentaires dans ce fichier ne doivent pas comporter d'espace après le #
 
+connect-ib1VMNet "External Network"
+set-ib1VMExternalMac
+
+# m20742b
+##Atelier 12
+Afin de donner accès Internet aux machines virtuelles, il faudra s'assurer de démarrer la machine "**MT17B-WS2016-NAT**".
+Il pourra s'avérer pertinent de vérifier que cette machine possède une carte réseau branchée sur le switch "*Internal Network*" et une autre sur le switch "*External Network*".
+Le switch "*External Network*" doit être banché sur la carte réseau physique donnant accès à Internet depuis le "Virtual Switch Manager".
+La commande ```set-ib1VMExternalMac``` corrigera la configuration sur un hôte Hyper-V en Windows 10.
+
 # m20741b
 ## Atelier 10
 Afin de réaliser l'atelier, il faudra lancer la commande suivante, pour redémarrer sur le disque VHD:
@@ -7,7 +17,7 @@ Afin de réaliser l'atelier, il faudra lancer la commande suivante, pour redéma
 
 **Attention:** La réalisation de cet atelier nécessite qu'au moins une carte réseau ethernet soit branchée (le wifi seul ne suffit pas).
 
-Une fois la machine redémarrée sur lon-host1, lancer la commande ```ibSetup ##course##```
+Une fois la machine redémarrée sur lon-host1, lancer la commande ```ibSetup```
 Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
  - Réarmant les machines (reboot du host nécessaire ensuite)
  - Corrigeant la configuration réseau

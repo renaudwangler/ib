@@ -5,6 +5,8 @@
 Afin de réaliser l'atelier, il faudra lancer la commande suivante, pour redémarrer sur le disque VHD:
 ```mount-ib1VhdBoot -VHDfile "C:\Program Files\Microsoft Learning\Base\20741B-LON-HOST1.vhd" -restart```
 
+**Attention:** La réalisation de cet atelier nécessite qu'au moins une carte réseau ethernet soit branchée (le wifi seul ne suffit pas).
+
 Une fois la machine redémarrée sur lon-host1, lancer la commande ```install-ib1course ##course##```
 Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
  - Réarmant les machines (reboot du host nécessaire ensuite)
@@ -20,6 +22,8 @@ Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
 Afin de réaliser l'atelier, il faudra lancer la commande suivante pour redémarrer sur le disque VHD:
 ```mount-ib1VhdBoot -VHDfile "C:\Program Files\Microsoft Learning\Base\20740C-LON-HOST1.vhd" -restart```
 
+**Attention:** La réalisation de cet atelier nécessite qu'au moins une carte réseau ethernet soit branchée (le wifi seul ne suffit pas).
+
 Une fois la machine redémarrée sur lon-host1, **avant la tâche 2 de l'exercice 1** lancer la commande ```install-ib1course ##course##```
 Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
  - Réarmant les machines,
@@ -32,6 +36,8 @@ Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
 ## Atelier 9
 Afin de réaliser l'atelier, il faudra lancer la commande suivante pour redémarrer sur le disque VHD:
 ```mount-ib1VhdBoot -VHDfile "C:\Program Files\Microsoft Learning\Base\20740C-LON-HOST2.vhd" -restart```
+
+**Attention:** La réalisation de cet atelier nécessite qu'au moins une carte réseau ethernet soit branchée (le wifi seul ne suffit pas).
 
 Une fois la machine redémarrée sur lon-host1, **après le point 6 de la tâche 1 de l'exercice 1** lancer la commande ```install-ib1course ##course##```
 Cette commande (dont l'execution est un peu longue) va préparer l'atelier en

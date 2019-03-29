@@ -1,4 +1,10 @@
-﻿**Version 2.0.:**
+﻿**Version 2.1:**
+ - Sortie des éléments complémentaires (dossier "extra") du dossier du module.
+ - Allias "ibsetup" pour la commande "install-ib1Course"
+ - Correction message d'erreur sur attente de réseau IP d'une carte
+ - Information de nécessité de branchement filaire pour les descriptifs des stages m20740c et m20741b
+
+**Version 2.0.:**
  - Refonte du module avec utilisation de fichiers externes pour la customisation des stages
 
 **Version 1.12.1:**

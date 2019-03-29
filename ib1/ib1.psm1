@@ -46,7 +46,7 @@ $courseBody > "$env:ALLUSERSPROFILE\desktop\$course - readme.html"}
 function wait-ib1Network {
 param([string]$nicName,$maxwait=10)
 write-ib1log "Attente du réseau ipV4 sur la carte '$nicName' pendant $($maxwait/2) minutes maximum."
-while (((Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4).addressState -notLike 'Preferred' -or (Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4).IPAddress -like "169.254.*") -and $maxwait -gt 0) {
+while (((Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue).addressState -notLike 'Preferred' -or (Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4).IPAddress -like "169.254.*") -and $maxwait -gt 0) {
   Start-Sleep -Seconds 30
   $maxwait --}
   if ($maxwait -gt 0) {return $true}
@@ -337,11 +337,11 @@ if ($course -eq '')  {
   $course=$input.'Quel stage installer'}
 if ($course -ne '' -and -not $courseCommands.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $(($courseCommands|Get-Member -MemberType NoteProperty).name -join ', '). Merci de vérifier!" -ErrorLog}
 elseif ($course -ne '') {
-  write-ib1log "Mise en place de l'environnement de stage pour le stage '$course'."
+  write-ib1log "Mise en place de l'environnement pour le stage '$course'."
   Invoke-Expression (read-ib1CourseFile -fileName courses.ps1 -newLine "`n").$course}
 set-ib1CourseHelp -course $course
 import-ib1TrustedCertificate
-$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt"
+$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
 if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
   write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
   invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
@@ -1365,7 +1365,7 @@ if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
   else {
     write-ib1log "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible" -warningLog
     $CheckFileResponse.Close()}}
-$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/ib1/extra/$ibppt"
+$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
 if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt")) {
   write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
   invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
@@ -1497,8 +1497,9 @@ else {
 #  Gestion du module  #
 #######################
 Set-Alias ibReset reset-ib1VM
+Set-Alias ibSetup setup-ib1Course
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
 Set-Alias get-ib1Git get-ib1repo
 Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto
-Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git
+Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git,ibSetup

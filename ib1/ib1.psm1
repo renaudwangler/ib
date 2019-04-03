@@ -329,17 +329,19 @@ process {
 set-ib1ChromeLang
 enable-ib1Office
 if ($env:ibSetup -ne $null -and !$force) {write-ib1log "La commande 'ibSetup' a déja été lançée ($($env:ibSetup)). utilisez le tag -Force pour la relancer." -ErrorLog}
-$courseCommands=(read-ib1CourseFile -fileName courses.ps1 -newLine "`n")
-$courseCommands.psobject.Properties.Remove('courses.ps1')
+$courseDocs=(read-ib1CourseFile -fileName courses.md "<br/>`n")
+$courseDocs.psobject.Properties.Remove('intro')
+$courseDocs.psobject.Properties.Remove('outro')
 if ($course -eq '' -and $env:ibCourse -ne $null) {$course=$env:ibCourse}
 if ($course -eq '')  {
-  $objPick=foreach ($courseCommand in ($courseCommands|Get-Member -MemberType NoteProperty)) {New-Object psobject -Property @{'Quel stage installer'=$courseCommand.Name}}
+  $objPick=foreach ($courseDoc in ($courseDocs|Get-Member -MemberType NoteProperty)) {New-Object psobject -Property @{'Quel stage installer'=$courseDoc.Name}}
   $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
   $course=$input.'Quel stage installer'}
-if ($course -ne '' -and -not $courseCommands.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $(($courseCommands|Get-Member -MemberType NoteProperty).name -join ', '). Merci de vérifier!" -ErrorLog}
+if ($course -ne '' -and -not $courseDocs.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $(($courseDocs|Get-Member -MemberType NoteProperty).name -join ', '). Merci de vérifier!" -ErrorLog}
 elseif ($course -ne '') {
   write-ib1log "Mise en place de l'environnement pour le stage '$course'."
-  Invoke-Expression (read-ib1CourseFile -fileName courses.ps1 -newLine "`n").$course
+  $courseCommands=read-ib1CourseFile -fileName courses.ps1 -newLine "`n"
+  if ($courseCommands.$course) { Invoke-Expression $courseCommands.$course}
   if ($env:ibCourse -eq $null) {
     [System.Environment]::SetEnvironmentVariable('ibCourse',$course,[System.EnvironmentVariableTarget]::Machine)
     $env:ibCourse=$course}}
@@ -348,11 +350,11 @@ import-ib1TrustedCertificate
 $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
 if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
   write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
-elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head).headers.'content-length') {
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
+elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -ErrorAction SilentlyContinue).headers.'content-length') {
   write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
   Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
+  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
   [System.Environment]::SetEnvironmentVariable('ibSetup',(Get-Date -Format 'MMdd'),[System.EnvironmentVariableTarget]::Machine)
   $env:ibSetup=(Get-Date -Format 'MMdd')}}
 
@@ -699,7 +701,7 @@ $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrig
 if ($extNic.PhysicalMediaType -eq "Unspecified") {
   if ((Get-VMSwitch $externalNetworkname  -switchtype External -ErrorAction SilentlyContinue).NetAdapterInterfaceDescription -eq (Get-NetAdapter -Physical|where-object status -eq up).InterfaceDescription) {
     write-ib1log "La configuration réseau externe est déjà correcte" -warningLog
-    break}
+    return}
   else {
     write-ib1log "La carte réseau est déja connectée a un switch virtuel. Suppression!" -warningLog
     $switch2Remove=Get-VMSwitch -SwitchType External|where-object {$extNic.name -like '*'+$_.name+'*'}
@@ -1397,7 +1399,8 @@ $extSwitch=(Get-VMSwitch|where switchtype -like '*external').Name
 $vmNics=get-vm|Get-VMNetworkAdapter|where SwitchName -eq $extSwitch
 $localIp=Get-NetIPAddress -AddressFamily IPv4|where InterfaceAlias -like "*$extSwitch*"
 if ($localIP.count -and $localIp.count -ne 1) {
-write-ib1log "Lprobléme avec récupération de l'adresse IP de la carte réseau." -ErrorLog}
+write-ib1log "Problème avec récupération de l'adresse IP de la carte réseau." -warningLog
+return}
 else {
   $nicCount=0  
   foreach ($vmnic in $vmNics) {

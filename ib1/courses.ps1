@@ -9,6 +9,8 @@ break
 if (!(get-vm *lon-dc1).notes.Contains('Switch clavier FR')) {switch-ib1VMFr}
 connect-ib1VMNet "External Network"
 set-ib1VMExternalMac
+set-ib1VMCheckpointType
+get-VM|Checkpoint-VM|Out-Null
 
 
 # m20741b
@@ -111,12 +113,12 @@ set-ib1VMExternalMac
 # Fin
 
 #'msaz100old'='
-#$dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
-#get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
-#Add-Type -AssemblyName System.IO.Compression.FileSystem
-#remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-#remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-#remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
-#get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
-#get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-#get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';
+$dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
+get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
+remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
+get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
+get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
+get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';

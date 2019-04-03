@@ -67,12 +67,11 @@ Un dossier "**Ateliers MS100**" a été plaçé sur le bureau qui contient :
 # m10979
 Un raccourci "**Ateliers stage m10979**" a été plaçé sur le bureau vers les instructions d'ateliers.
 
-# m20533
-Un raccourci "**Ateliers stage m20533**" a été plaçé sur le bureau vers les instructions d'ateliers.
-
-Lancer les commande suivantes *dans la machine virtuelle "MIA-CL1"* pour y installer les éléments utiles à la formation:
-```install-module ib1
-ibSetup ##course##```
+### m20533
+#Un raccourci "**Ateliers stage m20533**" a été plaçé sur le bureau vers les instructions d'ateliers.
+#
+#Lancer les commande suivantes *dans la machine virtuelle "MIA-CL1"* pour y installer les éléments utiles à la formation:
+#```install-module ib1<br/>ibSetup ##course##```
 
 # msaz900
 Un dossier "**Manipulations MSAZ900**" a été plaçé sur le bureau qui contient :

@@ -1,4 +1,10 @@
-﻿**Version 2.2:**
+﻿**Version 2.2.1:**
+ - Correction mise en place du stage m20742
+ - Changement de principe pour commande ib1Setup :
+     possibilité de remplir le fichier courses.md *sans remplir* le fichier courses.ps1
+ - Suppression du stage m20533
+
+**Version 2.2:**
  - Utilisation de la déclaration du module pour lancer un script à l'import
  - Repèrage de certains stages MS depuis la présence de VMs spécifiques
  - Utilisation de variables système pour divers objectifs

@@ -356,6 +356,13 @@ elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-W
   Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
   invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
   [System.Environment]::SetEnvironmentVariable('ibSetup',(Get-Date -Format 'MMdd'),[System.EnvironmentVariableTarget]::Machine)
+  write-ib1log "Configuration des options d'alimentation" -DebugLog
+  powercfg /hibernate off|out-null
+  powercfg /SETACTIVE SCHEME_BALANCED|out-null
+  powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0|out-null
+  powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0|out-null
+  powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0|out-null
+  powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0|out-null
   $env:ibSetup=(Get-Date -Format 'MMdd')}}
 
 function set-ib1VMCheckpointType {
@@ -1283,17 +1290,7 @@ function complete-ib1Install{
 <#
 .SYNOPSIS
 Cette commande permet de finaliser/réparer l'installation de la machine hôte ib
-.PARAMETER GatewayIP
-Adresse IP de la passerelle par défaut (pour le switch virtuel NAT). Valeur par défaut : 172.16.0.1
-.PARAMETER GatewaySubnet
-Adresse de sous-réseau pour le sous-réseau local du NAT. Valeur par défaut : 172.16.0.0/24
-.PARAMETER GatewayMask
-Longeur du masque de sous-réseau de la passerelle pour le NAT. valeur par défaut : 24
 #>
-param(
-[string]$GatewayIP='172.16.0.1',
-[string]$GatewaySubnet='172.16.0.0',
-[string]$GatewayMask=24)
 get-ib1elevated $true
 write-ib1log -progressTitleLog "Mise en place des options nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
@@ -1321,16 +1318,16 @@ write-ib1log "Création de la tâche de mise à jour du module et de lancement d
 $trigger=New-ScheduledTaskTrigger -AtStartup
 Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest|Add-Content -Path $logFile -Encoding UTF8
 write-ib1log 'Création des raccourcis sur le bureau' -DebugLog
-new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27'
-new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Questionnaire mi-parcours'
-new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluation fin de formation'
+new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Mi-parcours'
+new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluations'
 new-ib1Shortcut -URL 'https://docs.google.com/forms/d/e/1FAIpQLSfH3FiI3_0Gdqx7sIDtdYyjJqFHHgZa2p75m8zev7bk2sT2eA/viewform?c=0&w=1' -title 'Evaluation du distanciel'
+new-ib1Shortcut -File "$env:AppDATA\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows Powershell.lnk"
 $ShortcutShell=New-Object -ComObject WScript.Shell
 $formateurShortcut=$true
 Get-ChildItem -Recurse $env:Public\desktop,$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like '\\pc-formateur\partage') {$formateurShortcut=$false}}
 if ($formateurShortcut) { new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'}
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'
-new-ib1Shortcut -File '%SystemRoot%\System32\WindowsPowershell\v1.0\powershell.exe' -title 'Windows PowerShell'
+new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27'
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
   write-ib1log 'Création du partage pour le poste Formateur.' -DebugLog
   md C:\partage

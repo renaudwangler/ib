@@ -1,4 +1,7 @@
-﻿**Version 2.2.1:**
+﻿**Version 2.2.3:**
+ - Amélioration du raccourci "*Windows Powershell*" sur le bureau
+ - Ajout de la supression de la mise en veille à chaque lancement de ibSetup
+**Version 2.2.1:**
  - Correction mise en place du stage m20742
  - Changement de principe pour commande ib1Setup :
      possibilité de remplir le fichier courses.md *sans remplir* le fichier courses.ps1

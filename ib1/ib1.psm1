@@ -12,6 +12,32 @@ $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $logStart=$true
 
+function new-ib1TaskBarShortcut {
+<#
+.SYNOPSIS
+Cette fonction permet l'ajout de raccourcis à la barre des tâches de tous les utilisateurs du poste.
+.PARAMETER Shortcut
+Fichier .lnk de raccourcis à épingler sur la barre des tâches (obligatoire)
+.EXAMPLE
+new-ib1TaskBarShortcut -Shortcut "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows PowerShell.lnk"
+Cette commande va placer dans la barre des tâches un raccourcis vers l'invite PowerShell
+#>
+param([string]$Shortcut='')
+#Création/modification du fichier d'apparence de la barre des tâches.
+if (!(Test-Path $env:SystemRoot\taskBarLayout.xml)) {Set-Content -Value ('<?xml version="1.0" encoding="utf-8"?><LayoutModificationTemplate xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification" xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout" xmlns:taskbar="http://schemas.microsoft.com/Start/2014/TaskbarLayout" Version="1">
+<CustomTaskbarLayoutCollection><defaultlayout:TaskbarLayout>
+<taskbar:TaskbarPinList>
+</taskbar:TaskbarPinList>
+</defaultlayout:TaskbarLayout></CustomTaskbarLayoutCollection></LayoutModificationTemplate>') -Path $env:SystemRoot\taskBarLayout.xml}
+$taskbarLayout=Get-Content $env:SystemRoot\taskBarLayout.xml
+$TBNewLine="<taskbar:DesktopApp DesktopApplicationLinkPath=""$TBShortcut"" />"
+if ($taskbarLayout -notcontains $TBNewLine) {Set-Content -Path $env:SystemRoot\taskBarLayout.xml -Value ($taskbarLayout -replace '</taskbar:TaskbarPinList>',"$TBNewLine`n</taskbar:TaskbarPinList>")}
+#mise en place des clefs de registre pour impliquer le fichier précédent
+$layoutPath="HKLM:\Software\Policies\Microsoft\Windows"
+if (!(test-path "$layoutPath\Explorer")) {New-Item -Path $layoutPath -Name "Explorer"|Out-Null}
+New-ItemProperty -Name 'LockedStartLayout' -Path "$layoutPath\Explorer" -Value 1 -Force -ErrorAction SilentlyContinue|Out-Null
+New-ItemProperty -Name 'StartLayoutFile' -Path "$layoutPath\Explorer" -Value "$env:SystemRoot\taskBarLayout.xml" -PropertyType expandString -Force -ErrorAction SilentlyContinue|Out-Null}
+
 function read-ib1CourseFile {
 param([string]$fileName,[string]$newLine='')
 $filename="$($env:ProgramFiles)\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\$fileName"
@@ -53,6 +79,12 @@ while (((Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4 -ErrorActi
   else {return $false}}
 
 function enable-ib1Office {
+#1er lancement Powerpoint en vue d'activation
+$ppt = New-Object -ComObject powerpoint.application
+#$ppt.visible = "msoTrue"
+$ppt.run|out-null
+Start-Sleep -Seconds 2
+Get-Process|where description -Like "*powerpoint*"|Stop-Process
 $enablecommand=(Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName
 if ($enablecommand) {& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName|out-null}}
 
@@ -328,6 +360,9 @@ begin{get-ib1elevated $true}
 process {
 set-ib1ChromeLang
 enable-ib1Office
+# Touche 'Volume UP' suivie de la touche 'Mute'
+(new-object -com wscript.shell).sendKeys([char]175)|out-null
+(new-object -com wscript.shell).sendKeys([char]173)|out-null
 if ($env:ibSetup -ne $null -and !$force) {write-ib1log "La commande 'ibSetup' a déja été lançée ($($env:ibSetup)). utilisez le tag -Force pour la relancer." -ErrorLog}
 $courseDocs=(read-ib1CourseFile -fileName courses.md "<br/>`n")
 $courseDocs.psobject.Properties.Remove('intro')
@@ -1074,7 +1109,7 @@ Adresse Internet pointée par le raccourci créé
 .PARAMETER Title
 Titre du raccourci (si non mentionné, prendra le titre du site web pointé ou le nom du fichier)
 .PARAMETER TaskBar
-Si cette option est renseignée, le raccourci sera épinglé sur la barre des tâches.
+Si cette option est renseignée, le raccourci sera également épinglé sur la barre des tâches.
 .PARAMETER Params
 Cette option permet de rajouter des paramètres spécifiques après le fichier appelé
 .PARAMETER Icon
@@ -1109,14 +1144,16 @@ else {
   $title=$title+'.lnk'
   $target=$File}
 $WScriptShell=new-object -ComObject WScript.Shell
-if ($dest -eq '') {
-  if ($TaskBar) { $dest="$env:userprofile\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\taskBar" } else {$dest="$env:ALLUSERSPROFILE\desktop"}}
+if ($dest -eq '') {$dest="$env:ALLUSERSPROFILE\desktop"}
 $shortcut=$WScriptShell.createShortCut("$dest\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}
 if ($icon -ne '') {$shortcut.IconLocation=$Icon}
 write-ib1log "Création du raccourci." -DebugLog
-$shortcut.save()}}
+$shortcut.save()
+if ($TaskBar -and $URL -eq '') {
+  #Ajout du raccourci à la barre des tâches
+  new-ib1TaskBarShortcut -Shortcut "$dest\$title"}}}
 
 function invoke-ib1Clean {
 <#
@@ -1321,13 +1358,13 @@ write-ib1log 'Création des raccourcis sur le bureau' -DebugLog
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Mi-parcours'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluations'
 new-ib1Shortcut -URL 'https://docs.google.com/forms/d/e/1FAIpQLSfH3FiI3_0Gdqx7sIDtdYyjJqFHHgZa2p75m8zev7bk2sT2eA/viewform?c=0&w=1' -title 'Evaluation du distanciel'
-new-ib1Shortcut -File "$env:AppDATA\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows Powershell.lnk"
+new-ib1Shortcut -File "$env:AppDATA\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows Powershell.lnk" -TaskBar
 $ShortcutShell=New-Object -ComObject WScript.Shell
 $formateurShortcut=$true
 Get-ChildItem -Recurse $env:Public\desktop,$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like '\\pc-formateur\partage') {$formateurShortcut=$false}}
 if ($formateurShortcut) { new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'}
-new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0'
-new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27'
+new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0' -TaskBar
+new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27' -taskBar
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
   write-ib1log 'Création du partage pour le poste Formateur.' -DebugLog
   md C:\partage
@@ -1507,5 +1544,5 @@ Set-Alias ibSetup install-ib1Course
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias complete-ib1Setup complete-ib1Install
 Set-Alias get-ib1Git get-ib1repo
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto, new-ib1TaskbarShortcut
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git,ibSetup

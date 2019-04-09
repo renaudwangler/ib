@@ -1,6 +1,12 @@
-﻿**Version 2.2.3:**
+﻿**Version 2.3:**
+ - Nouvelle commande new-ib1TaskBarShortcut
+ - Mise en silencieux (mute) du poste dans "ibSetup"
+ - Amélioration de enable-ib1Office : lancement de Powerpoint une 1ère fois avant activation
+
+**Version 2.2.3:**
  - Amélioration du raccourci "*Windows Powershell*" sur le bureau
  - Ajout de la supression de la mise en veille à chaque lancement de ibSetup
+
 **Version 2.2.1:**
  - Correction mise en place du stage m20742
  - Changement de principe pour commande ib1Setup :

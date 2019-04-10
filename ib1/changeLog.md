@@ -1,4 +1,8 @@
-﻿**Version 2.3:**
+﻿**Version 2.3.1:**
+ - Passage du journal du module en log dans l'observateur d'évènements.
+ - Nouvelle option '*-trainer*' dans la commande '**ibSetup**' pour ne pas copier les présentations Powerpoint si ce n'est pas utile
+
+**Version 2.3:**
  - Nouvelle commande new-ib1TaskBarShortcut
  - Mise en silencieux (mute) du poste dans "ibSetup"
  - Amélioration de enable-ib1Office : lancement de Powerpoint une 1ère fois avant activation

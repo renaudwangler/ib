@@ -5,12 +5,11 @@
 $ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
 $driverFolder='C:\Dell'
-$logFile="$env:TEMP\ib1.log"
 $skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
 $ibppt='Présentation stagiaire automatique 2019.ppsx'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
-$logStart=$true
+$env:logStart='start'
 
 function new-ib1TaskBarShortcut {
 <#
@@ -24,6 +23,7 @@ Cette commande va placer dans la barre des tâches un raccourcis vers l'invite P
 #>
 param([string]$Shortcut='')
 #Création/modification du fichier d'apparence de la barre des tâches.
+write-ib1log "Mise en place du raccourcis '$Shortcut' dans la barre des tâches." -DebugLog
 if (!(Test-Path $env:SystemRoot\taskBarLayout.xml)) {Set-Content -Value ('<?xml version="1.0" encoding="utf-8"?><LayoutModificationTemplate xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification" xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout" xmlns:taskbar="http://schemas.microsoft.com/Start/2014/TaskbarLayout" Version="1">
 <CustomTaskbarLayoutCollection><defaultlayout:TaskbarLayout>
 <taskbar:TaskbarPinList>
@@ -68,7 +68,6 @@ $courseBody=$courseBody -replace ("##course##",$course)
 if ($course -eq '') {$course='Stage ib'}
 $courseBody > "$env:ALLUSERSPROFILE\desktop\$course - readme.html"}
 
-
 function wait-ib1Network {
 param([string]$nicName,$maxwait=10)
 write-ib1log "Attente du réseau ipV4 sur la carte '$nicName' pendant $($maxwait/2) minutes maximum."
@@ -79,14 +78,16 @@ while (((Get-NetAdapter $nicName|Get-NetIPAddress -AddressFamily IPv4 -ErrorActi
   else {return $false}}
 
 function enable-ib1Office {
-#1er lancement Powerpoint en vue d'activation
-$ppt = New-Object -ComObject powerpoint.application
-#$ppt.visible = "msoTrue"
-$ppt.run|out-null
-Start-Sleep -Seconds 2
-Get-Process|where description -Like "*powerpoint*"|Stop-Process
 $enablecommand=(Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName
-if ($enablecommand) {& (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName|out-null}}
+if ($enablecommand) {
+  #1er lancement Powerpoint en vue d'activation
+  $ppt = New-Object -ComObject powerpoint.application
+  #$ppt.visible = "msoTrue"
+  $ppt.run|out-null
+  Start-Sleep -Seconds 2
+  Get-Process|where description -Like "*powerpoint*"|Stop-Process
+  write-ib1log "Tentative de réarmement de Office." -DebugLog
+  & (Get-ChildItem -Path 'c:\program files' -Filter *ospprearm.exe -Recurse -ErrorAction SilentlyContinue).FullName|out-null}}
 
 function Unzip {
 param([string]$zipfile,[string]$outpath)
@@ -94,35 +95,34 @@ param([string]$zipfile,[string]$outpath)
 
 function write-ib1log {
 [CmdletBinding(DefaultParameterSetName='TextLog')]
-param([string]$TextLog,[switch]$ErrorLog=$false,[switch]$DebugLog=$false,[switch]$warningLog=$false,[string]$colorLog='white',[string]$progressTitleLog='')
-$horodate=get-date -Format "[%d/%M/%y-%H:mm] "
-if ($logStart) {
-  Set-Variable -Name logStart -Value $false -Scope 1
-  $launchCommand=(Get-PSCallStack|Where-Object command -INotLike "*<scriptblock>*"|Sort-Object)[0]
-  if (Get-ChildItem -path $logFile -ErrorAction SilentlyContinue) {
-    Add-Content -Path $logFile ''
-    Add-Content -Path $logFile '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-'}
-  Add-Content -Path $logFile "$($horodate)Lancement de la commande '$($launchCommand.Command)' - Version $((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring())"
-  if ($launchCommand.Arguments -inotlike '{}') {
-    Add-Content -Path $logFile "    Arguments: $($launchCommand.Arguments)"}}
-if ($ErrorLog) {
-  add-content -Path $logFile "$horodate[ERREUR] $TextLog"
+param([string]$TextLog,[switch]$ErrorLog=$false,[switch]$DebugLog=$false,[switch]$warningLog=$false,[string]$colorLog='white',[string]$progressTitleLog='',[byte]$logId=2)
+$launchCommand=(Get-PSCallStack|Where-Object command -INotLike "*<scriptblock>*")[-1]
+if ($env:logStart -ne ($launchCommand.Command)) {
+  $env:logstart=$launchCommand.Command
+  $eventText="Lancement de '$($launchCommand.Command)', Version $((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring())"
+  if ($launchCommand.Arguments -inotlike '{}') {$eventText+=", Arguments: $($launchCommand.Arguments)"}
+  Write-EventLog -LogName ib1 -Source powerShellib1 -Message $eventText -EntryType Information -EventId 1}
+  if ($ErrorLog) {
+  Write-EventLog -LogName ib1 -Source powerShellib1 -Message "[$env:logStart]$TextLog" -EntryType Error -EventId $logId
   Write-Host "[ERREUR!] $TextLog" -ForegroundColor Red
   break}
 elseif ($DebugLog) {
-  Add-Content -Path $logFile "$horodate$TextLog"
+  Write-EventLog -LogName ib1 -Source powerShellib1 -Message "[$env:logStart]$TextLog" -EntryType Information -EventId $logId
   Write-Debug $TextLog}
 elseif ($warningLog) {
-  Add-Content -Path $logFile "$horodate[ATTENTION] $TextLog"
+  Write-EventLog -LogName ib1 -Source powerShellib1 -Message "[$env:logStart]$TextLog" -EntryType Warning -EventId $logId
   Write-Warning $TextLog}
 elseif ($progressTitleLog -ne '') {
-  if ($TextLog) {write-progress -Activity $progressTitleLog -currentOperation $TextLog}
+  if ($TextLog) {
+    write-progress -Activity $progressTitleLog -currentOperation $TextLog
+    $env:logText="$env:logText`n$TextLog"}
   else {
     write-progress -Activity $progressTitleLog -complete
-    $TextLog="Fin d'activité."}
-  Add-Content -Path $logFile "$horodate[$progressTitleLog]$TextLog"}
+    $TextLog="Fin d'activité."
+    Write-EventLog -LogName ib1 -Source powerShellib1 -Message "[$env:logStart][$progressTitleLog]$env:logText" -EntryType Information -EventId $logId
+    $env:logText=''}}
 else {
-  Add-Content -Path $logFile "$horodate$TextLog"
+  Write-EventLog -LogName ib1 -Source powerShellib1 -Message "[$env:logStart]$TextLog" -EntryType Information -EventId $logId
   write-host $TextLog -ForegroundColor $colorLog}}
 
 function set-ib1VMNotes {
@@ -229,17 +229,16 @@ else {
 function get-ib1Log {
 <#
 .SYNOPSIS
-Cette commande facilite l'affichage du journal des commandes ayant fait appel au module ib1 sur la machien locale.
+Cette commande facilite l'affichage du journal des commandes ayant fait appel au module ib1 sur la machine locale.
 .EXAMPLE
 get-ib1Log
 Affiche le log des commandes
 #>
 PARAM([switch]$clearLog=$false)
-if (Test-Path $logFile) {
-  & $logFile
-  if ($clearLog) {
-    Start-Sleep 1
-    Remove-Item -Path $logFile}}}
+if ($clearLog) {
+  Clear-EventLog ib1
+  write-ib1log "Effacement du journal d'évènements ib1." -DebugLog -colorLog red}
+else {eventvwr /c:ib1}}
 
 function get-ib1Version {
 <#
@@ -250,7 +249,6 @@ get-ib1Version
 Affiche la version du module
 #>
 (get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring()}
-
 
 function get-ib1elevated ($ibElevationNeeded=$false) {
 if ((New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
@@ -349,25 +347,33 @@ Cette commande permet de mettre en place les éléments nécessaire pour un stag
 .PARAMETER course
 Référence du stage à mettre en place.
 Valeurs possibles : stages référencés dans les fichiers courses.ps1 et courses.md
+.PARAMETER trainer
+Si mentionnée, cette option permet de copier les présentation PPT pour faciliter l'animation depuis gitHub
 .EXAMPLE
 install-ib1Course -course msAZ100
 Met en place l'environnement pour le stage msAZ100
 #>
 [CmdletBinding(
 DefaultParameterSetName='Course')]
-PARAM([string]$course='',[switch]$Force=$false)
+PARAM([string]$course='',[switch]$Force=$false,[Switch]$trainer=$false)
 begin{get-ib1elevated $true}
 process {
+if ($env:ibTrainer -eq 1) {
+  write-ib1log "Détection automatique de machine instructeur." -DebugLog
+  $trainer=$true}
 set-ib1ChromeLang
 enable-ib1Office
 # Touche 'Volume UP' suivie de la touche 'Mute'
 (new-object -com wscript.shell).sendKeys([char]175)|out-null
 (new-object -com wscript.shell).sendKeys([char]173)|out-null
+write-ib1log "Combinaison de touche pour supprimer le son (Mute) de la machine." -DebugLog
 if ($env:ibSetup -ne $null -and !$force) {write-ib1log "La commande 'ibSetup' a déja été lançée ($($env:ibSetup)). utilisez le tag -Force pour la relancer." -ErrorLog}
 $courseDocs=(read-ib1CourseFile -fileName courses.md "<br/>`n")
 $courseDocs.psobject.Properties.Remove('intro')
 $courseDocs.psobject.Properties.Remove('outro')
-if ($course -eq '' -and $env:ibCourse -ne $null) {$course=$env:ibCourse}
+if ($course -eq '' -and $env:ibCourse -ne $null) {
+  $course=$env:ibCourse
+  write-ib1log "Détection du stage '$course' par présence de variable système." -DebugLog}
 if ($course -eq '')  {
   $objPick=foreach ($courseDoc in ($courseDocs|Get-Member -MemberType NoteProperty)) {New-Object psobject -Property @{'Quel stage installer'=$courseDoc.Name}}
   $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
@@ -376,20 +382,26 @@ if ($course -ne '' -and -not $courseDocs.$course) {write-ib1log "Le paramètre -
 elseif ($course -ne '') {
   write-ib1log "Mise en place de l'environnement pour le stage '$course'."
   $courseCommands=read-ib1CourseFile -fileName courses.ps1 -newLine "`n"
-  if ($courseCommands.$course) { Invoke-Expression $courseCommands.$course}
+  if ($courseCommands.$course) {
+    write-ib1log "Lancement des commandes du fichier 'courses.ps1'." -DebugLog
+    Invoke-Expression $courseCommands.$course}
   if ($env:ibCourse -eq $null) {
     [System.Environment]::SetEnvironmentVariable('ibCourse',$course,[System.EnvironmentVariableTarget]::Machine)
-    $env:ibCourse=$course}}
+    $env:ibCourse=$course
+    write-ib1log "Inscription de l'identité du stage '$course' dans la variable système 'ibCourse'." -DebugLog}}
 set-ib1CourseHelp $course
 import-ib1TrustedCertificate
-$ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
-if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
-  write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
-elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -ErrorAction SilentlyContinue).headers.'content-length') {
-  write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
+if ($trainer) {
+  $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
+  if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
+    write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
+    invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
+  elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -ErrorAction SilentlyContinue).headers.'content-length') {
+    write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
+    Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
+    invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
+  [System.Environment]::SetEnvironmentVariable('ibTrainer',1,[System.EnvironmentVariableTarget]::Machine)
+  $env:ibTrainer=1}
   [System.Environment]::SetEnvironmentVariable('ibSetup',(Get-Date -Format 'MMdd'),[System.EnvironmentVariableTarget]::Machine)
   write-ib1log "Configuration des options d'alimentation" -DebugLog
   powercfg /hibernate off|out-null
@@ -512,27 +524,27 @@ write-ib1log "Disque(s) de lecteur Windows trouvé(s) : $dLetter" -DebugLog
 if (($dLetter.Count -ne 1) -or ($dLetter -eq ':')) {
  write-ib1log 'Impossible de trouver un (et un seul) disque virtuel monté qui contienne une unique partition non réservée au systeme.' -ErrorLog}
  write-ib1log "Création d'une nouvelle entrée dans le BCD." -DebugLog
-bcdboot $dLetter\windows /l fr-FR |Add-Content -Path $logFile -Encoding UTF8
+bcdboot $dLetter\windows /l fr-FR |out-null
 if ((Test-Path $driverFolder) -and -not $noDrivers) {
   write-ib1log "Insertion des drivers contenus dans le répertoire '$driverFolder'." -DebugLog
-  DISM /image:$dLetter\ /add-driver /driver:$driverFolder /recurse|Add-Content -Path $logFile -Encoding UTF8}
+  DISM /image:$dLetter\ /add-driver /driver:$driverFolder /recurse|out-null}
 write-ib1log "Changement des otpions de clavier Français." -DebugLog
-DISM /image:$dLetter /set-allIntl:en-US /set-inputLocale:0409:0000040c |Add-Content -Path $logFile -Encoding UTF8
+DISM /image:$dLetter /set-allIntl:en-US /set-inputLocale:0409:0000040c |out-null
 if ($copyFolder -ne '') {
   write-ib1log "Copie du dossier '$copyFolder' dans le dossier \ib du disque monté" -DebugLog
   Copy-Item $copyFolder\* $dLetter\ib}
 write-ib1log "Modification de la description du BCD pour : '$([io.path]::GetFileNameWithoutExtension($VHDFile))'." -DebugLog
-bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) |Add-Content -Path $logFile -Encoding UTF8
+bcdedit /set '{default}' Description ([io.path]::GetFileNameWithoutExtension($VHDFile)) |out-null
 write-ib1log "Modification du BCD pour lancement Hyper-V." -DebugLog
-bcdedit /set '{default}' hypervisorlaunchtype auto|Add-Content -Path $logFile -Encoding UTF8
+bcdedit /set '{default}' hypervisorlaunchtype auto|out-null
 write-ib1log "Mise en place du menu de multi-boot dans le BCD" -DebugLog
-bcdedit /timeout 30|Add-Content -Path $logFile -Encoding UTF8
+bcdedit /timeout 30|out-null
 write-ib1log "Installation du module ib1 dans le disque monté." -DebugLog
 New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1" -ErrorAction SilentlyContinue|Out-Null
 New-Item -ItemType Directory -Path "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)" -ErrorAction SilentlyContinue|Out-Null
-Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\" -ErrorAction SilentlyContinue|out-null
 $module=get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1
-Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\" -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Copy-Item "$((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).path|Split-Path -Parent)\*" "$dLetter\Program Files\WindowsPowerShell\Modules\ib1\" -ErrorAction SilentlyContinue|out-null
 write-ib1log "Montage du registre 'Software' du VHD" -DebugLog
 reg load HKLM\ib-offline $dLetter\Windows\System32\config\SOFTWARE
 New-PSDrive -Name "ib-offline" -PSProvider Registry -Root HKLM\ib-offline
@@ -569,7 +581,7 @@ foreach ($line in bcdedit) {
   elseif ($line -ilike 'device*VHD' -or $line -ilike 'device*unknown') {if ($bootEntry -inotlike '{current}') {$bcdVHDs+=$bootEntry}}}
   foreach ($bcdVHD in $bcdVHDs) {
     write-ib1log "Nettoyage de l'entrée de BCD '$($bcdVHD)'" -DebugLog
-    bcdedit /delete $bcdVHD|Add-Content -Path $logFile -Encoding UTF8}
+    bcdedit /delete $bcdVHD|out-null}
 if ($restart) {
   write-ib1log "Redémarrage de la machine en fin d'opération." -DebugLog
   Restart-Computer}}}
@@ -619,10 +631,10 @@ if ($VHDFile -ne '') {
   if ($testMount -eq $null) {
     Write-Error "Impossible de monter le disque dur... $VHDFile, merci de vérifier!"
     break}
-  DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|Add-Content -Path $logFile -Encoding UTF8
+  DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|out-null
   if ($LASTEXITCODE -eq 50) {
     if (Test-Path $ib1DISMPath) {
-      & $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|Add-Content -Path $logFile -Encoding UTF8} else {$LASTEXITCODE=50}}
+      & $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|out-null} else {$LASTEXITCODE=50}}
   if ($LASTEXITCODE -eq 50) {
     Start-Process -FilePath $ib1DISMUrl
     write-error "Si le problème vient de la version de DISM, merci de l'installer depuis la fenetre de navigateur ouverte (installer localement et choisir les 'Deployment Tools' uniquement." -Category InvalidResult
@@ -666,13 +678,13 @@ foreach ($VM2switch in $VMs2switch) {
         Checkpoint-VM -VM $VM2switch -SnapshotName "ib1SwitchFR-Avant"
         $partLetter=(mount-vhd -path $vhdPath -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false).DriveLetter}
       write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Changement des options linguistiques."
-      DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|Add-Content -Path $logFile -Encoding UTF8
+      DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|out-null
       Add-Content -Path $logFile ''
       if ($LASTEXITCODE -eq 50) {
         if (Test-Path $ib1DISMPath) {
         write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Echec, éssai avec '$ib1DISMPath'"
-        & $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|Add-Content -Path $logFile -Encoding UTF8
-        Add-Content -Path $logFile ''} else {$LASTEXITCODE=50}}
+        & $ib1DISMPath /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|out-null
+        } else {$LASTEXITCODE=50}}
       if ($LASTEXITCODE -eq 50) {
         Dismount-VHD $vhdPath
         Start-Process -FilePath $ib1DISMUrl
@@ -682,7 +694,7 @@ foreach ($VM2switch in $VMs2switch) {
       write-ib1log "Plus: Modifications du registre pour le clavier." -DebugLog
       reg load "HKLM\$($vm2Switch.Name)-DEFAULT" "$($partLetter):\Windows\System32\config\DEFAULT"|Out-Null
       Remove-ItemProperty -Path "HKLM:\$($vm2Switch.Name)-DEFAULT\Keyboard Layout\Preload" -Name *
-      new-ItemProperty -path "HKLM:\$($vm2Switch.Name)-DEFAULT\Keyboard Layout\Preload" -Name 1 -Value '0000040c'|Add-Content -Path $logFile -Encoding UTF8
+      new-ItemProperty -path "HKLM:\$($vm2Switch.Name)-DEFAULT\Keyboard Layout\Preload" -Name 1 -Value '0000040c'|out-null
       reg load "HKLM\$($vm2Switch.Name)-SYSTEM" "$($partLetter):\Windows\System32\config\SYSTEM"|Out-Null
       Get-ChildItem "HKLM:\$($vm2Switch.Name)-SYSTEM\ControlSet001\Control\Keyboard Layouts"|where-object {$_.name -INotLike '*0000040c*'}|Remove-Item
       [gc]::collect()
@@ -818,7 +830,7 @@ $fileName=split-path $CertificateUrl -leaf
 try {invoke-webrequest $CertificateUrl -OutFile "$($env:USERPROFILE)\downloads\$fileName" -ErrorAction stop}
 catch {write-ib1log "URL incrorrecte, le fichier '' est introuvable" -ErrorLog}
 write-ib1log "Insertion du certificat dans le magasin de certificats local." -DebugLog
-Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false|Add-Content -Path $logFile -Encoding UTF8|Out-Null}}
+Import-Certificate -FilePath "$($env:USERPROFILE)\downloads\$fileName" -CertStoreLocation Cert:\localmachine\root -Confirm:$false|Out-Null}}
 
 function set-ib1VMCusto {
 <#
@@ -961,8 +973,8 @@ foreach ($VM2copy in $VMs2copy) {
     write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Création des dossiers."
     $vmCopyName="$VMprefix$($VM2copy.name)$VMsuffix"
     $vmCopyPath="$(split-path -path $VM2copy.path -parent)\$($vmCopyName)"
-    New-Item $vmCopyPath -ItemType directory -ErrorAction SilentlyContinue -ErrorVariable createDir|Add-Content -Path $logFile -Encoding UTF8
-    New-Item "$vmCopyPath\Virtual Hard Disks" -ItemType directory -ErrorAction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+    New-Item $vmCopyPath -ItemType directory -ErrorAction SilentlyContinue -ErrorVariable createDir|out-null
+    New-Item "$vmCopyPath\Virtual Hard Disks" -ItemType directory -ErrorAction SilentlyContinue|out-null
     foreach ($VHD2copy in $VM2copy.HardDrives) {
       write-ib1log -progressTitleLog "Copie de la VM $($VM2copy.name)" "Copie du dossier $(split-path -path $VHD2copy.path -parent)."
       Copy-Item "$(split-path -path $VHD2copy.path -parent)\" $vmCopyPath -Recurse -ErrorAction SilentlyContinue}
@@ -1149,7 +1161,7 @@ $shortcut=$WScriptShell.createShortCut("$dest\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}
 if ($icon -ne '') {$shortcut.IconLocation=$Icon}
-write-ib1log "Création du raccourci." -DebugLog
+write-ib1log "Création du raccourci '$title'." -DebugLog
 $shortcut.save()
 if ($TaskBar -and $URL -eq '') {
   #Ajout du raccourci à la barre des tâches
@@ -1200,8 +1212,7 @@ foreach ($computer in $computers.Keys) {
    $commandNoError=$false
    if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -ilike '*Accès refusé*') {write-ib1log "[$computer] Accès refusé." -colorLog Red}
    else {
-     write-ib1log "[$computer] Erreur:" -colorLog Red
-     Add-Content -Path $logFile $_.Exception.message
+     write-ib1log "[$computer] Erreur: $($_.Exception.message)" -colorLog Red
      $_.Exception.message}}
   if ($commandNoError) {
     write-ib1log "[$computer] Machine nettoyée." -colorLog Green}}
@@ -1247,8 +1258,7 @@ foreach ($computer in $computers.Keys) {
    $commandNoError=$false
    if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -ilike '*Accès refusé*') {write-ib1log "[$computer] Accès refusé." -colorLog Red}
    else {
-     write-ib1log "[$computer] Erreur:" -colorLog Red
-     Add-Content -Path $logFile $_.Exception.message
+     write-ib1log "[$computer] Erreur: $($_.Exception.message)" -colorLog Red
      $_.Exception.message}}
   if ($commandNoError) {
     if ($GetCred) {invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create('restart-computer -force')) -Credential $cred}
@@ -1312,13 +1322,11 @@ foreach ($computer in $computers.Keys) {
    $commandNoError=$false
    if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -ilike '*Accès refusé*') {write-ib1log "[$computer] Accès refusé." -colorLog Red}
    else {
-     write-ib1log "[$computer] Erreur:" -colorLog Red
-     Add-Content -Path $logFile $_.Exception.message
+     write-ib1log "[$computer] Erreur: $($_.Exception.message)" -colorLog Red
      $_.Exception.message}}
   if ($commandNoError) {
     if ($commandOut) {
-      write-ib1log "[$computer] Résultat de la commande:" -colorLog Green
-      Add-Content -Path $logFile $commandOut
+      write-ib1log "[$computer] Résultat de la commande:`n$commandOut" -colorLog Green
       $commandOut}
     else {write-ib1log "[$computer] Commande executée." -colorLog Green}}}
 Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}}
@@ -1333,7 +1341,7 @@ write-ib1log -progressTitleLog "Mise en place des options nécessaires pour WinR
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
-Enable-PSRemoting -Force|Add-Content -Path $logFile -Encoding UTF8
+Enable-PSRemoting -Force|out-null
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM"
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
   if ((get-VMHost).EnableEnhancedSessionMode) {
@@ -1353,7 +1361,7 @@ $PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile
 $PSTask2= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
 write-ib1log "Création de la tâche de mise à jour du module et de lancement de ibInit.ps1" -DebugLog
 $trigger=New-ScheduledTaskTrigger -AtStartup
-Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest|Add-Content -Path $logFile -Encoding UTF8
+Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest|out-null
 write-ib1log 'Création des raccourcis sur le bureau' -DebugLog
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Mi-parcours'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluations'
@@ -1371,10 +1379,10 @@ if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
   New-SmbShare partage -Path c:\partage}
 write-ib1log 'Activation de la connexion et des règles firewall pour RDP' -DebugLog
 set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminal Server' -name 'fDenyTSConnections' -Value 0
-Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
-Enable-netFirewallRule -DisplayGroup 'File and Printer Sharing' -erroraction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
-Enable-netFirewallRule -DisplayGroup "Partage de fichiers et d'imprimantes" -erroraction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
-Enable-netFirewallRule -DisplayGroup 'Bureau à distance' -erroraction SilentlyContinue|Add-Content -Path $logFile -Encoding UTF8
+Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction SilentlyContinue|out-null
+Enable-netFirewallRule -DisplayGroup 'File and Printer Sharing' -erroraction SilentlyContinue|out-null
+Enable-netFirewallRule -DisplayGroup "Partage de fichiers et d'imprimantes" -erroraction SilentlyContinue|out-null
+Enable-netFirewallRule -DisplayGroup 'Bureau à distance' -erroraction SilentlyContinue|out-null
 set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
 write-ib1log 'Changement du mot de passe utilisateur' -DebugLog
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
@@ -1480,15 +1488,15 @@ if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).stat
       Set-VMSwitch -VMSwitch $ibNat -SwitchType Internal}}
   else {
     write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Création du vSwitch '$Name'"
-    $ibNat=New-VMSwitch -SwitchName $Name -switchType Internal|Add-Content -Path $logFile -Encoding UTF8
+    $ibNat=New-VMSwitch -SwitchName $Name -switchType Internal|out-null
     $ibNat=get-VMSwitch|where-object {$_.name -like "*$name*"}}
   write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Configuration du vSwitch '$($ibNat.name)'"
   $ibNatAdapter=(get-NetAdapter|where-object {$_.name -ilike "*($($ibNat.name))*"}).ifIndex
   remove-NetIpAddress -IPAddress $GatewayIP -confirm:0 -ErrorAction 0
   remove-NetNat -confirm:0 -ErrorAction 0
   Start-Sleep 10
-  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter|Add-Content -Path $logFile -Encoding UTF8
-  new-NetNat -name $ibNat.name -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"|Add-Content -Path $logFile -Encoding UTF8
+  new-netIPAddress -IPAddress $GatewayIP -PrefixLength $GatewayMask -InterfaceIndex $ibNatAdapter|out-null
+  new-NetNat -name $ibNat.name -InternalIPInterfaceAddressPrefix "$GatewaySubnet/$GatewayMask"|out-null
   write-ib1log -progressTitleLog "Paramètrage de Hyper-V"}
 else {write-ib1log "La fonctionnalité Hyper-V n'est pas installée, merci de vérifier !" -ErrorLog}}}
 

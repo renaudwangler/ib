@@ -68,7 +68,7 @@ get-VM|Checkpoint-VM|Out-Null
 # ms100
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MS100'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-100AIntro.pptx -OutFile "$env:userprofile\documents\MS-100AIntro.pptx"
+  if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-100AIntro.pptx -OutFile "$env:userprofile\documents\MS-100AIntro.pptx"}
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
   new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
@@ -83,7 +83,7 @@ get-VM|Checkpoint-VM|Out-Null
 # msaz900
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Manipulations MSAZ900'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-900AIntro.pptx -OutFile "$env:userprofile\documents\AZ-900AIntro.pptx"
+  if ($trainer) {invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-900AIntro.pptx -OutFile "$env:userprofile\documents\AZ-900AIntro.pptx"}
   new-ib1Shortcut -URL 'https://azure.microsoft.com/en-us/free/' -title 'Azure - Free Account' -dest $dest
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
@@ -92,8 +92,9 @@ get-VM|Checkpoint-VM|Out-Null
 # msaz100
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ100'
   get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest -srcPath Allfiles/labfiles
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-100AIntro.pptx -OutFile "$env:userprofile\documents\AZ-100AIntro.pptx"
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-100AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-100A-Extra-Automation.pptx"
+  if ($trainer) {
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-100AIntro.pptx -OutFile "$env:userprofile\documents\AZ-100AIntro.pptx"
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-100AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-100A-Extra-Automation.pptx"}
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
   new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
@@ -103,7 +104,7 @@ get-VM|Checkpoint-VM|Out-Null
 # msaz101
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ101'
   get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest -srcPath Allfiles/labfiles
-  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-101AIntro.pptx -OutFile "$env:userprofile\documents\AZ-101AIntro.pptx"
+  if ($trainer) {invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-101AIntro.pptx -OutFile "$env:userprofile\documents\AZ-101AIntro.pptx"}
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
   new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'AZure - Validation pass' -dest $dest

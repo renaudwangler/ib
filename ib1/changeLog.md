@@ -1,4 +1,9 @@
-﻿**Version 2.3.1:**
+﻿**Version 2.3.2:**
+ - Ajout du passage du switch en "privé" si switch existant dans la commande "**connect-ib1VMNet**" pour éviter problème sur switch interne
+ - Ajout du stage m20411d à la commande ibSetup
+ - Correction de la détection des stages dans l'import du module
+
+**Version 2.3.1:**
  - Passage du journal du module en log dans l'observateur d'évènements.
  - Nouvelle option '*-trainer*' dans la commande '**ibSetup**' pour ne pas copier les présentations Powerpoint si ce n'est pas utile
 

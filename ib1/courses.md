@@ -3,6 +3,9 @@
 connect-ib1VMNet "External Network"
 set-ib1VMExternalMac
 
+# m20411d
+La machine "**MSL-TMG1**" partagera un accès Internet sur le vSwitch "*Private Network*" si elle est démarrée.
+
 # m20742b
 ##Atelier 12
 Afin de donner accès Internet aux machines virtuelles, il faudra s'assurer de démarrer la machine "**MT17B-WS2016-NAT**".

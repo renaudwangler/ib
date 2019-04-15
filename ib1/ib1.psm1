@@ -768,6 +768,8 @@ if ($extNic.PhysicalMediaType -eq "Unspecified") {
     $extNic=Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp|Get-NetAdapter}
   if (Get-VMSwitch $externalNetworkname -ErrorAction SilentlyContinue) {
     write-ib1log "Le switch '$externalNetworkname' existe. Branchement sur la bonne carte réseau" -warningLog
+    Get-VMSwitch $externalNetworkname|Set-VMSwitch -SwitchType Private
+    Start-Sleep 2
     Get-VMSwitch $externalNetworkname|Set-VMSwitch -netadaptername $extNic.Name
     start-sleep 2}
   else {
@@ -1451,9 +1453,8 @@ else {
     $newMac=([string]$vmnic.MacAddress.substring(0,8))+('{0:x2}' -f $nicCount)+'{0:x2}' -f [int]$localIp.IPAddress.split('.')[3]
     write-ib1log "- Traitement de la carte '$($vmnic.Name)' de la VM '$($vmnic.VMName)' (changement de l'adresse Mac de '$($vmnic.MacAddress)' vers '$newMac')." -DebugLog
     Set-VMNetworkAdapter -VMNetworkAdapter $vmnic -StaticMacAddress $newMac
-    $nicCount ++}}}
-
-}}
+    set-ib1VMNotes $vmnic.VMName -TextNotes "Changement de l'adresse Mac de '$($vmnic.MacAddress)' vers '$newMac'."
+    $nicCount ++}}}}}
 
 function new-ib1Nat{
 <#

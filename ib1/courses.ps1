@@ -5,6 +5,15 @@
 #[Attention] les commentaires dans ce fichier ne doivent pas comporter d'espace après le #
 break
 
+# m20411d
+connect-ib1VMNet
+$nic=Get-NetAdapter | where-object {$_.Status -eq 'up' -and $_.Virtual} | Get-NetIPInterface -AddressFamily IPv4 -ErrorAction SilentlyContinue
+if (!(wait-ib1network -nicName $nic.interfaceAlias)) {write-ib1log "Le réseau ne semble pas fonctionnel, essayez de désactiver/réactiver la carte '$($nic.name)' puis relancez la commande." -errorLog}
+set-ib1VMExternalMac
+get-vm 'MSL-TMG1'|Remove-VMSnapshot
+get-vm 'MSL-TMG1'|Checkpoint-VM -SnapshotName 'Accès Internet.'|out-null
+
+
 # m20742b
 if (!(get-vm *lon-dc1).notes.Contains('Switch clavier FR')) {switch-ib1VMFr}
 connect-ib1VMNet "External Network"

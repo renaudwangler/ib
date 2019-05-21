@@ -104,11 +104,12 @@ Le module **AzureRM** en version 6.12.0 a été installé dans le Powershell de 
 
 # msaz103
 Un dossier "**Ateliers MSAZ103**" a été plaçé sur le bureau qui contient :
+ - Les fichiers nécéssaires pour réaliser les ateliers (nommés AZ-100.x / AZ-101.x)
  - Un lien vers la création de Pass Azure (nommé " Azure - Validation pass")
  - Un lien vers le portail Azure
  - Un lien vers le Cloud Shell Azure
  - Un lien vers les instructions en lignhe pour les divers ateliers.
-## Liste de s ateliers 
+## Liste des ateliers 
  Voici la liste des ateliers du stage msaz103, avec leur identification et leur nom, afin de plus aisément les retrouver dans les instructions en ligne :
  - Lab02A - Deploy and Manage Virtual Machines (anciennement az-100-03)
  - Lab02B - Virtual Machines and Scale Sets (anciennement az-100-03b)

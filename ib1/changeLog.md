@@ -1,4 +1,8 @@
-﻿**Version 2.3.2:**
+﻿**Version 2.3.3:**
+ - Ajout du stage msaz103
+ - Ajout d'une option *-noCourse* à la commande *install-ib1course*
+
+**Version 2.3.2:**
  - Ajout du passage du switch en "privé" si switch existant dans la commande "**connect-ib1VMNet**" pour éviter problème sur switch interne
  - Ajout du stage m20411d à la commande ibSetup
  - Correction de la détection des stages dans l'import du module

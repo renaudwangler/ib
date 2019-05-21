@@ -110,7 +110,7 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-100-MicrosoftAzureInfrastructureDeployment/tree/master/Instructions' -title 'Instructions Ateliers' -dest $dest
   install-module azureRM -maximumVersion 6.12.0 -force
   
-  # msaz103
+# msaz103
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ103'
   get-ib1Repo AZ-103-MicrosoftAzureAdministrator -destPath $dest -srcPath Allfiles/labfiles
   if ($trainer) {
@@ -119,8 +119,8 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
   new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
-  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-103-MicrosoftAzureAdministrator/tree/master/Instructions' -title 'Instructions Ateliers' -dest $dest
-  #install-module azureRM -maximumVersion 6.12.0 -force
+  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-103-MicrosoftAzureAdministrator/tree/master/Instructions/Labs' -title 'Instructions Ateliers' -dest $dest
+  install-module az -Force
 
 # msaz101
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ101'

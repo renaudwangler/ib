@@ -347,15 +347,17 @@ Cette commande permet de mettre en place les éléments nécessaire pour un stag
 .PARAMETER course
 Référence du stage à mettre en place.
 Valeurs possibles : stages référencés dans les fichiers courses.ps1 et courses.md
+.PARAMETER noCourse
+Si ce paramètre est passé, l'installation générique aura lieu, sans demander de nom du stage à customiser.
 .PARAMETER trainer
-Si mentionnée, cette option permet de copier les présentation PPT pour faciliter l'animation depuis gitHub
+Si mentionnée, cette option permet de copier les présentation PPT (pour faciliter l'animation) depuis gitHub
 .EXAMPLE
 install-ib1Course -course msAZ100
 Met en place l'environnement pour le stage msAZ100
 #>
 [CmdletBinding(
 DefaultParameterSetName='Course')]
-PARAM([string]$course='',[switch]$Force=$false,[Switch]$trainer=$false)
+PARAM([string]$course='',[switch]$Force=$false,[Switch]$trainer=$false,[Switch]$noCourse=$false)
 begin{get-ib1elevated $true}
 process {
 if ($env:ibTrainer -eq 1) {
@@ -374,7 +376,7 @@ $courseDocs.psobject.Properties.Remove('outro')
 if ($course -eq '' -and $env:ibCourse -ne $null) {
   $course=$env:ibCourse
   write-ib1log "Détection du stage '$course' par présence de variable système." -DebugLog}
-if ($course -eq '')  {
+if ($course -eq '' -and !$noCourse)  {
   $objPick=foreach ($courseDoc in ($courseDocs|Get-Member -MemberType NoteProperty)) {New-Object psobject -Property @{'Quel stage installer'=$courseDoc.Name}}
   $input=$objPick|Out-GridView -Title "ib1 Installation d'environement de stage" -PassThru
   $course=$input.'Quel stage installer'}

@@ -102,6 +102,29 @@ Un dossier "**Ateliers MSAZ101**" a été plaçé sur le bureau qui contient :
 
 Le module **AzureRM** en version 6.12.0 a été installé dans le Powershell de la machine.
 
+# msaz103
+Un dossier "**Ateliers MSAZ103**" a été plaçé sur le bureau qui contient :
+ - Un lien vers la création de Pass Azure (nommé " Azure - Validation pass")
+ - Un lien vers le portail Azure
+ - Un lien vers le Cloud Shell Azure
+ - Un lien vers les instructions en lignhe pour les divers ateliers.
+## Liste de s ateliers 
+ Voici la liste des ateliers du stage msaz103, avec leur identification et leur nom, afin de plus aisément les retrouver dans les instructions en ligne :
+ - Lab02A - Deploy and Manage Virtual Machines (anciennement az-100-03)
+ - Lab02B - Virtual Machines and Scale Sets (anciennement az-100-03b)
+ - Lab03  - Implement and Manage Storage (anciennement az-100-02)
+ - Lab04  - Configure Azure DNS (anciennement az-100-04b)
+ - Lab05  - VNet Peering and Service Chaining (anciennement az-100-04)
+ - Lab06  - Network Watcher (anciennement az-101-03b)
+ - Lab07  - Azure Site Recovery Between Regions (anciennement az-101-01)
+ - Lab08  - Load Balancer and Traffic Manager (anciennement az-101-03)
+ - Lab09  - Implement Directory Synchronization (anciennement az-100-05)
+ - Lab10A - Azure AD Identity Protection (anciennement az-101-04b)
+ - Lab10B - Self-Service Password Reset (anciennement az-100-05b)
+ - Lab11A - Role-Based Access Control (anciennement OLD: az-100-01)
+ - Lab11B - Governance and Compliance (OLD: az-100-01b)
+ - Lab12  - File Sync (anciennement az-100-02b)
+
 # intro
 <!DOCTYPE html><html><head><title>##course##</title><style>body {padding:10px;color:gray;font-family:tahoma;}h1,h2{color:#EA690B;text-decoration:underline;margin:0em;}h2{margin-top:1em;margin-bottom:0.5em;}li{list-style:none;}li::before{color:#EA690B;content:"\2022";font-size:1em;padding-right:0.7em;}code{border:solid 1px darkgrey;padding:3px;margin:2px;margin-bottom:0px;background-color:lightgrey;display:inline-block;color:black;}strong {font-weight:bold;color:black;}hr {margin:2em;}</style></head><body><h1>Bienvenue !</h1>
 Voici quelques petits conseils afin d'améliorer le déroulement du stage ##course##.

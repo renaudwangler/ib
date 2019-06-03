@@ -114,8 +114,8 @@ get-VM|Checkpoint-VM|Out-Null
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ103'
   get-ib1Repo AZ-103-MicrosoftAzureAdministrator -destPath $dest -srcPath Allfiles/labfiles
   if ($trainer) {
-    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103AIntro.pptx -OutFile "$env:userprofile\documents\AZ-100AIntro.pptx"
-    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-100A-Extra-Automation.pptx"}
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103AIntro.pptx -OutFile "$env:userprofile\documents\AZ-103AIntro.pptx"
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-103A-Extra-Automation.pptx"}
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
   new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest

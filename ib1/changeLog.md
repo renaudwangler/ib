@@ -1,4 +1,9 @@
-﻿**Version 2.3.3:**
+﻿**Version 2.3.4:**
+ - Correction du readme.html pour stage m20740c
+ - suppression de résidus de log en mode fichier
+ - suppression de l'installation de la liseuse Skillpipe de la commande complete-ib1install
+
+**Version 2.3.3:**
  - Ajout du stage msaz103
  - Ajout d'une option *-noCourse* à la commande *install-ib1course*
 

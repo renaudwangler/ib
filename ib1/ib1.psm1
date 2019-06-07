@@ -5,7 +5,7 @@
 $ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
 $driverFolder='C:\Dell'
-$skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
+#$skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
 $ibppt='Présentation stagiaire automatique 2019.ppsx'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
@@ -551,7 +551,7 @@ write-ib1log "Montage du registre 'Software' du VHD" -DebugLog
 reg load HKLM\ib-offline $dLetter\Windows\System32\config\SOFTWARE
 New-PSDrive -Name "ib-offline" -PSProvider Registry -Root HKLM\ib-offline
 write-ib1log "Création de l'entrée de registre 'Run' pour la configuration WinRm" -DebugLog
-New-ItemProperty -Path ib-offline:\Microsoft\Windows\CurrentVersion\Run -Name ibInit -Value 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -command "& set-executionpolicy bypass -force;enable-psremoting --SkipNetworkProfileCheck -Force"' -PropertyType string
+New-ItemProperty -Path ib-offline:\Microsoft\Windows\CurrentVersion\Run -Name ibInit -Value 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -command "& set-executionpolicy bypass -force;enable-psremoting --SkipNetworkProfileCheck -Force"' -PropertyType string -ErrorAction SilentlyContinue|out-null
 Remove-PSDrive "ib-offline"
 reg unload HKLM\ib-offline
 if ($restart) {
@@ -681,7 +681,6 @@ foreach ($VM2switch in $VMs2switch) {
         $partLetter=(mount-vhd -path $vhdPath -passthru -ErrorVariable testMount -ErrorAction SilentlyContinue|get-disk|Get-Partition|where-object isactive -eq $false).DriveLetter}
       write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Changement des options linguistiques."
       DISM /image:$($partLetter): /set-allIntl:en-US /set-inputLocale:0409:0000040c|out-null
-      Add-Content -Path $logFile ''
       if ($LASTEXITCODE -eq 50) {
         if (Test-Path $ib1DISMPath) {
         write-ib1log -progressTitleLog "Traitement de $($VM2switch.name)" "Echec, éssai avec '$ib1DISMPath'"
@@ -1399,26 +1398,26 @@ powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
 powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
 powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
 powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
-if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
-  write-ib1log -progressTitleLog "Installation Skillpipe" "Test du fichier d'installation."
-  $CheckFileRequest=[System.Net.WebRequest]::Create($skillpipeUrl)
-  $CheckFileResponse=$CheckFileRequest.GetResponse()
-  $CheckFileStatus=[int]$CheckFileResponse.StatusCode
-  If ([int]$CheckFileResponse.StatusCode -eq 200) {
-    $CheckFileResponse.Close()
-    md $env:Public\Downloads\skillpipe
-    write-ib1log -progressTitleLog "Installation Skillpipe" "Téléchargement du fichier d'installation."
-    Invoke-WebRequest -Uri $skillpipeUrl -OutFile $env:Public\desktop\SkillpipeReaderSetup.exe
-    write-ib1log -progressTitleLog "Installation Skillpipe" "Extraction de SkillPipeReaderSetup.exe"
-    start-process $env:Public\desktop\skillpipeReaderSetup.exe /extract:$env:Public\Downloads\skillpipe -wait
-    write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation de Visual C++"
-    Start-Process $env:Public\Downloads\skillpipe\vcredist_x86.exe /passive -Wait
-    write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation MSI du lecteur Skillpipe."
-    start-process $env:Public\desktop\skillpipeReaderSetup.exe -argumentList '/qn' -wait
-    write-ib1log -progressTitleLog "Installation Skillpipe"}
-  else {
-    write-ib1log "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible" -warningLog
-    $CheckFileResponse.Close()}}
+#if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
+#  write-ib1log -progressTitleLog "Installation Skillpipe" "Test du fichier d'installation."
+#  $CheckFileRequest=[System.Net.WebRequest]::Create($skillpipeUrl)
+#  $CheckFileResponse=$CheckFileRequest.GetResponse()
+#  $CheckFileStatus=[int]$CheckFileResponse.StatusCode
+#  If ([int]$CheckFileResponse.StatusCode -eq 200) {
+#    $CheckFileResponse.Close()
+#    md $env:Public\Downloads\skillpipe
+#    write-ib1log -progressTitleLog "Installation Skillpipe" "Téléchargement du fichier d'installation."
+#    Invoke-WebRequest -Uri $skillpipeUrl -OutFile $env:Public\desktop\SkillpipeReaderSetup.exe
+#    write-ib1log -progressTitleLog "Installation Skillpipe" "Extraction de SkillPipeReaderSetup.exe"
+#    start-process $env:Public\desktop\skillpipeReaderSetup.exe /extract:$env:Public\Downloads\skillpipe -wait
+#    write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation de Visual C++"
+#    Start-Process $env:Public\Downloads\skillpipe\vcredist_x86.exe /passive -Wait
+#    write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation MSI du lecteur Skillpipe."
+#    start-process $env:Public\desktop\skillpipeReaderSetup.exe -argumentList '/qn' -wait
+#    write-ib1log -progressTitleLog "Installation Skillpipe"}
+#  else {
+#    write-ib1log "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible" -warningLog
+#    $CheckFileResponse.Close()}}
 $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
 if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt")) {
   write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog

@@ -1,8 +1,4 @@
 ﻿#[Attention] les commentaires dans ce fichier ne doivent pas comporter d'espace après le #
-
-connect-ib1VMNet "External Network"
-set-ib1VMExternalMac
-
 # m20411d
 La machine "**MSL-TMG1**" partagera un accès Internet sur le vSwitch "*Private Network*" si elle est démarrée.
 

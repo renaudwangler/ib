@@ -25,6 +25,7 @@ get-VM|Checkpoint-VM|Out-Null
 # m20741b
   $ipConfig='-rearm -user "adatum\administrator" -password "Pa55w.rd" -ipSubnet 16 -dNSServers "(''172.16.0.10'')" -ipGateway "172.16.0.1"'
   if ($env:COMPUTERNAME -like "*host1*") {
+    set-ib1VMExternalMac
     cscript c:\windows\system32\slmgr.vbs -rearm|out-null
     $nic = Get-NetAdapter | where-object {$_.Status -eq 'up' -and !$_.Virtual -and $_.InterfaceDescription -notlike '*loopback*'} | Get-NetIPInterface -AddressFamily IPv4 -ErrorAction SilentlyContinue
     If ($nic.Dhcp -like 'Disabled') {
@@ -57,6 +58,7 @@ get-VM|Checkpoint-VM|Out-Null
     set-ib1VMCheckpointType
     if (!(get-vm *dc1-b).notes.Contains('Switch clavier FR')) {switch-ib1VMFr -nocheckpoint}
     if (!(get-vm -name *dc1-b-ib* -ErrorAction SilentlyContinue)) {copy-ib1VM -vmsuffix ib -nocheckpoint}
+    set-ib1VMExternalMac
     $nvHost2='20740C-LON-NVHOST2-ib'
     set-VMProcessor -VMName $nvHost2 -ExposeVirtualizationExtensions $true
     get-VMNetWorkAdapter -VMName $nvHost2|Set-VMNetworkAdapter -MacAddressSpoofing On
@@ -64,7 +66,7 @@ get-VM|Checkpoint-VM|Out-Null
     invoke-expression "set-ib1VMCusto -vmName dc1-b-ib -ipAddress '172.16.0.10' $ipConfig"
     invoke-expression "set-ib1VMCusto -vmName svr1-b-ib -ipAddress '172.16.0.21' $ipconfig"
     invoke-expression "set-ib1VMCusto -vmName nvhost2-ib -ipAddress '172.16.0.32' $ipconfig -switchName 'Host Internal Network'"
-    set-ib1VMCusto -vmName nat-ib -ipAddress '172.16.0.1' -VMcommand 'while ((get-NetConnectionProfile).Name -like "*identifying*") {start-sleep -seconds 5};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private -switchName "Host Internal Network" -rearm -user "administrator" -password "Pa55w.rd" -ipsubnet 16 -dNSServer "(''172.16.0.10'')"'
+    set-ib1VMCusto -vmName nat-ib -ipAddress '172.16.0.1' -VMcommand 'while ((get-NetConnectionProfile).Name -like "*identifying*") {start-sleep -seconds 5};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private' -switchName "Host Internal Network" -rearm -user "administrator" -password "Pa55w.rd" -ipsubnet 16 -dNSServer "('172.16.0.10')"
     echo "Dans la machine NAT-ib, dans [Routing and Remote Access], ouvrir [IPv4] et, sur le [NAT], ajouter les deux interfaces."}
   elseif ($env:COMPUTERNAME -like '*host2*') {
     set-ib1VMCheckpointType

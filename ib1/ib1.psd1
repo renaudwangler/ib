@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.4'
+ModuleVersion = '2.4.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ ScriptsToProcess = '.\moduleImport.ps1'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'install-ib1Chrome', 'complete-ib1Install', 'invoke-ib1NetCommand', 
+FunctionsToExport = 'install-ib1Chrome', 'complete-ib1Setup', 'invoke-ib1NetCommand', 
                'new-ib1Shortcut', 'reset-ib1VM', 'mount-ib1VhdBoot', 
                'remove-ib1VhdBoot', 'switch-ib1VMFr', 'test-ib1VMNet', 
                'connect-ib1VMNet', 'set-ib1TSSecondScreen', 
@@ -86,7 +86,7 @@ CmdletsToExport = @()
 # VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'complete-ib1Setup', 'get-ib1Git', 'ibSetup'
+AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'get-ib1Git', 'ibSetup'
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()

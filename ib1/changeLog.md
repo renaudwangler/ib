@@ -1,4 +1,12 @@
-﻿**Version 2.4:**
+﻿**Version 2.4.2:**
+ - Correction du .psd (suppression allias complete-ib1Setup)
+ - Passage du partage formateur en écriture
+ 
+**Version 2.4.1:**
+ - Correction de la commande new-ib1taskbarSHortcut
+ - Suppression de l'alias historique complete-ib1Install
+
+**Version 2.4:**
  - Première évolution de la commande complete-ib1Install pour nouveau master
 
 **Version 2.3.4:**

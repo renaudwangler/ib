@@ -31,7 +31,7 @@ if (!(Test-Path $env:SystemRoot\taskBarLayout.xml)) {Set-Content -Value ('<?xml 
 </taskbar:TaskbarPinList>
 </defaultlayout:TaskbarLayout></CustomTaskbarLayoutCollection></LayoutModificationTemplate>') -Path $env:SystemRoot\taskBarLayout.xml}
 $taskbarLayout=Get-Content $env:SystemRoot\taskBarLayout.xml
-$TBNewLine="<taskbar:DesktopApp DesktopApplicationLinkPath=""$TBShortcut"" />"
+$TBNewLine="<taskbar:DesktopApp DesktopApplicationLinkPath=""$Shortcut"" />"
 if ($taskbarLayout -notcontains $TBNewLine) {Set-Content -Path $env:SystemRoot\taskBarLayout.xml -Value ($taskbarLayout -replace '</taskbar:TaskbarPinList>',"$TBNewLine`n</taskbar:TaskbarPinList>")}
 #mise en place des clefs de registre pour impliquer le fichier précédent
 $layoutPath="HKLM:\Software\Policies\Microsoft\Windows"
@@ -1335,12 +1335,14 @@ foreach ($computer in $computers.Keys) {
     else {write-ib1log "[$computer] Commande executée." -colorLog Green}}}
 Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}}
   
-function complete-ib1Install{
+function complete-ib1Setup{
 <#
 .SYNOPSIS
 Cette commande permet de finaliser/réparer l'installation de la machine hôte ib
 #>
 get-ib1elevated $true
+write-ib1log "Désactivation de l'UAC" -DebugLog
+Set-ItemProperty -Path REGISTRY::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -Value 0
 write-ib1log "Passage du clavier en Français sur environement en-US" -DebugLog
 $langList=New-WinUserLanguageList en-US
 $langList[0].inputMethodTips.clear()
@@ -1358,10 +1360,8 @@ if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).stat
     Set-VMHost -EnableEnhancedSessionMode $false}
   write-ib1log -progressTitleLog "Paramètrage de Hyper-V"}
 else {
-  write-ib1log "Désactivation de l'UAC" -DebugLog
-  Set-ItemProperty -Path REGISTRY::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -Value 0
   write-ib1log "Installation de Hyper-V" -DebugLog
-  enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All -NoRestart|out-null
+  enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All -NoRestart -WarningAction SilentlyContinue|out-null
   write-ib1log "Merci de relancer la commande après redémarrage pour finaliser la confirguration d'Hyper-V !" -warningLog}
 write-ib1log 'Création de la tâche de lancement de ibInit' -DebugLog
 if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {
@@ -1387,7 +1387,7 @@ new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -ti
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
   write-ib1log 'Création du partage pour le poste Formateur.' -DebugLog
   md C:\partage|out-null
-  New-SmbShare partage -Path c:\partage|out-null}
+  New-SmbShare partage -Path c:\partage -ChangeAccess everyone|out-null}
 write-ib1log 'Activation de la connexion et des règles firewall pour RDP' -DebugLog
 set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminal Server' -name 'fDenyTSConnections' -Value 0
 Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction SilentlyContinue|out-null
@@ -1419,11 +1419,13 @@ elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-W
 write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
 install-ib1Chrome
 write-ib1log 'Installation de Adobe Acrobat Reader DC' -DebugLog
-$destination = "c:\windows\temp\adobeDC.exe"
-Invoke-WebRequest $adobeReaderUrl -OutFile $destination
-Start-Process -FilePath $destination -ArgumentList "/sPB /rs"
-Start-Sleep -s 60
-rm -Force $destination}
+if (-not($adobereaderPath=(Get-ChildItem -Path 'c:\' -Filter *AcroRd?2.exe -Recurse -ErrorAction SilentlyContinue).FullName)) {
+  $destination = "c:\windows\temp\adobeDC.exe"
+  Invoke-WebRequest $adobeReaderUrl -OutFile $destination
+  Start-Process -FilePath $destination -ArgumentList "/sPB /rs"
+  Start-Sleep -s 60
+  rm -Force $destination}
+  Restart-Computer -Force}
 
 function set-ib1VMExternalMac{
 <#
@@ -1509,11 +1511,18 @@ PARAM(
 [switch]$Force=$false)
 begin{get-ib1elevated $true}
 process {
-$ChromeMSI = "GoogleChromeStandaloneEnterprise.msi"
-$ChromeDL="https://dl.google.com/tag/s/appguid={8A69D345-D564-463C-AFF1-A69D9E530F96}&iid={00000000-0000-0000-0000-000000000000}&lang=en&browser=3&usagestats=0&appname=Google%2520Chrome&needsadmin=prefers/edgedl/chrome/install/$ChromeMSI"
-if ((-not (Get-WmiObject -Class win32_product|where name -like '*chrome*')) -or $Force) {
-  (new-object System.Net.WebClient).DownloadFile($chromeDL,"$env:TEMP\$ChromeMSI")
-  & "$env:TEMP\$ChromeMSI"}}}
+#Comparaison de la version locale de Chrome
+$googlePath="${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
+if (test-path $googlePath) {$localVersion=[version]([System.Diagnostics.FileVersionInfo]::GetVersionInfo($googlePath).fileversion)}
+else {$localVersion=[version]'0.0.0.0'}
+$strReleaseFeed = Invoke-webRequest 'http://googlechromereleases.blogspot.ca/search/label/Stable%20updates' -UseBasicParsing
+$netVersion=[version]($strReleaseFeed.AllElements | Where-Object{$_.InnerText -match 'Windows'} | Select-Object{$_.InnerText} | ForEach{[version](($_ | Select-string -allmatches '(\d{1,4}\.){3}(\d{1,4})').matches | Select-Object -first 1).value} | Sort-Object -Descending | Select-Object -first 1)
+if ($localVersion.Major -lt $netVersion.Major) {
+  $ChromeMSI = "GoogleChromeStandaloneEnterprise.msi"
+  $ChromeDL="https://dl.google.com/tag/s/appguid={8A69D345-D564-463C-AFF1-A69D9E530F96}&iid={00000000-0000-0000-0000-000000000000}&lang=en&browser=3&usagestats=0&appname=Google%2520Chrome&needsadmin=prefers/edgedl/chrome/install/$ChromeMSI"
+  if ((-not (Get-WmiObject -Class win32_product|where name -like '*chrome*')) -or $Force) {
+    (new-object System.Net.WebClient).DownloadFile($chromeDL,"$env:TEMP\$ChromeMSI")
+    & "$env:TEMP\$ChromeMSI"}}}}
 
 function stop-ib1ClassRoom {
 <#
@@ -1548,7 +1557,6 @@ else {
 Set-Alias ibReset reset-ib1VM
 Set-Alias ibSetup install-ib1Course
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
-Set-Alias complete-ib1Setup complete-ib1Install
 Set-Alias get-ib1Git get-ib1repo
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Install,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto, new-ib1TaskbarShortcut
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Setup,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto, new-ib1TaskBarShortcut
 Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git,ibSetup

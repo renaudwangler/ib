@@ -7,6 +7,7 @@ $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment K
 $driverFolder='C:\Dell'
 #$skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
 $ibppt='Présentation stagiaire automatique 2019.ppsx'
+$adobeReaderUrl='http://ardownload.adobe.com/pub/adobe/reader/win/AcrobatDC/1901220034/AcroRdrDC1901220034_fr_FR.exe'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $env:logStart='start'
@@ -1159,7 +1160,7 @@ else {
   $title=$title+'.lnk'
   $target=$File}
 $WScriptShell=new-object -ComObject WScript.Shell
-if ($dest -eq '') {$dest="$env:ALLUSERSPROFILE\desktop"}
+if ($dest -eq '') {$dest="$env:Public\desktop"}
 $shortcut=$WScriptShell.createShortCut("$dest\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}
@@ -1340,11 +1341,16 @@ function complete-ib1Install{
 Cette commande permet de finaliser/réparer l'installation de la machine hôte ib
 #>
 get-ib1elevated $true
+write-ib1log "Passage du clavier en Français sur environement en-US" -DebugLog
+$langList=New-WinUserLanguageList en-US
+$langList[0].inputMethodTips.clear()
+$langList[0].inputmethodTips.add('0409:0000040c')
+Set-WinUserLanguageList $langList -Force
 write-ib1log -progressTitleLog "Mise en place des options nécessaires pour WinRM" "Passage des réseaux en privé."
 Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
 Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
-Enable-PSRemoting -Force|out-null
+Enable-PSRemoting -Force -SkipNetworkProfileCheck |out-null
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM"
 if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
   if ((get-VMHost).EnableEnhancedSessionMode) {
@@ -1352,15 +1358,17 @@ if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).stat
     Set-VMHost -EnableEnhancedSessionMode $false}
   write-ib1log -progressTitleLog "Paramètrage de Hyper-V"}
 else {
+  write-ib1log "Désactivation de l'UAC" -DebugLog
+  Set-ItemProperty -Path REGISTRY::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -Value 0
   write-ib1log "Installation de Hyper-V" -DebugLog
-  enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All
-  write-ib1log "Relancer la commande après redémarrage pour finaliser la confirguration d'Hyper-V" -warningLog}
+  enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All -NoRestart|out-null
+  write-ib1log "Merci de relancer la commande après redémarrage pour finaliser la confirguration d'Hyper-V !" -warningLog}
 write-ib1log 'Création de la tâche de lancement de ibInit' -DebugLog
 if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {
   write-ib1log "Supression de l'ancienne tâche ibInit" -DebugLog
   Get-ScheduledTask -TaskName 'Lancement ibInit'|unregister-scheduledTask -confirm:0}
 $moduleVersion=(get-Module -ListAvailable -Name ib1|sort-object|select-object -last 1).version.tostring()
-$PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& set-executionpolicy bypass -force; $secondsToWait=10; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private"'
+$PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& set-executionpolicy bypass -force; $secondsToWait=10; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private;stop-service dosvc -erroraction silentlycontinue|out-null"'
 $PSTask2= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
 write-ib1log "Création de la tâche de mise à jour du module et de lancement de ibInit.ps1" -DebugLog
 $trigger=New-ScheduledTaskTrigger -AtStartup
@@ -1378,8 +1386,8 @@ new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\vir
 new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27' -taskBar
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
   write-ib1log 'Création du partage pour le poste Formateur.' -DebugLog
-  md C:\partage
-  New-SmbShare partage -Path c:\partage}
+  md C:\partage|out-null
+  New-SmbShare partage -Path c:\partage|out-null}
 write-ib1log 'Activation de la connexion et des règles firewall pour RDP' -DebugLog
 set-itemProperty -Path 'HKLM:\System\CurrentControlSet\Control\terminal Server' -name 'fDenyTSConnections' -Value 0
 Enable-netFireWallRule -DisplayGroup 'Remote Desktop' -erroraction SilentlyContinue|out-null
@@ -1390,7 +1398,7 @@ set-itemProperty -path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\W
 write-ib1log 'Changement du mot de passe utilisateur' -DebugLog
 ([adsi]'WinNT://./ib').SetPassword('Pa55w.rd')
 write-ib1log 'Désactivation des mises à jour automatiques' -DebugLog
-@('wuauserv','BITS','DoSvc')|foreach {Get-Service *$_*|stop-service; Get-Service *$_*|set-service -StartupType disabled -Status Stopped}
+@('wuauserv','BITS')|foreach {Get-Service *$_*|stop-service; Get-Service *$_*|set-service -StartupType disabled -Status Stopped}
 write-ib1log "Configuration des options d'alimentation" -DebugLog
 powercfg /hibernate off
 powercfg /SETACTIVE SCHEME_BALANCED
@@ -1398,36 +1406,24 @@ powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
 powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
 powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
 powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
-#if (-not(Get-ChildItem -Path $env:Public\desktop\skillpipe*)) {
-#  write-ib1log -progressTitleLog "Installation Skillpipe" "Test du fichier d'installation."
-#  $CheckFileRequest=[System.Net.WebRequest]::Create($skillpipeUrl)
-#  $CheckFileResponse=$CheckFileRequest.GetResponse()
-#  $CheckFileStatus=[int]$CheckFileResponse.StatusCode
-#  If ([int]$CheckFileResponse.StatusCode -eq 200) {
-#    $CheckFileResponse.Close()
-#    md $env:Public\Downloads\skillpipe
-#    write-ib1log -progressTitleLog "Installation Skillpipe" "Téléchargement du fichier d'installation."
-#    Invoke-WebRequest -Uri $skillpipeUrl -OutFile $env:Public\desktop\SkillpipeReaderSetup.exe
-#    write-ib1log -progressTitleLog "Installation Skillpipe" "Extraction de SkillPipeReaderSetup.exe"
-#    start-process $env:Public\desktop\skillpipeReaderSetup.exe /extract:$env:Public\Downloads\skillpipe -wait
-#    write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation de Visual C++"
-#    Start-Process $env:Public\Downloads\skillpipe\vcredist_x86.exe /passive -Wait
-#    write-ib1log -progressTitleLog "Installation Skillpipe" "Lancement de l'installation MSI du lecteur Skillpipe."
-#    start-process $env:Public\desktop\skillpipeReaderSetup.exe -argumentList '/qn' -wait
-#    write-ib1log -progressTitleLog "Installation Skillpipe"}
-#  else {
-#    write-ib1log "Attention: Le fichier d'installation de SkillPipe ne semble pas/plus disponible" -warningLog
-#    $CheckFileResponse.Close()}}
+write-ib1log "Désactivation des notifications système" -DebugLog
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 0
 $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
-if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt")) {
+if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
   write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
   invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
-elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head).headers.'content-length') {
+elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -UseBasicParsing).headers.'content-length') {
   write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
   Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
   invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
 write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
-install-ib1Chrome}
+install-ib1Chrome
+write-ib1log 'Installation de Adobe Acrobat Reader DC' -DebugLog
+$destination = "c:\windows\temp\adobeDC.exe"
+Invoke-WebRequest $adobeReaderUrl -OutFile $destination
+Start-Process -FilePath $destination -ArgumentList "/sPB /rs"
+Start-Sleep -s 60
+rm -Force $destination}
 
 function set-ib1VMExternalMac{
 <#

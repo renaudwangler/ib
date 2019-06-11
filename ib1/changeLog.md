@@ -1,4 +1,7 @@
-﻿**Version 2.3.4:**
+﻿**Version 2.4:**
+ - Première évolution de la commande complete-ib1Install pour nouveau master
+
+**Version 2.3.4:**
  - Correction du readme.html pour stage m20740c
  - suppression de résidus de log en mode fichier
  - suppression de l'installation de la liseuse Skillpipe de la commande complete-ib1install

@@ -33,7 +33,7 @@ Afin de réaliser l'atelier, il faudra lancer la commande suivante pour redémar
 
 **Attention:** La réalisation de cet atelier nécessite qu'au moins une carte réseau ethernet soit branchée (le wifi seul ne suffit pas).
 
-Une fois la machine redémarrée sur lon-host1, **avant la tâche 2 de l'exercice 4** lancer la commande ```ibSetup ##course##```
+Une fois la machine redémarrée sur lon-host1, **avant la tâche 2 de l'exercice 4** lancer la commande ```ibSetup```
 Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
  - Réarmant les machines,
  - Passant le clavier en Français,

@@ -1,10 +1,15 @@
-﻿**Version 2.4.2:**
+﻿**Version 2.4.3:**
+ - Correction installation de Chrome
+ - Modification accès au bureau public (suite à chanegment comportement dernière version de Windows 10)
+ - Désactivation *complète* de l'UAC dans la commande "**complete-ib1setup**"
+
+**Version 2.4.2:**
  - Correction du .psd (suppression allias complete-ib1Setup)
  - Passage du partage formateur en écriture
  
 **Version 2.4.1:**
  - Correction de la commande new-ib1taskbarSHortcut
- - Suppression de l'alias historique complete-ib1Install
+ - Suppression de l'alias historique "**complete-ib1Install**"
 
 **Version 2.4:**
  - Première évolution de la commande complete-ib1Install pour nouveau master

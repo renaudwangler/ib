@@ -67,7 +67,7 @@ if ($courseDocs.$course) {$courseBody+="<hr/>$(set-ib1md2html $courseDocs.$cours
 $courseBody+="<hr/>$(set-ib1md2html $courseDocs.outro)"
 $courseBody=$courseBody -replace ("##course##",$course)
 if ($course -eq '') {$course='Stage ib'}
-$courseBody > "$env:ALLUSERSPROFILE\desktop\$course - readme.html"}
+$courseBody > ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$course - readme.html")}
 
 function wait-ib1Network {
 param([string]$nicName,$maxwait=10)
@@ -102,7 +102,7 @@ if ($env:logStart -ne ($launchCommand.Command)) {
   $env:logstart=$launchCommand.Command
   $eventText="Lancement de '$($launchCommand.Command)', Version $((get-module -ListAvailable -Name ib1|sort Version -Descending|select -First 1).Version.tostring())"
   if ($launchCommand.Arguments -inotlike '{}') {$eventText+=", Arguments: $($launchCommand.Arguments)"}
-  Write-EventLog -LogName ib1 -Source powerShellib1 -Message $eventText -EntryType Information -EventId 1}
+  Write-EventLog -LogName ib1 -Source powerShellib1 -Message $eventText -EntryType Warning -EventId 1}
   if ($ErrorLog) {
   Write-EventLog -LogName ib1 -Source powerShellib1 -Message "[$env:logStart]$TextLog" -EntryType Error -EventId $logId
   Write-Host "[ERREUR!] $TextLog" -ForegroundColor Red
@@ -394,15 +394,16 @@ elseif ($course -ne '') {
     write-ib1log "Inscription de l'identité du stage '$course' dans la variable système 'ibCourse'." -DebugLog}}
 set-ib1CourseHelp $course
 import-ib1TrustedCertificate
+install-ib1Chrome -Force
 if ($trainer) {
   $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
-  if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
+  if (-not(Get-Childitem -Path ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -ErrorAction SilentlyContinue)) {
     write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
-    invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
-  elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -ErrorAction SilentlyContinue).headers.'content-length') {
+    invoke-webRequest -uri $ibpptUrl -OutFile ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -ErrorAction SilentlyContinue}
+  elseif ((Get-Childitem -Path ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt")).length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -UseBasicParsing -ErrorAction SilentlyContinue).headers.'content-length') {
     write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
-    Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
-    invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt" -ErrorAction SilentlyContinue}
+    Remove-Item -Path [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt" -Force -ErrorAction SilentlyContinue
+    invoke-webRequest -uri $ibpptUrl -OutFile ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -ErrorAction SilentlyContinue}
   [System.Environment]::SetEnvironmentVariable('ibTrainer',1,[System.EnvironmentVariableTarget]::Machine)
   $env:ibTrainer=1}
   [System.Environment]::SetEnvironmentVariable('ibSetup',(Get-Date -Format 'MMdd'),[System.EnvironmentVariableTarget]::Machine)
@@ -1160,7 +1161,7 @@ else {
   $title=$title+'.lnk'
   $target=$File}
 $WScriptShell=new-object -ComObject WScript.Shell
-if ($dest -eq '') {$dest="$env:Public\desktop"}
+if ($dest -eq '') {$dest=[Environment]::GetFolderPath('CommonDesktopDirectory')}
 $shortcut=$WScriptShell.createShortCut("$dest\$title")
 $shortcut.TargetPath=$target
 if ($Params -ne '') {$shortcut.Arguments=$Params}
@@ -1342,7 +1343,10 @@ Cette commande permet de finaliser/réparer l'installation de la machine hôte i
 #>
 get-ib1elevated $true
 write-ib1log "Désactivation de l'UAC" -DebugLog
-Set-ItemProperty -Path REGISTRY::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -Value 0
+Set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name “ConsentPromptBehaviorAdmin” -Value “0”
+Set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name “PromptOnSecureDesktop” -Value “0”
+New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -PropertyType DWord -Value 0 -Force -ErrorAction SilentlyContinue|out-null
+
 write-ib1log "Passage du clavier en Français sur environement en-US" -DebugLog
 $langList=New-WinUserLanguageList en-US
 $langList[0].inputMethodTips.clear()
@@ -1380,7 +1384,7 @@ new-ib1Shortcut -URL 'https://docs.google.com/forms/d/e/1FAIpQLSfH3FiI3_0Gdqx7sI
 new-ib1Shortcut -File "$env:AppDATA\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows Powershell.lnk" -TaskBar
 $ShortcutShell=New-Object -ComObject WScript.Shell
 $formateurShortcut=$true
-Get-ChildItem -Recurse $env:Public\desktop,$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like '\\pc-formateur\partage') {$formateurShortcut=$false}}
+Get-ChildItem -Recurse [Environment]::GetFolderPath('CommonDesktopDirectory'),$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like '\\pc-formateur\partage') {$formateurShortcut=$false}}
 if ($formateurShortcut) { new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'}
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0' -TaskBar
 new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27' -taskBar
@@ -1409,13 +1413,13 @@ powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
 write-ib1log "Désactivation des notifications système" -DebugLog
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 0
 $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
-if (-not(Get-Childitem -Path "$env:Public\desktop\$ibppt" -ErrorAction SilentlyContinue)) {
+if (-not(Get-Childitem -Path [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt" -ErrorAction SilentlyContinue)) {
   write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
-elseif ((Get-Childitem -Path "$env:Public\desktop\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -UseBasicParsing).headers.'content-length') {
+  invoke-webRequest -uri $ibpptUrl -OutFile [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt"}
+elseif ((Get-Childitem -Path [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -UseBasicParsing).headers.'content-length') {
   write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  Remove-Item -Path "$env:public\desktop\$ibppt" -Force -ErrorAction SilentlyContinue
-  invoke-webRequest -uri $ibpptUrl -OutFile "$env:public\desktop\$ibppt"}
+  Remove-Item -Path [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt" -Force -ErrorAction SilentlyContinue
+  invoke-webRequest -uri $ibpptUrl -OutFile [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt"}
 write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
 install-ib1Chrome
 write-ib1log 'Installation de Adobe Acrobat Reader DC' -DebugLog
@@ -1511,18 +1515,10 @@ PARAM(
 [switch]$Force=$false)
 begin{get-ib1elevated $true}
 process {
-#Comparaison de la version locale de Chrome
-$googlePath="${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
-if (test-path $googlePath) {$localVersion=[version]([System.Diagnostics.FileVersionInfo]::GetVersionInfo($googlePath).fileversion)}
-else {$localVersion=[version]'0.0.0.0'}
-$strReleaseFeed = Invoke-webRequest 'http://googlechromereleases.blogspot.ca/search/label/Stable%20updates' -UseBasicParsing
-$netVersion=[version]($strReleaseFeed.AllElements | Where-Object{$_.InnerText -match 'Windows'} | Select-Object{$_.InnerText} | ForEach{[version](($_ | Select-string -allmatches '(\d{1,4}\.){3}(\d{1,4})').matches | Select-Object -first 1).value} | Sort-Object -Descending | Select-Object -first 1)
-if ($localVersion.Major -lt $netVersion.Major) {
-  $ChromeMSI = "GoogleChromeStandaloneEnterprise.msi"
-  $ChromeDL="https://dl.google.com/tag/s/appguid={8A69D345-D564-463C-AFF1-A69D9E530F96}&iid={00000000-0000-0000-0000-000000000000}&lang=en&browser=3&usagestats=0&appname=Google%2520Chrome&needsadmin=prefers/edgedl/chrome/install/$ChromeMSI"
-  if ((-not (Get-WmiObject -Class win32_product|where name -like '*chrome*')) -or $Force) {
-    (new-object System.Net.WebClient).DownloadFile($chromeDL,"$env:TEMP\$ChromeMSI")
-    & "$env:TEMP\$ChromeMSI"}}}}
+if ((-not (Get-WmiObject -Class win32_product|where name -like '*chrome*')) -or $Force) {
+  $ChromeDL="https://dl.google.com/tag/s/appguid={8A69D345-D564-463C-AFF1-A69D9E530F96}&iid={00000000-0000-0000-0000-000000000000}&lang=en&browser=3&usagestats=0&appname=Google%2520Chrome&needsadmin=prefers/edgedl/chrome/install/GoogleChromeStandaloneEnterprise.msi"
+  (new-object System.Net.WebClient).DownloadFile($chromeDL,"$env:TEMP\Chrome.msi")
+  & "$env:TEMP\Chrome.msi"}}}
 
 function stop-ib1ClassRoom {
 <#

@@ -1435,11 +1435,12 @@ if (-not(test-path $destination)) {
 write-ib1log 'Création de la commande "C:\hypervisor.cmd".' -DebugLog
 set-content -Path 'c:\hypervisor.cmd' -Value 'bcdedit /set hypervisorlaunchtype auto'
 write-ib1log 'récupération du fichier xml pour le Sysprep' -DebugLog
-invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/Windows10ib.xml -OutFile "$env:windir\Windows10ib.xml"
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/windows10ib.xml -OutFile "$env:windir\Windows10ib.xml"
 write-ib1log 'Création de la commande Sysprep.' -DebugLog
 Set-Content -Path "$env:windir\sysprep.cmd" -Value 'c:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:c:\windows\windows10ib.xml'
 write-ib1log 'Mise en place du fond d''écran ib' -DebugLog
-Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name wallpaper -Value 'c:\windows\IBDesktop.png'
+invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/IBDesktop.png -OutFile "$env:windir\IBDesktop.png"
+Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name wallpaper -Value "$env:windir\IBDesktop.png"
 Restart-Computer -Force}
 
 function set-ib1VMExternalMac{

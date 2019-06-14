@@ -1,4 +1,7 @@
-﻿**Version 2.5.1:**
+﻿**Version 2.5.2:**
+ - Correction chemin xml pour sysprep
+
+**Version 2.5.1:**
  - Nouvelle commande **invoke-ib1TechnicalSupport** (allias *stc*)
  - Préparation du sysprep dans **ibSetup**
 

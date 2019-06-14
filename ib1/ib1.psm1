@@ -41,7 +41,7 @@ New-ItemProperty -Name 'StartLayoutFile' -Path "$layoutPath\Explorer" -Value "$e
 
 function read-ib1CourseFile {
 param([string]$fileName,[string]$newLine='',[string]$readUrl='')
-if ($readUrl -ne '') {$textContent=(invoke-webrequest -uri $readUrl).content.split([Environment]::NewLine); }
+if ($readUrl -ne '') {$textContent=(invoke-webrequest -uri $readUrl -UseBasicParsing).content.split([Environment]::NewLine); }
 else {$textContent=Get-Content "$($env:ProgramFiles)\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\$fileName"}
 $return=New-Object -TypeName PSOBject
 $newref=''

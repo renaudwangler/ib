@@ -4,10 +4,9 @@
 #
 $ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
-$driverFolder='C:\Dell'
-#$skillpipeUrl='https://prod-sp-ereader-assets.azureedge.net/WPFReader/skillpipeReaderSetup.exe'
 $ibppt='Présentation stagiaire automatique 2019.ppsx'
 $adobeReaderUrl='http://ardownload.adobe.com/pub/adobe/reader/win/AcrobatDC/1901220034/AcroRdrDC1901220034_fr_FR.exe'
+$remoteControlUrl='https://download.teamviewer.com/download/TeamViewerQS.exe'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $env:logStart='start'
@@ -402,7 +401,7 @@ if ($trainer) {
     invoke-webRequest -uri $ibpptUrl -OutFile ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -ErrorAction SilentlyContinue}
   elseif ((Get-Childitem -Path ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt")).length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -UseBasicParsing -ErrorAction SilentlyContinue).headers.'content-length') {
     write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
-    Remove-Item -Path [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt" -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -Force -ErrorAction SilentlyContinue
     invoke-webRequest -uri $ibpptUrl -OutFile ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -ErrorAction SilentlyContinue}
   [System.Environment]::SetEnvironmentVariable('ibTrainer',1,[System.EnvironmentVariableTarget]::Machine)
   $env:ibTrainer=1}
@@ -497,8 +496,6 @@ Cette commande permet de monter le disque virtuel contenu dans le fichier VHD et
 Nom du fichier VHD contenant le disque virtuel à monter.
 .PARAMETER restart
 Redémarre l'ordinateur à la fin du script (inactif par défaut)
-.PARAMETER noDrivers
-N'installe pas les drivers présents dans le dossier de référence dans le disque virtuel
 .PARAMETER copyFolder
 Chemin d'un dossier de la machine hôte à copier dans le VHD pendant l'opération (sera copié dans un dossier \ib)
 .EXAMPLE
@@ -529,9 +526,6 @@ if (($dLetter.Count -ne 1) -or ($dLetter -eq ':')) {
  write-ib1log 'Impossible de trouver un (et un seul) disque virtuel monté qui contienne une unique partition non réservée au systeme.' -ErrorLog}
  write-ib1log "Création d'une nouvelle entrée dans le BCD." -DebugLog
 bcdboot $dLetter\windows /l fr-FR |out-null
-if ((Test-Path $driverFolder) -and -not $noDrivers) {
-  write-ib1log "Insertion des drivers contenus dans le répertoire '$driverFolder'." -DebugLog
-  DISM /image:$dLetter\ /add-driver /driver:$driverFolder /recurse|out-null}
 write-ib1log "Changement des otpions de clavier Français." -DebugLog
 DISM /image:$dLetter /set-allIntl:en-US /set-inputLocale:0409:0000040c |out-null
 if ($copyFolder -ne '') {
@@ -1384,10 +1378,10 @@ new-ib1Shortcut -URL 'https://docs.google.com/forms/d/e/1FAIpQLSfH3FiI3_0Gdqx7sI
 new-ib1Shortcut -File "$env:AppDATA\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows Powershell.lnk" -TaskBar
 $ShortcutShell=New-Object -ComObject WScript.Shell
 $formateurShortcut=$true
-Get-ChildItem -Recurse [Environment]::GetFolderPath('CommonDesktopDirectory'),$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like '\\pc-formateur\partage') {$formateurShortcut=$false}}
+Get-ChildItem -Recurse ([Environment]::GetFolderPath('CommonDesktopDirectory')),$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like '\\pc-formateur\partage') {$formateurShortcut=$false}}
 if ($formateurShortcut) { new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'}
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0' -TaskBar
-new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27' -taskBar
+new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27'
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
   write-ib1log 'Création du partage pour le poste Formateur.' -DebugLog
   md C:\partage|out-null
@@ -1413,23 +1407,32 @@ powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
 write-ib1log "Désactivation des notifications système" -DebugLog
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 0
 $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
-if (-not(Get-Childitem -Path [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt" -ErrorAction SilentlyContinue)) {
+if (-not(Get-Childitem -Path ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -ErrorAction SilentlyContinue)) {
   write-ib1log "Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  invoke-webRequest -uri $ibpptUrl -OutFile [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt"}
-elseif ((Get-Childitem -Path [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt").length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -UseBasicParsing).headers.'content-length') {
+  invoke-webRequest -uri $ibpptUrl -OutFile ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt")}
+elseif ((Get-Childitem -Path ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt")).length -ne  (Invoke-WebRequest -uri $ibpptUrl -Method head -UseBasicParsing).headers.'content-length') {
   write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
-  Remove-Item -Path [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt" -Force -ErrorAction SilentlyContinue
-  invoke-webRequest -uri $ibpptUrl -OutFile [Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt"}
+  Remove-Item -Path ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -Force -ErrorAction SilentlyContinue
+  invoke-webRequest -uri $ibpptUrl -OutFile ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt")}
 write-ib1log 'Installation de la dernière version de Chrome' -DebugLog
 install-ib1Chrome
 write-ib1log 'Installation de Adobe Acrobat Reader DC' -DebugLog
 if (-not($adobereaderPath=(Get-ChildItem -Path 'c:\' -Filter *AcroRd?2.exe -Recurse -ErrorAction SilentlyContinue).FullName)) {
-  $destination = "c:\windows\temp\adobeDC.exe"
+  $destination = "$env:TEMP\adobeDC.exe"
   Invoke-WebRequest $adobeReaderUrl -OutFile $destination
   Start-Process -FilePath $destination -ArgumentList "/sPB /rs"
   Start-Sleep -s 60
   rm -Force $destination}
-  Restart-Computer -Force}
+write-ib1log 'Installation de Adobe Acrobat Reader DC' -DebugLog
+  $destination="c:\TeamViewerQS.exe"
+if (-not(test-path $destination)) {
+  write-ib1log 'Installation du client QuickSupport de TeamViewer' -DebugLog
+  Invoke-WebRequest $remoteControlUrl -OutFile $destination}
+write-ib1log 'Création de la commande "C:\hypervisor.cmd".' -DebugLog
+echo 'bcdedit /set hypervisorlaunchtype auto.' > c:\hypervisor.cmd  
+write-ib1log 'Création de la commande Sysprep.' -DebugLog
+echo 'c:\windows\system32\sysprep\sysprep.exe /generalize /shutdown' > C:\Windows\sysprep.cmd
+Restart-Computer -Force}
 
 function set-ib1VMExternalMac{
 <#

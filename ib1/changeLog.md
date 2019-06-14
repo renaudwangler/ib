@@ -1,4 +1,9 @@
-﻿**Version 2.4.3:**
+﻿**Version 2.5:**
+ - Suppression du dossier c:\dell de drivers dans les divers commandes
+ - Préparation/correction de la procédure sysyprep
+ - Préparation des DAPTS
+
+**Version 2.4.3:**
  - Correction installation de Chrome
  - Modification accès au bureau public (suite à chanegment comportement dernière version de Windows 10)
  - Désactivation *complète* de l'UAC dans la commande "**complete-ib1setup**"

@@ -1,7 +1,8 @@
-﻿**Version 2.5.3:**
+﻿**Version 2.5.4:**
  - Nouvelle commande **invoke-ib1TechnicalSupport** (allias *stc*)
  - Préparation du sysprep dans **ibSetup**
  - Correction chemin xml pour sysprep
+ - Mise en place de l'action "shutdown" sur bouton power dans complete-ib1Setup
 
 **Version 2.5:**
  - Suppression du dossier c:\dell de drivers dans les divers commandes

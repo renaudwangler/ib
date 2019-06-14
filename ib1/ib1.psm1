@@ -417,6 +417,7 @@ if ($trainer) {
   powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0|out-null
   powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0|out-null
   powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0|out-null
+  powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_BUTTONS PBUTTONACTION 3|out-null
   $env:ibSetup=(Get-Date -Format 'MMdd')}}
 
 function set-ib1VMCheckpointType {
@@ -1404,10 +1405,11 @@ write-ib1log 'Désactivation des mises à jour automatiques' -DebugLog
 write-ib1log "Configuration des options d'alimentation" -DebugLog
 powercfg /hibernate off
 powercfg /SETACTIVE SCHEME_BALANCED
-powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
-powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0
-powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
-powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0
+powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0|outn-null
+powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_SLEEP STANDBYIDLE 0|out-null
+powercfg /SETDCVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0|out-null
+powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_VIDEO VIDEOIDLE 0|outnull
+powercfg /SETACVALUEINDEX SCHEME_BALANCED SUB_BUTTONS PBUTTONACTION 3|out-null
 write-ib1log "Désactivation des notifications système" -DebugLog
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 0
 $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"

@@ -1443,6 +1443,8 @@ Set-Content -Path "$env:windir\sysprep.cmd" -Value 'c:\windows\system32\sysprep\
 write-ib1log 'Mise en place du fond d''écran ib' -DebugLog
 invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/IBDesktop.png -OutFile "$env:windir\IBDesktop.png"
 Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name wallpaper -Value "$env:windir\IBDesktop.png"
+write-ib1log "Suppression de l'invite de nouveu réseau" -DebugLog
+Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Network -Name newNetworkWindowOff -value 1
 Restart-Computer -Force}
 
 function set-ib1VMExternalMac{

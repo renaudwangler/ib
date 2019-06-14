@@ -1,4 +1,8 @@
-﻿**Version 2.5:**
+﻿**Version 2.5.1:**
+ - Nouvelle commande **invoke-ib1TechnicalSupport** (allias *stc*)
+ - Préparation du sysprep dans **ibSetup**
+
+**Version 2.5:**
  - Suppression du dossier c:\dell de drivers dans les divers commandes
  - Préparation/correction de la procédure sysyprep
  - Préparation des DAPTS

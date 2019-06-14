@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.5'
+ModuleVersion = '2.5.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -77,7 +77,8 @@ FunctionsToExport = 'install-ib1Chrome', 'complete-ib1Setup', 'invoke-ib1NetComm
                'repair-ib1VMNetwork', 'Copy-ib1VM', 'start-ib1SavedVMs', 'get-ib1Log', 
                'get-ib1Version', 'stop-ib1ClassRoom', 'new-ib1Nat', 'invoke-ib1Clean', 
                'invoke-ib1Rearm', 'get-ib1Repo', 'set-ib1VMExternalMac', 
-               'install-ib1Course', 'set-ib1ChromeLang', 'set-ib1VMCusto'
+               'install-ib1Course', 'set-ib1ChromeLang', 'set-ib1VMCusto', 
+               'invoke-ib1TechnicalSupport'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -86,7 +87,7 @@ CmdletsToExport = @()
 # VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'get-ib1Git', 'ibSetup'
+AliasesToExport = 'set-ib1VhdBoot', 'ibreset', 'get-ib1Git', 'ibSetup', 'stc'
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()

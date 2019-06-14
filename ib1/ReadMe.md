@@ -32,3 +32,4 @@ Commandes (et alias) contenues dans le module en version 2.1 (se référer à l'
 - install-ib1Course (ibsetup)
 - set-ib1ChromeLang
 - set-ib1VMCusto
+- invoke-ib1TechnicalSupport

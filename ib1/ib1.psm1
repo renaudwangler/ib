@@ -10,6 +10,7 @@ $remoteControlUrl='https://download.teamviewer.com/download/TeamViewerQS.exe'
 $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $env:logStart='start'
+$TechnicalSupportGit='jeremAR/STC'
 
 function new-ib1TaskBarShortcut {
 <#
@@ -39,11 +40,13 @@ New-ItemProperty -Name 'LockedStartLayout' -Path "$layoutPath\Explorer" -Value 1
 New-ItemProperty -Name 'StartLayoutFile' -Path "$layoutPath\Explorer" -Value "$env:SystemRoot\taskBarLayout.xml" -PropertyType expandString -Force -ErrorAction SilentlyContinue|Out-Null}
 
 function read-ib1CourseFile {
-param([string]$fileName,[string]$newLine='')
-$filename="$($env:ProgramFiles)\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\$fileName"
-$return=@{}
+param([string]$fileName,[string]$newLine='',[string]$readUrl='')
+if ($readUrl -ne '') {$textContent=(invoke-webrequest -uri $readUrl).content.split([Environment]::NewLine); }
+else {$textContent=Get-Content "$($env:ProgramFiles)\WindowsPowerShell\Modules\ib1\$(get-ib1Version)\$fileName"}
+$return=New-Object -TypeName PSOBject
 $newref=''
-foreach ($line in Get-Content $fileName) {if ($line[0] -ne '#' -or $line.startswith('# ') -or $line.startswith('## ')) {
+foreach ($line in $textContent) {
+if ($line[0] -ne '#' -or $line.startswith('# ') -or $line.startswith('## ')) {
   if ($line[0] -eq '#' -and $line[1] -ne '#') {
     if ($newref -ne '') {
       if ($newLine -ne "`n") {$newVal=$newVal.substring(0,$newVal.length -6)}
@@ -52,6 +55,7 @@ foreach ($line in Get-Content $fileName) {if ($line[0] -ne '#' -or $line.startsw
   $newref=$line.Substring(2)}
   else {$newVal+="$line$newLine"}}}
 return $return}
+
 
 function set-ib1md2html {
 param([string]$chaine)
@@ -1429,9 +1433,13 @@ if (-not(test-path $destination)) {
   write-ib1log 'Installation du client QuickSupport de TeamViewer' -DebugLog
   Invoke-WebRequest $remoteControlUrl -OutFile $destination}
 write-ib1log 'Création de la commande "C:\hypervisor.cmd".' -DebugLog
-echo 'bcdedit /set hypervisorlaunchtype auto.' > c:\hypervisor.cmd  
+set-content -Path 'c:\hypervisor.cmd' -Value 'bcdedit /set hypervisorlaunchtype auto'
+write-ib1log 'récupération du fichier xml pour le Sysprep' -DebugLog
+invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/Windows10ib.xml -OutFile "$env:windir\Windows10ib.xml"
 write-ib1log 'Création de la commande Sysprep.' -DebugLog
-echo 'c:\windows\system32\sysprep\sysprep.exe /generalize /shutdown' > C:\Windows\sysprep.cmd
+Set-Content -Path "$env:windir\sysprep.cmd" -Value 'c:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:c:\windows\windows10ib.xml'
+write-ib1log 'Mise en place du fond d''écran ib' -DebugLog
+Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name wallpaper -Value 'c:\windows\IBDesktop.png'
 Restart-Computer -Force}
 
 function set-ib1VMExternalMac{
@@ -1550,6 +1558,42 @@ else {
   write-ib1log "Arrêt de la machine locale." -DebugLog
   Stop-Computer -Force}}}
 
+function invoke-ib1TechnicalSupport {
+<#
+.SYNOPSIS
+Cette commande permet d'utiliser des fonctionnalités du repositery Git de l'équipe tehcnique
+.PARAMETER Command
+Nom de la commande à lancer présente dans le fichier command.md du repositery
+.PARAMETER GetCred
+Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser pour lancer les commandes et script. S'il est omis, l'utilisateur actuellement connecté sera utilisé.
+.EXAMPLE
+invoke-ib1TechnicalSupport -Command sysprep
+Va lancer la commande "sysprep" présente dans le fichier 'commands.ps1' du repo Git du service technique
+#>
+[CmdletBinding(DefaultParameterSetName='Command')]
+param([string]$Command,[string]$Script,[string]$Folder,[string]$File,[string]$TargetFolder,[string]$Teampassword,[switch]$GetCred)
+begin{get-ib1elevated $true}
+process {
+$stcCommands=read-ib1CourseFile -readUrl https://raw.githubusercontent.com/$TechnicalSupportGit/master/commandes.md -newLine "`n"
+if ($Command -eq '') {
+  $objPick=foreach ($stcCommand in ($stcCommands|Get-Member -MemberType NoteProperty)) {New-Object psobject -Property @{'Quelle commande lancer'=$stcCommand.Name}}
+  $input=$objPick|Out-GridView -Title "ib - Service technique Client" -PassThru
+  $Command=$input.'Quelle commande lancer'}
+if ($Command -ne '' -and -not $stcCommands.$Command) {write-ib1log "Le paramètre -command ne peut avoir que l'une des valeurs suivantes: $(($stcCommands|Get-Member -MemberType NoteProperty).name -join ', '). Merci de vérifier!" -ErrorLog}
+elseif ($Command -ne '') {
+  $Command=$stcCommands.$Command
+  if ($Command.Contains('[**password**]')) {
+    write-ib1log 'La commande appelée necessite un mot de passe, saisie.' -DebugLog
+    $commandPass=Read-Host -Prompt 'Mot de passe à utiliser pour la commande appelée'
+    $Command=$Command.Replace('[**password**]',$commandPass)}
+  if ($GetCred) {
+    $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
+    if (-not $cred) {
+      write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
+      break}}
+  write-ib1log "Lancement de la commande '$Command'" -DebugLog
+  invoke-expression $Command}}}
+  
 #######################
 #  Gestion du module  #
 #######################
@@ -1557,5 +1601,6 @@ Set-Alias ibReset reset-ib1VM
 Set-Alias ibSetup install-ib1Course
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias get-ib1Git get-ib1repo
-Export-moduleMember -Function install-ib1Chrome,complete-ib1Setup,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto, new-ib1TaskBarShortcut
-Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git,ibSetup
+set-Alias stc invoke-ib1TechnicalSupport
+Export-moduleMember -Function install-ib1Chrome,complete-ib1Setup,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto, new-ib1TaskBarShortcut,invoke-ib1TechnicalSupport
+Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git,ibSetup,stc

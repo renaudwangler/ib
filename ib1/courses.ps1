@@ -98,7 +98,16 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://azure.microsoft.com/en-us/free/' -title 'Azure - Free Account' -dest $dest
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
-  install-module AZ -force
+  echo "Installation Framework .Net 4.8"
+  if ([version](Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\' -Recurse|Get-ItemProperty -Name version,release -EA 0|where {$_.pschildName -match '^(?!S)\p{L}'}|Sort-Object -Descending -Property version|Select-Object -First 1).version -lt [version]'4.8.0') {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri https://go.microsoft.com/fwlink/?linkid=2088631 -OutFile "$env:TEMP\Net48.exe"
+    Start-Process -FilePath "$env:TEMP\Net48.exe" -ArgumentList "/q /norestart" -wait
+    $restart=$true}
+  if ([version](Find-Module az).version -gt [version](Get-Module -ListAvailable Az*|Sort-Object -Descending -Property version|Select-Object -First 1).version) {
+    echo "Installation module 'AZ'"
+    install-module az -Force}
+  if ($restart) { Restart-Computer -Force}
 
 # msaz100
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ100'
@@ -114,6 +123,7 @@ get-VM|Checkpoint-VM|Out-Null
   
 # msaz103
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ103'
+  $restart=$false
   get-ib1Repo AZ-103-MicrosoftAzureAdministrator -destPath $dest -srcPath Allfiles/labfiles
   if ($trainer) {
     invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103AIntro.pptx -OutFile "$env:userprofile\documents\AZ-103AIntro.pptx"
@@ -122,7 +132,16 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
   new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
   new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-103-MicrosoftAzureAdministrator/tree/master/Instructions/Labs' -title 'Instructions Ateliers' -dest $dest
-  install-module az -Force
+  echo "Installation Framework .Net 4.8"
+  if ([version](Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\' -Recurse|Get-ItemProperty -Name version,release -EA 0|where {$_.pschildName -match '^(?!S)\p{L}'}|Sort-Object -Descending -Property version|Select-Object -First 1).version -lt [version]'4.8.0') {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri https://go.microsoft.com/fwlink/?linkid=2088631 -OutFile "$env:TEMP\Net48.exe"
+    Start-Process -FilePath "$env:TEMP\Net48.exe" -ArgumentList "/q /norestart" -wait
+    $restart=$true}
+  if ([version](Find-Module az).version -gt [version](Get-Module -ListAvailable Az*|Sort-Object -Descending -Property version|Select-Object -First 1).version) {
+    echo "Installation module 'AZ'"
+    install-module az -Force}
+  if ($restart) { Restart-Computer -Force}
 
 # msaz101
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ101'

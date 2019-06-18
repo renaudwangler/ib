@@ -78,7 +78,7 @@ Un dossier "**Manipulations MSAZ900**" a été plaçé sur le bureau qui contien
  - Un lien vers le portail Azure
  - Un lien vers le Cloud Shell Azure
 
-Le module **AZ** a été installé dans le Powershell de la machine.
+Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
 
 # msaz100
 Un dossier "**Ateliers MSAZ100**" a été plaçé sur le bureau qui contient :
@@ -121,6 +121,8 @@ Un dossier "**Ateliers MSAZ103**" a été plaçé sur le bureau qui contient :
  - Lab11A - Role-Based Access Control (anciennement OLD: az-100-01)
  - Lab11B - Governance and Compliance (OLD: az-100-01b)
  - Lab12  - File Sync (anciennement az-100-02b)
+
+ Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
 
 # intro
 <!DOCTYPE html><html><head><title>##course##</title><style>body {padding:10px;color:gray;font-family:tahoma;}h1,h2{color:#EA690B;text-decoration:underline;margin:0em;}h2{margin-top:1em;margin-bottom:0.5em;}li{list-style:none;}li::before{color:#EA690B;content:"\2022";font-size:1em;padding-right:0.7em;}code{border:solid 1px darkgrey;padding:3px;margin:2px;margin-bottom:0px;background-color:lightgrey;display:inline-block;color:black;}strong {font-weight:bold;color:black;}hr {margin:2em;}</style></head><body><h1>Bienvenue !</h1>

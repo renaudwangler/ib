@@ -1,26 +1,41 @@
 ﻿<!DOCTYPE html>
 <html>
 <head><title>MSAZ103 - APTS</title>
-<style>
-body {padding:10px;color:gray;font-family:tahoma;}
-h1,h2{color:#EA690B;text-decoration:underline;margin:0em;}
-h2{margin-top:1em;margin-bottom:0.5em;}
-li{list-style:none;}
-li::before{color:#EA690B;content:"\2022";font-size:1em;padding-right:0.7em;}
-code{border:solid 1px darkgrey;padding:3px;margin:2px;margin-bottom:0px;background-color:lightgrey;display:inline-block;color:black;}
-strong {font-weight:bold;color:black;}
-hr {margin:2em;}
-</style>
+<link rel="stylesheet" type="text/css" href="ib-apts.css">
 </head>
 <body>
 <h1>MSAZ103 - Accompagnement Pédagogique et Technique de stage</h1>
-
-<iframe src="20190614/master0.md" width="100%" height="300"></iframe>
-Voici quelques petits conseils afin d'améliorer le déroulement du stage MSAZ103.
-
-Le module powershell **ib1** a été installé sur la machine et contient des commandes qui peuvent automatiser et faciliter certaines actions pendant la formation.
-Ainsi, à titre d'exemple, la commande ```reset-ib1VM``` lancera la rétablissement successif de toutes les machines virtuelles trouvées sur l'hyperviseur local.
-*(Toutes les commandes du module sont documentées mais ne sont pas supportées en dehors de notre environnement d'atelier.)*
-Le service technique ***ib*** est à votre disposition pour tout assistance pendant la durée de la formation.
+<h2>Customisation spécifique du stage MSAZ103</h2>
+Un dossier "Ateliers MSAZ103" a été déposé sur le bureau. Il contient surtout:
+<ul>
+<li>Les fichiers nécessaires à la réalisation des ateliers (dans des sous-dossiers nommés <i>AZ-100.x / AZ-101.x</i>)
+<li>Un lien vers le site de création des compte azure basé sur les codes fournis pour la session, nommé <i>Azure - Validation pass</i>
+<li>Un lien vers les instructions des ateliers sur Github
+</ul>
+Le fichier readMe sur le bureau contient, pour référence éventuelle, le titre de chaque atelier, avec l'ordre conseillé de réalisation de ceux-ci, correspondant à la numérotation des modules.<br/>
+Le Framework .Net 4.8 a été installé sur chaque poste,<br/>
+Le module PowerShell <i>AZ</i> a été installé dans sa dernière version.
+<hr/>
+<h2>Conseils d'animation pour le stage MSAZ103</h2>
+Dés le début du stage, faire créer un compte Micrsoft aux stagiaires (https://www.live.com)<br/>
+Ce compte pourra ensuite être utilisé pour créer un compte Azure de test (raccourci <i>Azure - Validation pass</i>).<br/>
+<a href="https://youtu.be/85VSGsMMJTo" target="_blank">Vidéo de démonstration de la mise en place d'une connexion vNet to vNet</a><br/>
+Prendre connaissance du fichier readme posé sur le bureau et suggérer aux stagiaires de faire de même.<br/>
+En cas de soucis sur un poste, il est possible de (re)lancer la commande <code>ibSetup msaz103 -force</code> pour mettre en place ou corriger les éléments de customisation décrits précédemment.<br/>
+(y ajouter l'option "<code>-trainer</code>" sur le poste du formateur).
+Les stagiaires ont 2 supports de stage : celui du stage msaz900 et celui du stage msaz103.<br/>
+Il est conseillé de mettre en avant l'intérêt du support de stage msaz900 et de prendre le temps d'en faire une sorte de synthése avant de se lancer dans l'administration Azure en tant que telle.<br/>
+Timing exemple:
+<ul>
+<li>Jour 1 : Introduction (synthèse msaz900) + modules 1 et 2
+<li>Jour 2 : Lab 2, Modules 3, 4 et 5
+<li>Jour 3 : Lab 5, Modules 6,
+</ul>
+<hr/>
+<iframe src="20190614/master1.html" class="master1"></iframe>
+<hr/>
+<iframe src="20190614/master0.html" class="master0"></iframe>
+<hr/>
+Le service technique <b>ib</b> est à votre disposition pour tout assistance pendant la durée de la formation.
 </body>
 </html>

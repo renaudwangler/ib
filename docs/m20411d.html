@@ -1,26 +1,27 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html>
-<head><title>M20411d - APTS</title>
+<head>
 <link rel="stylesheet" type="text/css" href="ib-apts.css">
+<script src="apts.js" type="text/javascript"></script>
+<script>
+  var ibCourse='M20411d';
+  var ibMaster0='2019old';
+  var ibMaster1='2019old';
+</script>
 </head>
 <body>
-<h1>M20411d - Accompagnement Pédagogique et Technique de stage</h1>
-<div class="edition">Dernière édition le 19 Juin 2019</div>
-<h2>Customisation spécifique du stage M20411d</h2>
-Les VMs du stage ont été configurées avec un environment de travail anglais (en-US) et un clavier Français.<br/>
-La VM "MSL-TMG1" a été branchée sur un switch virtuel qui lui donne accès au réseau physique.<br/>
-L'adresse MAC de la carte externe de "MSL-TMG1" a été figée pour éviter tout doublon sur le réseau local.
-<hr/>
-<h2>Conseils d'animation pour le stage M20411d</h2>
-Prendre connaissance du fichier readme posé sur le bureau et suggérer aux stagiaires de faire de même.<br/>
-En cas de soucis sur un poste, il est possible de (re)lancer la commande <code>ibSetup M20411d -force</code> pour mettre en place ou corriger les éléments de customisation décrits précédemment.<br/>
-(y ajouter l'option "<code>-trainer</code>" sur le poste du formateur).<br/>
-Démarrer la machine virtuelle "MSL-TMG1" donnera accès Internet aux autres machines virtuelles du stage.
-<hr/>
-<iframe src="2019old/master1.html" class="master1"></iframe>
-<hr/>
-<iframe src="2019old/master0.html" class="master0"></iframe>
-<hr/>
-Le service technique <b>ib</b> est à votre disposition pour tout assistance pendant la durée de la formation.
+
+<div id="custo">
+  Les VMs du stage ont été configurées avec un environment de travail anglais (en-US) et un clavier Français.<br/>
+  La VM "MSL-TMG1" a été branchée sur un switch virtuel qui lui donne accès au réseau physique.<br/>
+  L'adresse MAC de la carte externe de "MSL-TMG1" a été figée pour éviter tout doublon sur le réseau local.
+</div>
+
+<div id="conseils">
+  Démarrer la machine virtuelle "MSL-TMG1" donnera accès Internet aux autres machines virtuelles du stage.
+</div>
+
+<script>window.onload=aptsLoad;</script>
 </body>
 </html>

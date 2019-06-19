@@ -1,27 +1,27 @@
 ﻿<!DOCTYPE html>
 <html>
-<head><title>M20742b - APTS</title>
+<head>
 <link rel="stylesheet" type="text/css" href="ib-apts.css">
+<script src="apts.js" type="text/javascript"></script>
+<script>
+  var ibCourse='M20742b';
+  var ibMaster0='2019old';
+  var ibMaster1='2019old';
+</script>
 </head>
 <body>
-<h1>M20742b - Accompagnement Pédagogique et Technique de stage</h1>
-<div class="edition">Dernière édition le 19 Juin 2019</div>
-<h2>Customisation spécifique du stage M20742b</h2>
-Les VMs du stage ont été configurées avec un environment de travail anglais (en-US) et un clavier Français.<br/>
-Le switch virtuel "<i>External Network</i>" a été connecté au réseau physique.<br/>
-L'adresse MAC de la carte réseau virtuelle de la machine "MT17B-WS2016-NAT" a été figée pour éviter les doublons sur le réseau.
-<hr/>
-<h2>Conseils d'animation pour le stage M20741b</h2>
-Prendre connaissance du fichier readme posé sur le bureau et suggérer aux stagiaires de faire de même.<br/>
-En cas de soucis sur un poste, il est possible de (re)lancer la commande <code>ibSetup -force</code> pour mettre en place ou corriger les éléments de customisation décrits précédemment.<br/>
-(y ajouter l'option "<code>-trainer</code>" sur le poste du formateur).<br/>
+
+<div id="custo">
+  Les VMs du stage ont été configurées avec un environment de travail anglais (en-US) et un clavier Français.<br/>
+  Le switch virtuel "<i>External Network</i>" a été connecté au réseau physique.<br/>
+  L'adresse MAC de la carte réseau virtuelle de la machine "MT17B-WS2016-NAT" a été figée pour éviter les doublons sur le réseau.
+</div>
+
+<div id="conseils">
 <h3>Pour l'atelier 12</h3>
 Afin de donner accès Internet aux machines virtuelles, il faudra démarrer la machine virtuelle "<b>MT17B-WS2016-NAT</b>"
-<hr/>
-<iframe src="2019old/master1.html" class="master1"></iframe>
-<hr/>
-<iframe src="2019old/master0.html" class="master0"></iframe>
-<hr/>
-Le service technique <b>ib</b> est à votre disposition pour tout assistance pendant la durée de la formation.
+</div>
+
+<script>window.onload=aptsLoad;</script>
 </body>
 </html>

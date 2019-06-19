@@ -16,5 +16,4 @@ hr {margin:2em;}
 iframe.master0 {width:100%;padding:0px;margin:0px;border:none;height:250px;}
 iframe.master1 {width:100%;padding:0px;margin:0px;border:none;height:540px;}
 div.edition {padding:0px;margin:0px;margin-bottom:3px;color:black;font-size:10px;font-weight:normal;padding-left:100px;}
-div.edition::before{content:"(";}
-div.edition::after{content:")";}
+div#conseilsGeneriques {width:80%;margin-left:10%;margin-top:10px;border-left:double 3px gray;padding:2px;}

@@ -3,7 +3,7 @@
 La machine "**MSL-TMG1**" partagera un accès Internet sur le vSwitch "*Private Network*" si elle est démarrée.
 
 # m20742b
-##Atelier 12
+## Atelier 12
 Afin de donner accès Internet aux machines virtuelles, il faudra s'assurer de démarrer la machine "**MT17B-WS2016-NAT**".
 Il pourra s'avérer pertinent de vérifier que cette machine possède une carte réseau branchée sur le switch "*Internal Network*" et une autre sur le switch "*External Network*".
 Le switch "*External Network*" doit être banché sur la carte réseau physique donnant accès à Internet depuis le "Virtual Switch Manager".

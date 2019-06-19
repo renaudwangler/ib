@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>M20740c - APTS</title>
+<link rel="stylesheet" type="text/css" href="ib-apts.css">
+</head>
+<body>
+<h1>M20740c - Accompagnement Pédagogique et Technique de stage</h1>
+<div class="edition">Dernière édition le 19 Juin 2019</div>
+<h2>Customisation spécifique du stage M20740c</h2>
+Les VMs du stage ont été configurées avec un environment de travail anglais (en-US) et un clavier Français.<br/>
+<hr/>
+<h2>Conseils d'animation pour le stage M20740c</h2>
+Prendre connaissance du fichier readme posé sur le bureau et suggérer aux stagiaires de faire de même.<br/>
+En cas de soucis sur un poste, il est possible de (re)lancer la commande <code>ibSetup -force</code> pour mettre en place ou corriger les éléments de customisation décrits précédemment.<br/>
+(y ajouter l'option "<code>-trainer</code>" sur le poste du formateur).<br/>
+<h3>Pour l'atelier 5</h3>
+Lancer le script Powershell "lon-host1" présent sur le bureau.
+Une fois la machine redémarrée sur le disque virtuel <i>lon-host1</i>, commencer l'atelier jusqu'à la tâche 1 de l'exercice 4. Après avoir réalisé cette tâche, et <b>avant de réaliser la tâche 2 de l'exercice 4</b>, lancer dans un powershell en administrateur la commande <code>ibSetup</code> (si la commande est introuvable, installer le module en tapant <code>install-module ib1</code>). Cette commande, dont l'execution demande plusieurs minutes va:
+<ul>
+<li><b>Copier les Machines virtuelles</b> En effet, les premières animations nous ont montré de nombreux problèmes avec les machines virtuelles importées d'un autre hyperviseur. Le palliatif est de copier la VM : la copie est de fait crée sur l'hyperviseur local.
+<li><b>Réarmer</b> le système des machines virtuelles pour permettre la réalisation de certains ateliers un peu long.
+<li><b>Changer le clavier en Français</b>
+<li>Corriger la <b>configuration IP</b> de chaque machine virtuelle.
+</ul>
+A l'issue de cette commande, il faudra démarrer la machine virtuelle "<i>lon-nat-ib</i>", s'y connecter en administrateur pour:
+<ul>
+<li>Identifier quelle carte réseau est connectée à Internet (publique),
+<li>Lancer l'outil "<i>Routing and Remote Access</i>",
+<li>Ouvrir "IPv4" et "NAT"
+<li>Supprimer, le cas échéant, toute carte réseau
+<li>Ajouter de nouveau chaque interface, en choisissant d'activer les fonctions NAT sur la carte "publique"
+</ul>
+L'objectif de cette manipulation est de donner accès Internet aux autres machines virtuelles: Les démarrer pour vérifier (peut prendre un moment).<br/>
+Pour la suite des ateliers réalisés sur "<i>lon-host1</i>", ce sont les nouvelles VM suffixées "<i><b>-ib</b></i>" qui devront être utilisées (le nom d'ordinateur Windows n'ayant lui pas changé), les autres VMs peuvent être supprimées de l'Hyper-v si cela simplifie la visibilité pour le stagiaire.
+<hr/>
+<h3>Pour l'atelier 9</h3>
+Lancer le script Powershell "lon-host2" présent sur le bureau.
+Une fois la machine redémarrée sur le disque virtuel <i>lon-host2</i>, commencer l'atelier jusqu'au point 6 de la première tâche du premier exercice. Après avoir réalisé ce point (iomport des vms), et <b>avant de réaliser la suite</b>, lancer dans un powershell en administrateur la commande <code>ibSetup</code> (si la commande est introuvable, installer le module en tapant <code>install-module ib1</code>). Cette commande, dont l'execution demande plusieurs minutes va:
+<ul>
+<li><b>Copier les Machines virtuelles</b> En effet, les premières animations nous ont montré de nombreux problèmes avec les machines virtuelles importées d'un autre hyperviseur. Le palliatif est de copier la VM : la copie est de fait crée sur l'hyperviseur local.
+<li><b>Réarmer</b> le système des machines virtuelles pour permettre la réalisation de certains ateliers un peu long.
+<li><b>Changer le clavier en Français</b>
+<li>Corriger la <b>configuration IP</b> de chaque machine virtuelle.
+</ul>
+Pour la suite des ateliers réalisés sur "<i>lon-host1</i>", ce sont les nouvelles VM suffixées "<i><b>-ib</b></i>" qui devront être utilisées (le nom d'ordinateur Windows n'ayant lui pas changé), les autres VMs peuvent être supprimées de l'Hyper-v si cela simplifie la visibilité pour le stagiaire.
+<hr/>
+<iframe src="2019old/master1.html" class="master1"></iframe>
+<hr/>
+<iframe src="2019old/master0.html" class="master0"></iframe>
+<hr/>
+Le service technique <b>ib</b> est à votre disposition pour tout assistance pendant la durée de la formation.
+</body>
+</html>

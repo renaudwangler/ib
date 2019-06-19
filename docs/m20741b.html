@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>M20741b - APTS</title>
+<link rel="stylesheet" type="text/css" href="ib-apts.css">
+</head>
+<body>
+<h1>M20741b - Accompagnement Pédagogique et Technique de stage</h1>
+<div class="edition">Dernière édition le 19 Juin 2019</div>
+<h2>Customisation spécifique du stage M20741b</h2>
+Les VMs du stage ont été configurées avec un environment de travail anglais (en-US) et un clavier Français.<br/>
+<hr/>
+<h2>Conseils d'animation pour le stage M20741b</h2>
+Prendre connaissance du fichier readme posé sur le bureau et suggérer aux stagiaires de faire de même.<br/>
+En cas de soucis sur un poste, il est possible de (re)lancer la commande <code>ibSetup -force</code> pour mettre en place ou corriger les éléments de customisation décrits précédemment.<br/>
+(y ajouter l'option "<code>-trainer</code>" sur le poste du formateur).<br/>
+<h3>Pour l'atelier 10</h3>
+Lancer le script Powershell "lon-host1" présent sur le bureau.
+Une fois la machine redémarrée sur le disque virtuel <i>lon-host1</i>, <b>avant de démarrer les VMs</b>, lancer dans un powershell en administrateur la commande <code>ibSetup</code> (si la commande est introuvable, installer le module en tapant <code>install-module ib1</code>). Cette commande, dont l'execution demande plusieurs minutes va:
+<ul>
+<li><b>Copier les Machines virtuelles</b> En effet, les premières animations nous ont montré de nombreux problèmes avec les machines virtuelles importées d'un autre hyperviseur. Le palliatif est de copier la VM : la copie est de fait crée sur l'hyperviseur local.
+<li><b>Réarmer</b> le système des machines virtuelles pour permettre la réalisation de certains ateliers un peu long.
+<li><b>Changer le clavier en Français</b>
+<li>Corriger la <b>configuration IP</b> de chaque machine virtuelle.
+</ul>
+Pour la suite des ateliers réalisés sur "<i>lon-host1</i>", ce sont les nouvelles VM suffixées "<i><b>-ib</b></i>" qui devront être utilisées (le nom d'ordinateur Windows n'ayant lui pas changé), les autres VMs peuvent être supprimées de l'Hyper-v si cela simplifie la visibilité pour le stagiaire.
+<hr/>
+<iframe src="2019old/master1.html" class="master1"></iframe>
+<hr/>
+<iframe src="2019old/master0.html" class="master0"></iframe>
+<hr/>
+Le service technique <b>ib</b> est à votre disposition pour tout assistance pendant la durée de la formation.
+</body>
+</html>

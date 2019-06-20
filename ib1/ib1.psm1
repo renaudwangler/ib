@@ -29,7 +29,9 @@ if (!(Test-Path $env:SystemRoot\taskBarLayout.xml)) {Set-Content -Value ('<?xml 
 <CustomTaskbarLayoutCollection><defaultlayout:TaskbarLayout>
 <taskbar:TaskbarPinList>
 </taskbar:TaskbarPinList>
-</defaultlayout:TaskbarLayout></CustomTaskbarLayoutCollection></LayoutModificationTemplate>') -Path $env:SystemRoot\taskBarLayout.xml}
+</defaultlayout:TaskbarLayout>
+</CustomTaskbarLayoutCollection>
+</LayoutModificationTemplate>') -Path $env:SystemRoot\taskBarLayout.xml}
 $taskbarLayout=Get-Content $env:SystemRoot\taskBarLayout.xml
 $TBNewLine="<taskbar:DesktopApp DesktopApplicationLinkPath=""$Shortcut"" />"
 if ($taskbarLayout -notcontains $TBNewLine) {Set-Content -Path $env:SystemRoot\taskBarLayout.xml -Value ($taskbarLayout -replace '</taskbar:TaskbarPinList>',"$TBNewLine`n</taskbar:TaskbarPinList>")}

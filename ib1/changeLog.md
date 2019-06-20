@@ -1,4 +1,8 @@
-﻿**Version 2.5.4:**
+﻿**Version 2.5.8:**
+ - Accompagnement Pédagogique et Technique des Stages accessible depuis https://renaudwangler.github.io/ib/
+ - Corrections master0 + master1
+
+**Version 2.5.4:**
  - Nouvelle commande **invoke-ib1TechnicalSupport** (allias *stc*)
  - Préparation du sysprep dans **ibSetup**
  - Correction chemin xml pour sysprep

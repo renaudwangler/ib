@@ -1,4 +1,8 @@
-﻿**Version 2.5.8:**
+﻿**Version 2.5.9:**
+ - Placement du changelog en dehors du module PowerShell
+ - Amélioration du moteur des APTS : mise en place de sauts de ligne automatique, simplification de l'aide pour les labs online, refonte du sommaire des stages.
+
+**Version 2.5.8:**
  - Accompagnement Pédagogique et Technique des Stages accessible depuis https://renaudwangler.github.io/ib/
  - Corrections master0 + master1
 

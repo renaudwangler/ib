@@ -132,13 +132,14 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
   new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
   new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-103-MicrosoftAzureAdministrator/tree/master/Instructions/Labs' -title 'Instructions Ateliers' -dest $dest
-  echo "Installation Framework .Net 4.8"
   if ([version](Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\' -Recurse|Get-ItemProperty -Name version,release -EA 0|where {$_.pschildName -match '^(?!S)\p{L}'}|Sort-Object -Descending -Property version|Select-Object -First 1).version -lt [version]'4.8.0') {
+    echo "Installation Framework .Net 4.8"
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     Invoke-WebRequest -Uri https://go.microsoft.com/fwlink/?linkid=2088631 -OutFile "$env:TEMP\Net48.exe"
     Start-Process -FilePath "$env:TEMP\Net48.exe" -ArgumentList "/q /norestart" -wait
     $restart=$true}
-  if ([version](Find-Module az).version -gt [version](Get-Module -ListAvailable Az*|Sort-Object -Descending -Property version|Select-Object -First 1).version) {
+  $azModule=Get-Module -ListAvailable Az*|Sort-Object -Descending -Property version|Select-Object -First 1
+  if ([version](Find-Module $azModule.Name).version -gt [version]$azModule.version) {
     echo "Installation module 'AZ'"
     install-module az -Force}
   if ($restart) { Restart-Computer -Force}

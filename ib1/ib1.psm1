@@ -11,6 +11,7 @@ $mslearnGit='MicrosoftLearning'
 $defaultSwitchId='c08cb7b8-9b3c-408e-8e30-5e16a3aeb444'
 $env:logStart='start'
 $TechnicalSupportGit='jeremAR/STC'
+$trainerComputerName='pc-formateur'
 
 function new-ib1TaskBarShortcut {
 <#
@@ -25,8 +26,10 @@ Cette commande va placer dans la barre des tâches un raccourcis vers l'invite P
 param([string]$Shortcut='')
 #Création/modification du fichier d'apparence de la barre des tâches.
 write-ib1log "Mise en place du raccourcis '$Shortcut' dans la barre des tâches." -DebugLog
-if (!(Test-Path $env:SystemRoot\taskBarLayout.xml)) {Set-Content -Value ('<?xml version="1.0" encoding="utf-8"?><LayoutModificationTemplate xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification" xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout" xmlns:taskbar="http://schemas.microsoft.com/Start/2014/TaskbarLayout" Version="1">
-<CustomTaskbarLayoutCollection><defaultlayout:TaskbarLayout>
+if (!(Test-Path $env:SystemRoot\taskBarLayout.xml)) {Set-Content -Value ('<?xml version="1.0" encoding="utf-8"?>
+<LayoutModificationTemplate xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification" xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout" xmlns:taskbar="http://schemas.microsoft.com/Start/2014/TaskbarLayout" Version="1">
+<CustomTaskbarLayoutCollection>
+<defaultlayout:TaskbarLayout>
 <taskbar:TaskbarPinList>
 </taskbar:TaskbarPinList>
 </defaultlayout:TaskbarLayout>
@@ -58,11 +61,9 @@ if ($line[0] -ne '#' -or $line.startswith('# ') -or $line.startswith('## ')) {
   else {$newVal+="$line$newLine"}}}
 return $return}
 
-
 function set-ib1md2html {
 param([string]$chaine)
 return $chaine -replace ("(## )(.*?)<br/>",'<h2>$2</h2>') -replace "(\*\*|__)(.*?)\1",'<strong>$2</strong>' -replace "(``````)(.*?)\1",'<code>$2</code>' -replace "(\*|_)(.*?)\1",'<em>$2</em>' -replace "\n -( *)",'<li>'}
-#+ -replace "`n",'<br/>'}
 
 function set-ib1CourseHelp {
 param([string]$course)
@@ -409,6 +410,12 @@ if ($trainer) {
     write-ib1log "Présentation ib à priori pas à jour: Copie de la présentation ib sur le bureau depuis github." -DebugLog
     Remove-Item -Path ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -Force -ErrorAction SilentlyContinue
     invoke-webRequest -uri $ibpptUrl -OutFile ([Environment]::GetFolderPath('CommonDesktopDirectory')+"\$ibppt") -ErrorAction SilentlyContinue}
+  #Renommage de la machine en "pc-formateur" le cas échéant.
+  if ($env:COMPUTERNAME -notlike $trainerComputerName) {
+    if (!(Test-Connection -Count 1 -ComputerName $trainerComputerName -Quiet)) {
+      Rename-Computer -NewName $trainerComputerName -Force -WarningAction SilentlyContinue|out-null
+      write-ib1log "Ordinateur renommé en '$trainerComputerName', merci de redémarrer pour prise en compte." -warningLog}
+    else {write-ib1log "Un ordinateur existe déja sur le réseau nommé '$trainerComputerName', merci de vérifier !" -warningLog}}
   [System.Environment]::SetEnvironmentVariable('ibTrainer',1,[System.EnvironmentVariableTarget]::Machine)
   $env:ibTrainer=1}
   [System.Environment]::SetEnvironmentVariable('ibSetup',(Get-Date -Format 'MMdd'),[System.EnvironmentVariableTarget]::Machine)
@@ -1347,7 +1354,6 @@ write-ib1log "Désactivation de l'UAC" -DebugLog
 Set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name “ConsentPromptBehaviorAdmin” -Value “0”
 Set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name “PromptOnSecureDesktop” -Value “0”
 New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -PropertyType DWord -Value 0 -Force -ErrorAction SilentlyContinue|out-null
-
 write-ib1log "Passage du clavier en Français sur environement en-US" -DebugLog
 $langList=New-WinUserLanguageList en-US
 $langList[0].inputMethodTips.clear()
@@ -1359,15 +1365,15 @@ Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name Forc
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM" "Activation de PSRemoting."
 Enable-PSRemoting -Force -SkipNetworkProfileCheck |out-null
 write-ib1log -progressTitleLog "Mise en place des otpion nécessaires pour WinRM"
-if ((get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -eq 'enabled') {
-  if ((get-VMHost).EnableEnhancedSessionMode) {
-    write-ib1log -progressTitleLog "Paramètrage de Hyper-V" "Désactivation de la stratégie de session avançée d'Hyper-V."
-    Set-VMHost -EnableEnhancedSessionMode $false}
-  write-ib1log -progressTitleLog "Paramètrage de Hyper-V"}
+if ((Get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).state -notlike 'enabled') {
+  write-ib1log 'Installation de Hyper-V' -DebugLog
+  Enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All -NoRestart -WarningAction SilentlyContinue|out-null
+  write-ib1log "Merci de redémarrer la machine et de relancer la commande après redémarrage pour finaliser la confirguration!" -warningLog
+  break}
 else {
-  write-ib1log "Installation de Hyper-V" -DebugLog
-  enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All -NoRestart -WarningAction SilentlyContinue|out-null
-  write-ib1log "Merci de relancer la commande après redémarrage pour finaliser la confirguration d'Hyper-V !" -warningLog}
+  if ((get-VMHost).EnableEnhancedSessionMode) {
+    write-ib1log "Désactivation de la stratégie de session avançée d'Hyper-V." -DebugLog
+    Set-VMHost -EnableEnhancedSessionMode $false}}
 write-ib1log 'Création de la tâche de lancement de ibInit' -DebugLog
 if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {
   write-ib1log "Supression de l'ancienne tâche ibInit" -DebugLog
@@ -1385,8 +1391,8 @@ new-ib1Shortcut -URL 'https://docs.google.com/forms/d/e/1FAIpQLSfH3FiI3_0Gdqx7sI
 new-ib1Shortcut -File "$env:AppDATA\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows Powershell.lnk" -TaskBar
 $ShortcutShell=New-Object -ComObject WScript.Shell
 $formateurShortcut=$true
-Get-ChildItem -Recurse ([Environment]::GetFolderPath('CommonDesktopDirectory')),$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like '\\pc-formateur\partage') {$formateurShortcut=$false}}
-if ($formateurShortcut) { new-ib1Shortcut -File '\\pc-formateur\partage' -title 'Partage Formateur'}
+Get-ChildItem -Recurse ([Environment]::GetFolderPath('CommonDesktopDirectory')),$env:USERPROFILE\desktop -include *.lnk|foreach-object {if ($ShortcutShell.CreateShortcut($_).targetpath -like "\\$trainerComputerName\partage") {$formateurShortcut=$false}}
+if ($formateurShortcut) { new-ib1Shortcut -File "\\$trainerComputerName\partage" -title 'Partage Formateur'}
 new-ib1Shortcut -File '%windir%\System32\mmc.exe' -Params '%windir%\System32\virtmgmt.msc' -title 'Hyper-V Manager' -icon '%ProgramFiles%\Hyper-V\SnapInAbout.dll,0' -TaskBar
 new-ib1Shortcut -File '%SystemRoot%\System32\shutdown.exe' -Params '-s -t 0' -title 'Eteindre' -icon '%SystemRoot%\system32\SHELL32.dll,27'
 if (!(Get-SmbShare partage -ErrorAction SilentlyContinue)) {
@@ -1445,8 +1451,11 @@ Set-Content -Path "$env:windir\sysprep.cmd" -Value 'c:\windows\system32\sysprep\
 write-ib1log 'Mise en place du fond d''écran ib' -DebugLog
 invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/IBDesktop.png -OutFile "$env:windir\IBDesktop.png"
 Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name wallpaper -Value "$env:windir\IBDesktop.png"
-write-ib1log "Suppression de l'invite de nouveu réseau" -DebugLog
+write-ib1log "Suppression de l'invite de nouveau réseau" -DebugLog
 New-Item -Path HKLM:\SYSTEM\CurrentControlSet\Control\Network -Name newNetworkWindowOff|Out-Null
+write-ib1log "Nettoyage des applications du Store empèchant la commande Sysprep." -DebugLog
+Remove-AppxPackage -Package 'Microsoft.LanguageExperiencePacken-US_18362.4.5.0_neutral__8wekyb3d8bbwe' -AllUsers
+Remove-AppxPackage -Package 'Microsoft.LanguageExperiencePacken-GB_18362.6.15.0_neutral__8wekyb3d8bbwe' -AllUsers
 Restart-Computer -Force}
 
 function set-ib1VMExternalMac{
@@ -1570,7 +1579,9 @@ function invoke-ib1TechnicalSupport {
 .SYNOPSIS
 Cette commande permet d'utiliser des fonctionnalités du repositery Git de l'équipe tehcnique
 .PARAMETER Command
-Nom de la commande à lancer présente dans le fichier command.md du repositery
+Nom de la commande à lancer présente dans le fichier command.md du repo STC
+.PARAMETER File
+Nom du fichier à copier sur le bureau présent dans le repo STC
 .PARAMETER GetCred
 Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser pour lancer les commandes et script. S'il est omis, l'utilisateur actuellement connecté sera utilisé.
 .EXAMPLE
@@ -1578,11 +1589,11 @@ invoke-ib1TechnicalSupport -Command sysprep
 Va lancer la commande "sysprep" présente dans le fichier 'commands.ps1' du repo Git du service technique
 #>
 [CmdletBinding(DefaultParameterSetName='Command')]
-param([string]$Command,[string]$Script,[string]$Folder,[string]$File,[string]$TargetFolder,[string]$Teampassword,[switch]$GetCred)
+param([string]$Command,[string]$File,[string]$Teampassword,[switch]$GetCred)
 begin{get-ib1elevated $true}
 process {
 $stcCommands=read-ib1CourseFile -readUrl https://raw.githubusercontent.com/$TechnicalSupportGit/master/commandes.md -newLine "`n"
-if ($Command -eq '') {
+if ($Command -eq '' -and $File -eq '') {
   $objPick=foreach ($stcCommand in ($stcCommands|Get-Member -MemberType NoteProperty)) {New-Object psobject -Property @{'Quelle commande lancer'=$stcCommand.Name}}
   $input=$objPick|Out-GridView -Title "ib - Service technique Client" -PassThru
   $Command=$input.'Quelle commande lancer'}
@@ -1599,7 +1610,22 @@ elseif ($Command -ne '') {
       write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
       break}}
   write-ib1log "Lancement de la commande '$Command'" -DebugLog
-  invoke-expression $Command}}}
+  invoke-expression $Command}
+  if ($Command -eq '' -or $File -ne '') {
+    $STCFiles=Invoke-RestMethod -Headers @{Accept='application/vnd.github.v3.full+json'} -uri "https://api.github.com/repos/$TechnicalSupportGit/contents/data" -UseBasicParsing
+    if ($File -ne '') {$SelectedFiles=@{name=$File}}
+    else {$SelectedFiles=$STCFiles|Select-Object -Property name,size|sort-object -Property name| Out-GridView -Title 'ib - STC - Fichier(s) à copier sur le bureau.' -OutputMode Multiple}
+    $STCFiles|ForEach-Object {if ($SelectedFiles.name -contains $_.name) {
+      (new-object System.Net.WebClient).DownloadFile($_.download_url,"$($env:PUBLIC)\Desktop\$($_.name)")
+ }
+ }
+
+
+
+
+  }
+  }
+  }
   
 #######################
 #  Gestion du module  #

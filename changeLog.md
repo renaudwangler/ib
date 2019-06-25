@@ -1,4 +1,10 @@
-﻿**Version 2.5.9:**
+﻿**Version 2.5.10:**
+ - Ajout du transfert de fichiers dans la commande *stc*
+ - Nettoyage des applications Store empèchant le sysprep dans la commande *complete-ibSetup*
+ - Ajout du renommage de la machine avec l'option *-trainer* de la commande *ibSetup*
+ - Afgfinage du test de version du module AZ pour *ibSteup* du stage msaz103
+
+**Version 2.5.9:**
  - Placement du changelog en dehors du module PowerShell
  - Amélioration du moteur des APTS : mise en place de sauts de ligne automatique, simplification de l'aide pour les labs online, refonte du sommaire des stages.
 

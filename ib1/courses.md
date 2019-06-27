@@ -57,8 +57,8 @@ Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
 
 **Attention:** A l'issue de cette commande, ce sont les machines virtuelles suffixées "**-ib**" qui seront à utiliser pendant l'atelier.
 
-# ms100
-Un dossier "**Ateliers MS100**" a été plaçé sur le bureau qui contient :
+# msms100
+Un dossier "**Ateliers MSMS100**" a été plaçé sur le bureau qui contient :
  - Un lien vers l'environement d'ateliers en ligne "goDeploy"
  - Un lien vers le portail principal d'Office 365
  - Un lien vers le portail d'administration de Microsoft 365

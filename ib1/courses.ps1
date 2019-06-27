@@ -76,8 +76,8 @@ get-VM|Checkpoint-VM|Out-Null
     invoke-expression "set-ib1VMCusto -vmName nvhost3-ib -ipAddress '172.16.0.33' $ipconfig -switchName 'Private Network'"
     invoke-expression "set-ib1VMCusto -vmName nvhost4-ib -ipAddress '172.16.0.34' $ipconfig -switchName 'Private Network'"}
 
-# ms100
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MS100'
+# msms100
+  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSMS100'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-100AIntro.pptx -OutFile "$env:userprofile\documents\MS-100AIntro.pptx"}
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest

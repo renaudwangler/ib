@@ -1,4 +1,12 @@
-﻿**Version 2.5.10:**
+﻿**Version 2.5.11:**
+ - Suppression de l'option *gateway* des commandes *invoke-ib1XXX*
+ - Mutualisation de la configuration WinRM pour les commandes *invoke-ib1XXX*
+ - Nouvelle option *-net* pour la commande *ibSetup* permettant de lancer l'installation sur toutes les machines du sous-réseau
+     (à lancer depuis la machine de l'instructeur)
+ - Le stage ms100 s'appelle en fait msms100
+ - Ajout d'un raccourci '*ibStop*' pour la commande *stop-ib1Classroom*
+
+**Version 2.5.10:**
  - Ajout du transfert de fichiers dans la commande *stc*
  - Nettoyage des applications Store empèchant le sysprep dans la commande *complete-ibSetup*
  - Ajout du renommage de la machine avec l'option *-trainer* de la commande *ibSetup*

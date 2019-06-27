@@ -202,7 +202,7 @@ process{
     return $true}}}
 
 function get-ib1NetComputers {
-param([string]$subNet,[bool]$Nolocal=$false)
+param([string]$subNet,[Switch]$Nolocal)
 if ($SubNet -and $SubNet -ne '') {
   echo "valeur de subnet '$subnet'"
   if ($NoLocal) {write-ib1log "Le paramètre -NoLocal n'est pas compatible avec le paramètre -SubNet." -ErrorLog}
@@ -232,6 +232,15 @@ else {
   if ($NoLocal) {$netComputers.remove($ipAddress)}
   if ($netComputers.count -eq 0) {write-ib1log "Aucune machine disponible pour lancer la commande..." -ErrorLog}
   return $netComputers}
+
+function set-ib1WinRM {
+  write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
+  Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
+  $saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
+  Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
+  Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
+  Enable-PSRemoting -Force|Out-Null
+  return $saveTrustedHosts}
 
 function get-ib1Log {
 <#
@@ -358,13 +367,16 @@ Valeurs possibles : stages référencés dans les fichiers courses.ps1 et course
 Si ce paramètre est passé, l'installation générique aura lieu, sans demander de nom du stage à customiser.
 .PARAMETER trainer
 Si mentionnée, cette option permet de copier les présentation PPT (pour faciliter l'animation) depuis gitHub
+.PARAMETER net
+Si cette option est mentionnée, la commande sera executée sur toutes les machines démarrées dans la salle
+(à executer depuis la machine du formateur)
 .EXAMPLE
 install-ib1Course -course msAZ100
 Met en place l'environnement pour le stage msAZ100
 #>
 [CmdletBinding(
 DefaultParameterSetName='Course')]
-PARAM([string]$course='',[switch]$Force=$false,[Switch]$trainer=$false,[Switch]$noCourse=$false)
+PARAM([string]$course='',[switch]$Force=$false,[Switch]$trainer=$false,[Switch]$noCourse=$false,[Switch]$net)
 begin{get-ib1elevated $true}
 process {
 if ($env:ibTrainer -eq 1) {
@@ -389,6 +401,19 @@ if ($course -eq '' -and !$noCourse)  {
   $course=$input.'Quel stage installer'}
 if ($course -ne '' -and -not $courseDocs.$course) {write-ib1log "Le paramètre -course ne peut avoir que l'une des valeurs suivantes: $(($courseDocs|Get-Member -MemberType NoteProperty).name -join ', '). Merci de vérifier!" -ErrorLog}
 elseif ($course -ne '') {
+  if ($net) {
+    $trainer=$true
+    $computers=get-ib1NetComputers -Nolocal
+    $saveTrustedHosts=set-ib1WinRM
+    get-job|remove-job -Force
+    foreach ($computer in $computers.Keys) {invoke-command -ComputerName $computer -ScriptBlock {ibSetup $Using:course -Force} -ErrorAction Stop -AsJob|out-null}
+    #Attente de la fin des jobs.
+    $netSetupJobs=Get-Job
+    ForEach ($netSetupJob in $netSetupJobs) {
+      do {Start-Sleep -Seconds 10} until ($netSetupJob.state -like 'Failed' -or $netSetupJob.state -like 'Completed')
+    if ($netSetupJob.state -like 'Failed') {write-ib1log "[$($netSetupJob.Location)] Job non créé." -colorLog red}
+    else {write-ib1log "[$($netSetupJob.Location)] Installation réalisée." -colorLog Green}}
+    Set-Item WSMan:\localhost\Client\TrustedHosts -value $saveTrustedHosts -Force}
   write-ib1log "Mise en place de l'environnement pour le stage '$course'."
   $courseCommands=read-ib1CourseFile -fileName courses.ps1 -newLine "`n"
   if ($courseCommands.$course) {
@@ -1209,12 +1234,7 @@ if ($GetCred) {
   if (-not $cred) {write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
     break}}
 $computers=get-ib1NetComputers $SubNet
-write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
-Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
-Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
-Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
-Enable-PSRemoting -Force|Out-Null
+$saveTrustedHosts=set-ib1WinRM
 $command='$userDir=(get-item $env:USERPROFILE).parent.FullName;$dirsToClean=@("Desktop","Documents","Downloads","AppData\Local\google\Chrome\User Data\Default");$userSubDirs=Get-ChildItem $userDir;foreach ($userSubDir in $userSubDirs) {foreach ($dirToClean in $dirsToClean) {Get-ChildItem -recurse "$userDir\$userSubDir\$dirToClean"|where lastWriteTime -GE (get-date).AddDays(-'+$Delay+')|remove-item -recurse -force}};runDll32.exe inetCpl.cpl,ClearMyTracksByProcess 255;Remove-Item -Path ''C:\$Recycle.Bin'' -Recurse -Force'
 foreach ($computer in $computers.Keys) {
   $commandNoError=$true
@@ -1255,12 +1275,7 @@ if ($GetCred) {
   if (-not $cred) {write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
     break}}
 $computers=get-ib1NetComputers $SubNet -Nolocal $true
-write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
-Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
-Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
-Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
-Enable-PSRemoting -Force|Out-Null
+$saveTrustedHosts=set-ib1WinRM
 $command="$env:windir\system32\slmgr.vbs -rearm"
 foreach ($computer in $computers.Keys) {
   $commandNoError=$true
@@ -1293,9 +1308,6 @@ Ce switch permet de ne pas lancer la commande cible sur la machine locale.
 .PARAMETER SubNet
 Ce paramètre permet de spécifier (sous la forme X.Y.Z) le sous-réseau sur lequel lancer la commande.
 Par défaut, le sous-réseau local connecté à la machine est utilisé.
-.PARAMETER Gateway
-Ce paramètre permet de spécifier l'adresse de la passerelle par défaut du réseau choisi sur laquelle la commande ne sera pas executée
-Ce paramètre n'est utile qu'en complément du paramètre -SubNet
 .PARAMETER GetCred
 Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser pour la connexion WinRM et la commande
 S'il est omis, les identifiants de l'utilisateur connecté localement seront utilisés.
@@ -1309,7 +1321,6 @@ param(
 [string]$Command,
 [switch]$NoLocal,
 [string]$SubNet,
-[string]$GateWay,
 [switch]$GetCred)
 begin{get-ib1elevated $true}
 process {
@@ -1319,13 +1330,7 @@ if ($GetCred) {
     write-ib1log "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe" -warningLog
     break}}
 $computers=get-ib1NetComputers $SubNet -Nolocal $NoLocal
-if ($GateWay) {$computers.remove($GateWay)}
-write-ib1log "Vérification/mise en place de la configuration pour le WinRM local" -DebugLog
-Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
-Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
-Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
-Enable-PSRemoting -Force|Out-Null
+$saveTrustedHosts=set-ib1WinRM
 foreach ($computer in $computers.Keys) {
   $commandNoError=$true
   try {
@@ -1554,9 +1559,6 @@ Cette commande permet d'arrêter toutes les machines du réseau local, en termin
 .PARAMETER Subnet
 Adresse de sous-réseau (si absent, le réseau local sera utilisé)
 Nota: Si ce parmaètre est renseigné, la machine locale ne sera pas stoppée en fin d'action.
-.PARAMETER Gateway
-Ce paramètre permet de spécifier l'adresse de la passerelle par défaut du réseau choisi sur laquelle la commande ne sera pas executée
-Ce paramètre n'est utile qu'en complément du paramètre -SubNet
 .PARAMETER GetCred
 Si ce switch n'est pas spécifié, l'identité de l'utilisateur actuellement connecté sera utilisé pour stopper les machines.
 #>
@@ -1566,8 +1568,8 @@ param(
 begin {get-ib1elevated $true}
 process {
 if ($Subnet) {
-  if ($GetCred) {invoke-ib1NetCommand -Command 'stop-Computer -Force' -SubNet $Subnet -GateWay $GateWay -GetCred}
-  else {invoke-ib1NetCommand 'Stop-Computer -Force' -SubNet $Subnet -GateWay $GateWay}}
+  if ($GetCred) {invoke-ib1NetCommand -Command 'stop-Computer -Force' -SubNet $Subnet -GetCred}
+  else {invoke-ib1NetCommand 'Stop-Computer -Force' -SubNet $Subnet}}
 else {
   if ($GetCred) {invoke-ib1NetCommand -Command 'stop-Computer -Force' -NoLocal -GetCred}
   else {invoke-ib1NetCommand 'Stop-Computer -Force' -NoLocal}
@@ -1616,17 +1618,10 @@ elseif ($Command -ne '') {
     if ($File -ne '') {$SelectedFiles=@{name=$File}}
     else {$SelectedFiles=$STCFiles|Select-Object -Property name,size|sort-object -Property name| Out-GridView -Title 'ib - STC - Fichier(s) à copier sur le bureau.' -OutputMode Multiple}
     $STCFiles|ForEach-Object {if ($SelectedFiles.name -contains $_.name) {
-      (new-object System.Net.WebClient).DownloadFile($_.download_url,"$($env:PUBLIC)\Desktop\$($_.name)")
- }
- }
-
-
-
-
-  }
-  }
-  }
+      (new-object System.Net.WebClient).DownloadFile($_.download_url,"$($env:PUBLIC)\Desktop\$($_.name)")}}
+  }}}
   
+
 #######################
 #  Gestion du module  #
 #######################
@@ -1635,5 +1630,6 @@ Set-Alias ibSetup install-ib1Course
 Set-Alias set-ib1VhdBoot mount-ib1VhdBoot
 Set-Alias get-ib1Git get-ib1repo
 set-Alias stc invoke-ib1TechnicalSupport
+Set-Alias ibStop stop-ib1ClassRoom
 Export-moduleMember -Function install-ib1Chrome,complete-ib1Setup,invoke-ib1NetCommand,new-ib1Shortcut,Reset-ib1VM,Mount-ib1VhdBoot,Remove-ib1VhdBoot,Switch-ib1VMFr,Test-ib1VMNet,Connect-ib1VMNet,Set-ib1TSSecondScreen,Import-ib1TrustedCertificate, Set-ib1VMCheckpointType, Copy-ib1VM, repair-ib1VMNetwork, start-ib1SavedVMs, get-ib1log, get-ib1version, stop-ib1ClassRoom, new-ib1Nat, invoke-ib1Clean, invoke-ib1Rearm, get-ib1Repo, set-ib1VMExternalMac, install-ib1course, set-ib1ChromeLang,set-ib1VMCusto, new-ib1TaskBarShortcut,invoke-ib1TechnicalSupport
-Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git,ibSetup,stc
+Export-ModuleMember -Alias set-ib1VhdBoot,ibreset,complete-ib1Setup,get-ib1Git,ibSetup,stc,ibStop

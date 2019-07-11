@@ -63,6 +63,12 @@ Un dossier "**Ateliers MSMS100**" a été plaçé sur le bureau qui contient :
  - Un lien vers le portail principal d'Office 365
  - Un lien vers le portail d'administration de Microsoft 365
 
+# msms101
+Un dossier "**Ateliers MSMS101**" a été plaçé sur le bureau qui contient :
+ - Un lien vers l'environement d'ateliers en ligne "goDeploy"
+ - Un lien vers le portail principal d'Office 365
+ - Un lien vers le portail d'administration de Microsoft 365
+
 # m10979
 Un raccourci "**Ateliers stage m10979**" a été plaçé sur le bureau vers les instructions d'ateliers.
 

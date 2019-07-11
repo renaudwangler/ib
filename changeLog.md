@@ -1,4 +1,8 @@
-﻿**Version 2.5.11:**
+﻿**Version 2.5.12:**
+ - Ajout de commandes au démarrage pour désactiver systématiquement les services Windows Update (par customisation avec **complete-ib1setup**)
+ - Ajout de la customisation du stage MSMS101
+
+**Version 2.5.11:**
  - Suppression de l'option *gateway* des commandes *invoke-ib1XXX*
  - Mutualisation de la configuration WinRM pour les commandes *invoke-ib1XXX*
  - Nouvelle option *-net* pour la commande *ibSetup* permettant de lancer l'installation sur toutes les machines du sous-réseau

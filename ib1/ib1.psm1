@@ -1384,11 +1384,14 @@ if (Get-ScheduledTask -TaskName 'Lancement ibInit' -ErrorAction 0) {
   write-ib1log "Supression de l'ancienne tâche ibInit" -DebugLog
   Get-ScheduledTask -TaskName 'Lancement ibInit'|unregister-scheduledTask -confirm:0}
 $moduleVersion=(get-Module -ListAvailable -Name ib1|sort-object|select-object -last 1).version.tostring()
-$PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& set-executionpolicy bypass -force; $secondsToWait=10; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private;stop-service dosvc -erroraction silentlycontinue|out-null"'
-$PSTask2= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
 write-ib1log "Création de la tâche de mise à jour du module et de lancement de ibInit.ps1" -DebugLog
+$PSTask1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& set-executionpolicy bypass -force; $secondsToWait=10; While (($secondsToWait -gt 0) -and (-not(test-NetConnection))) {$secondsToWait--;start-sleep 1}; if (get-module -ListAvailable -name ib1) {update-module ib1 -force} else {install-module ib1 -force};Get-NetConnectionProfile|Set-NetConnectionProfile -NetworkCategory Private"'
+$PSTask2= New-ScheduledTaskAction -Execute 'powershell.exe' -argument ('-noprofile -windowStyle Hidden -command "'+"& $env:ProgramFiles\windowspowershell\Modules\ib1\$moduleVersion\ibInit.ps1"+'"')
+$PSTaskUpdate1=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& {Get-Service *wuauserv*|stop-service -passthru|set-service -StartupType disabled -Status Stopped}"'
+$PSTaskUpdate2=New-ScheduledTaskAction -Execute 'powershell.exe' -argument '-noprofile -windowStyle Hidden -command "& {Get-Service *BITS*|stop-service -passthru|set-service -StartupType disabled -Status Stopped}"'
+$PSTaskUpdate3=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-noprofile -windowStyle Hidden -command "& {Get-Service *dosvc*|stop-service -passthru|set-service -StartupType disabled -Status Stopped}"'
 $trigger=New-ScheduledTaskTrigger -AtStartup
-Register-ScheduledTask -Action $PSTask1,$PSTask2 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest|out-null
+Register-ScheduledTask -Action $PSTask1,$PSTask2,$PSTaskUpdate1,$PSTaskUpdate2,$PSTaskUpdate3 -AsJob -TaskName 'Lancement ibInit' -Description "Lancement de l'initialisation ib" -Trigger $trigger -user 'NT AUTHORITY\SYSTEM' -RunLevel Highest|out-null
 write-ib1log 'Création des raccourcis sur le bureau' -DebugLog
 new-ib1Shortcut -URL 'https://eval.ib-formation.com/avis' -title 'Mi-parcours'
 new-ib1Shortcut -URL 'https://eval.ib-formation.com' -title 'Evaluations'

@@ -58,28 +58,28 @@ Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
 **Attention:** A l'issue de cette commande, ce sont les machines virtuelles suffixées "**-ib**" qui seront à utiliser pendant l'atelier.
 
 # msms100
-Un dossier "**Ateliers MSMS100**" a été plaçé sur le bureau qui contient :
+Un dossier "**Ateliers MSMS100**" a été placé sur le bureau qui contient :
  - Un lien vers l'environement d'ateliers en ligne "goDeploy"
  - Un lien vers le portail principal d'Office 365
  - Un lien vers le portail d'administration de Microsoft 365
 
 # msms101
-Un dossier "**Ateliers MSMS101**" a été plaçé sur le bureau qui contient :
+Un dossier "**Ateliers MSMS101**" a été placé sur le bureau qui contient :
  - Un lien vers l'environement d'ateliers en ligne "goDeploy"
  - Un lien vers le portail principal d'Office 365
  - Un lien vers le portail d'administration de Microsoft 365
 
 # m10979
-Un raccourci "**Ateliers stage m10979**" a été plaçé sur le bureau vers les instructions d'ateliers.
+Un raccourci "**Ateliers stage m10979**" a été placé sur le bureau vers les instructions d'ateliers.
 
 ### m20533
-#Un raccourci "**Ateliers stage m20533**" a été plaçé sur le bureau vers les instructions d'ateliers.
+#Un raccourci "**Ateliers stage m20533**" a été placé sur le bureau vers les instructions d'ateliers.
 #
 #Lancer les commande suivantes *dans la machine virtuelle "MIA-CL1"* pour y installer les éléments utiles à la formation:
 #```install-module ib1<br/>ibSetup ##course##```
 
 # msaz900
-Un dossier "**Manipulations MSAZ900**" a été plaçé sur le bureau qui contient :
+Un dossier "**Manipulations MSAZ900**" a été placé sur le bureau qui contient :
  - Un lien vers la création de compte Azure gratuit
  - Un lien vers le portail Azure
  - Un lien vers le Cloud Shell Azure
@@ -87,7 +87,7 @@ Un dossier "**Manipulations MSAZ900**" a été plaçé sur le bureau qui contien
 Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
 
 # msaz100
-Un dossier "**Ateliers MSAZ100**" a été plaçé sur le bureau qui contient :
+Un dossier "**Ateliers MSAZ100**" a été placé sur le bureau qui contient :
  - Un lien vers la création de Pass Azure (nommé "Azure - Valisation pass")
  - Un lien vers le portail Azure
  - Un lien vers le Cloud Shell Azure
@@ -96,7 +96,7 @@ Un dossier "**Ateliers MSAZ100**" a été plaçé sur le bureau qui contient :
 Le module **AzureRM** en version 6.12.0 a été installé dans le Powershell de la machine.
 
 # msaz101
-Un dossier "**Ateliers MSAZ101**" a été plaçé sur le bureau qui contient :
+Un dossier "**Ateliers MSAZ101**" a été placé sur le bureau qui contient :
  - Un lien vers la création de Pass Azure (nommé "Azure - Valisation pass")
  - Un lien vers le portail Azure
  - Un lien vers le Cloud Shell Azure
@@ -105,12 +105,12 @@ Un dossier "**Ateliers MSAZ101**" a été plaçé sur le bureau qui contient :
 Le module **AzureRM** en version 6.12.0 a été installé dans le Powershell de la machine.
 
 # msaz103
-Un dossier "**Ateliers MSAZ103**" a été plaçé sur le bureau qui contient :
- - Les fichiers nécéssaires pour réaliser les ateliers (nommés AZ-100.x / AZ-101.x)
+Un dossier "**Ateliers MSAZ103**" a été placé sur le bureau qui contient :
+ - Les fichiers nécessaires pour réaliser les ateliers (nommés AZ-100.x / AZ-101.x)
  - Un lien vers la création de Pass Azure (nommé " Azure - Validation pass")
  - Un lien vers le portail Azure
  - Un lien vers le Cloud Shell Azure
- - Un lien vers les instructions en lignhe pour les divers ateliers.
+ - Un lien vers les instructions en ligne pour les divers ateliers.
 ## Liste des ateliers 
  Voici la liste des ateliers du stage msaz103, avec leur identification et leur nom, afin de plus aisément les retrouver dans les instructions en ligne :
  - Lab02A - Deploy and Manage Virtual Machines (anciennement az-100-03)

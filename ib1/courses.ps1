@@ -90,6 +90,22 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
 
+# msms200
+  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSMS200'
+  New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
+  if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-200AIntro.pptx -OutFile "$env:userprofile\documents\MS-200AIntro.pptx"}
+  new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
+  new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
+  new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
+
+# msms300
+  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSM300'
+  New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
+  if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-300AIntro.pptx -OutFile "$env:userprofile\documents\MS-300AIntro.pptx"}
+  new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
+  new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
+  new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
+
 # m10979
   new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions' -title 'Ateliers stage m10979'
 
@@ -133,6 +149,7 @@ get-VM|Checkpoint-VM|Out-Null
   get-ib1Repo AZ-103-MicrosoftAzureAdministrator -destPath $dest -srcPath Allfiles/labfiles
   if ($trainer) {
     invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103AIntro.pptx -OutFile "$env:userprofile\documents\AZ-103AIntro.pptx"
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103APrequel.pptx -OutFile "$env:userprofile\documents\AZ-103APrequel.pptx"
     invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-103A-Extra-Automation.pptx"}
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest

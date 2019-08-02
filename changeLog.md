@@ -1,4 +1,10 @@
-﻿**Version 2.5.12:**
+﻿**Version 2.5.20:**
+ - Corrections/Modifications diverses des APTS
+ - Ajout du stage MSMS200
+ - Ajout du stage MSMS300
+ - Ajout du jeu de diapositives *prequel* pour le stage MSAZ103
+
+**Version 2.5.12:**
  - Ajout de commandes au démarrage pour désactiver systématiquement les services Windows Update (par customisation avec **complete-ib1setup**)
  - Ajout de la customisation du stage MSMS101
 

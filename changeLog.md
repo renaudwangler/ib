@@ -1,4 +1,9 @@
-﻿**Version 2.5.20:**
+﻿**Version 2.5.22:**
+ -Correction installation du module AZ pour stage msaz103
+ -Ajout du stage MSMS500
+ -Ajout de la documentation goDeploy dans les APTS
+
+**Version 2.5.20:**
  - Corrections/Modifications diverses des APTS
  - Ajout du stage MSMS200
  - Ajout du stage MSMS300

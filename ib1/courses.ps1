@@ -170,7 +170,7 @@ get-VM|Checkpoint-VM|Out-Null
     Start-Process -FilePath "$env:TEMP\Net48.exe" -ArgumentList "/q /norestart" -wait
     $restart=$true}
   $azModule=Get-Module -ListAvailable Az*|Sort-Object -Descending -Property version|Select-Object -First 1
-  if ([version](Find-Module $azModule.Name).version -gt [version]$azModule.version) {
+  if (!($azModule) -or ((Find-Module $azModule.Name).version -gt [version]$azModule.version)) {
     echo "Installation module 'AZ'"
     install-module az -Force}
   if ($restart) { Restart-Computer -Force}

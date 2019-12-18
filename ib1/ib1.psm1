@@ -4,7 +4,7 @@
 #
 $ib1DISMUrl="https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx"
 $ib1DISMPath='C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
-$ibppt='Présentation stagiaire automatique 2019.ppsx'
+$ibppt='Présentation stagiaire automatique 2020.ppsx'
 $adobeReaderUrl='http://ardownload.adobe.com/pub/adobe/reader/win/AcrobatDC/1901220034/AcroRdrDC1901220034_fr_FR.exe'
 $remoteControlUrl='https://download.teamviewer.com/download/TeamViewerQS.exe'
 $mslearnGit='MicrosoftLearning'

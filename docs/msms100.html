@@ -34,15 +34,12 @@ On note encore quelques trace de la naissance de ce stage qui fut d'abord une co
 <li>Dans la fenêtre "Save As", cliquer sur "browse"
 <li>Remplacer le chemin dans la barre d'adresse de la fenêtre par l'url précédemment notée.
 <li>Après un court instant, le navigateur du site Sharepoint apparait.</ul>
-<i>Atelier 4</i>
-Bien vérifier que l'utilisateur de test fasse bien partie de l'OU sur laquelle a été liée la GPO.
-**Office Telemetry**
+<b>Atelier 4 - Office Telemetry</b>
 Afin de bypasser l'attente présente par défaut avant le feedback de l'agent Telemetry, ajouter les 2 clefs de registre suivantes *dans un environement de test*:
-```HKCU\Software\Microsoft\Policies\Microsoft\Office\16.0\osm
+<code>HKCU\Software\Microsoft\Policies\Microsoft\Office\16.0\osm
   - AgentInitWait dWord 1
-  - AgentRandomDelay Dword 0```
-L'atelier commence par la création d'un compte o365 de test.
-L'environnement d'ateliers comporte déja un compte Office 365 auto-généré : indiquer aux stagiaires qu'ils peuvent, au choix, utiliser le compte créé pour eux ou en créer un nouveau s'ils souhaitent découvrir cette procédure.
+  - AgentRandomDelay Dword 0</code>
+ 
 Dans Sharepoint Online 2019, le "Site de communication" remplace "Site privé" (et pas "site d'équipe").
 </div>
 

@@ -424,7 +424,6 @@ elseif ($course -ne '') {
     $env:ibCourse=$course
     write-ib1log "Inscription de l'identité du stage '$course' dans la variable système 'ibCourse'." -DebugLog}}
 set-ib1CourseHelp $course
-import-ib1TrustedCertificate
 install-ib1Chrome -Force
 if ($trainer) {
   $ibpptUrl="https://raw.githubusercontent.com/renaudwangler/ib/master/extra/$ibppt"
@@ -851,7 +850,7 @@ function import-ib1TrustedCertificate {
 .SYNOPSIS
 Cette commande permet d'importer un certificat depuis une URL afin de l'ajouter aux racines de confiance de l'utilisateur en cours.
 .PARAMETER CertificateUrl
-Chemin (obligatoire, certificat plateformes Mars si omis) complet du certificat .cer à télécharger
+Chemin (obligatoire) complet du certificat .cer à télécharger
 .EXAMPLE
 import-ib1TrustedCertificate "http://mars.ib-formation.fr/marsca.cer"
 Importera le certificat mentionné dans le magasin des certificat de confiance de l'utilisateur actuel.
@@ -859,11 +858,10 @@ Importera le certificat mentionné dans le magasin des certificat de confiance d
 [CmdletBinding(
 DefaultParameterSetName='CertificateUrl')]
 PARAM(
-[parameter(ValueFromPipeLine=$false,HelpMessage='Url du certificat à importer')]
+[parameter(Mandatory=$true,ValueFromPipeLine=$false,HelpMessage='Url du certificat à importer')]
 [string]$CertificateUrl='')
 begin {get-ib1elevated $true}
 process {
-if ($CertificateUrl -eq '') {$CertificateUrl='http://mars.ib-formation.fr/marsca.cer'}
 $fileName=split-path $CertificateUrl -leaf
 try {invoke-webrequest $CertificateUrl -OutFile "$($env:USERPROFILE)\downloads\$fileName" -ErrorAction stop}
 catch {write-ib1log "URL incrorrecte, le fichier '' est introuvable" -ErrorLog}

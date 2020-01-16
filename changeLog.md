@@ -1,4 +1,9 @@
-﻿**Version 2.5.23:**
+﻿**Version 2.5.24:**
+ - Suppression de l'import du certificat des plateformes vmWare *mars* devenu obsolète
+ - Ajout du stage msaz300
+ - Ajout d'une installation générique *goDeploy*
+
+**Version 2.5.23:**
  - Nouvelle présentation stagiaire 2020
 
 **Version 2.5.22:**

@@ -57,6 +57,9 @@ Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
 
 **Attention:** A l'issue de cette commande, ce sont les machines virtuelles suffixées "**-ib**" qui seront à utiliser pendant l'atelier.
 
+# goDeploy
+Un raccourci "**Ateliers en ligne**" a été placé sur le bureau qui renvoie vers l'environement d'ateliers en ligne "goDeploy"
+
 # msms100
 Un dossier "**Ateliers MSMS100**" a été placé sur le bureau qui contient :
  - Un lien vers l'environement d'ateliers en ligne "goDeploy"
@@ -129,23 +132,15 @@ Un dossier "**Ateliers MSAZ103**" a été placé sur le bureau qui contient :
  - Un lien vers le portail Azure
  - Un lien vers le Cloud Shell Azure
  - Un lien vers les instructions en ligne pour les divers ateliers.
-## Liste des ateliers 
- Voici la liste des ateliers du stage msaz103, avec leur identification et leur nom, afin de plus aisément les retrouver dans les instructions en ligne :
- - Lab02A - Deploy and Manage Virtual Machines (anciennement az-100-03)
- - Lab02B - Virtual Machines and Scale Sets (anciennement az-100-03b)
- - Lab03  - Implement and Manage Storage (anciennement az-100-02)
- - Lab04  - Configure Azure DNS (anciennement az-100-04b)
- - Lab05  - VNet Peering and Service Chaining (anciennement az-100-04)
- - Lab06  - Network Watcher (anciennement az-101-03b)
- - Lab07  - Azure Site Recovery Between Regions (anciennement az-101-01)
- - Lab08  - Load Balancer and Traffic Manager (anciennement az-101-03)
- - Lab09  - Implement Directory Synchronization (anciennement az-100-05)
- - Lab10A - Azure AD Identity Protection (anciennement az-101-04b)
- - Lab10B - Self-Service Password Reset (anciennement az-100-05b)
- - Lab11A - Role-Based Access Control (anciennement OLD: az-100-01)
- - Lab11B - Governance and Compliance (OLD: az-100-01b)
- - Lab12  - File Sync (anciennement az-100-02b)
+ Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
 
+# msaz300
+Un dossier "**Ateliers MSAZ300**" a été placé sur le bureau qui contient :
+ - Les fichiers nécessaires pour réaliser les ateliers
+ - Un lien vers la création de Pass Azure (nommé " Azure - Validation pass")
+ - Un lien vers le portail Azure
+ - Un lien vers le Cloud Shell Azure
+ - Un lien vers les instructions en ligne pour les divers ateliers.
  Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
 
 # intro

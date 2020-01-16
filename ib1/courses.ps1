@@ -183,7 +183,7 @@ get-VM|Checkpoint-VM|Out-Null
   $restart=$false
   get-ib1Repo AZ-300-MicrosoftAzureArchitectTechnologies -destPath $dest -srcPath Allfiles
   if ($trainer) {
-    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103AIntro.pptx -OutFile "$env:userprofile\documents\AZ-103AIntro.pptx"
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-300AIntro.pptx -OutFile "$env:userprofile\documents\AZ-300AIntro.pptx"
     invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103APrequel.pptx -OutFile "$env:userprofile\documents\AZ-103APrequel.pptx"}
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest

@@ -178,7 +178,7 @@ get-VM|Checkpoint-VM|Out-Null
     install-module az -Force}
   if ($restart) { Restart-Computer -Force}
 
-  # msaz300
+# msaz300
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ300'
   $restart=$false
   get-ib1Repo AZ-300-MicrosoftAzureArchitectTechnologies -destPath $dest -srcPath Allfiles
@@ -200,7 +200,6 @@ get-VM|Checkpoint-VM|Out-Null
     echo "Installation module 'AZ'"
     install-module az -Force}
   if ($restart) { Restart-Computer -Force}
-
 
 # msaz101
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ101'

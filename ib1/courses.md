@@ -143,6 +143,15 @@ Un dossier "**Ateliers MSAZ300**" a été placé sur le bureau qui contient :
  - Un lien vers les instructions en ligne pour les divers ateliers.
  Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
 
+# msaz301
+Un dossier "**Ateliers MSAZ301**" a été placé sur le bureau qui contient :
+ - Les fichiers nécessaires pour réaliser les ateliers
+ - Un lien vers la création de Pass Azure (nommé " Azure - Validation pass")
+ - Un lien vers le portail Azure
+ - Un lien vers le Cloud Shell Azure
+ - Un lien vers les instructions en ligne pour les divers ateliers.
+ Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
+
 # intro
 <!DOCTYPE html><html><head><title>##course##</title><style>body {padding:10px;color:gray;font-family:tahoma;}h1,h2{color:#EA690B;text-decoration:underline;margin:0em;}h2{margin-top:1em;margin-bottom:0.5em;}li{list-style:none;}li::before{color:#EA690B;content:"\2022";font-size:1em;padding-right:0.7em;}code{border:solid 1px darkgrey;padding:3px;margin:2px;margin-bottom:0px;background-color:lightgrey;display:inline-block;color:black;}strong {font-weight:bold;color:black;}hr {margin:2em;}</style></head><body><h1>Bienvenue !</h1>
 Voici quelques petits conseils afin d'améliorer le déroulement du stage ##course##.

@@ -201,6 +201,29 @@ get-VM|Checkpoint-VM|Out-Null
     install-module az -Force}
   if ($restart) { Restart-Computer -Force}
 
+# msaz301
+  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ301'
+  $restart=$false
+  get-ib1Repo AZ-301-MicrosoftAzureArchitectDesign -destPath $dest -srcPath Allfiles
+  if ($trainer) {
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-301AIntro.pptx -OutFile "$env:userprofile\documents\AZ-301AIntro.pptx"
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103APrequel.pptx -OutFile "$env:userprofile\documents\AZ-103APrequel.pptx"}
+  new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
+  new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
+  new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
+  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-301-MicrosoftAzureArchitectDesign/tree/master/Instructions' -title 'Instructions Ateliers' -dest $dest
+  if ([version](Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\' -Recurse|Get-ItemProperty -Name version,release -EA 0|where {$_.pschildName -match '^(?!S)\p{L}'}|Sort-Object -Descending -Property version|Select-Object -First 1).version -lt [version]'4.8.0') {
+    echo "Installation Framework .Net 4.8"
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri https://go.microsoft.com/fwlink/?linkid=2088631 -OutFile "$env:TEMP\Net48.exe"
+    Start-Process -FilePath "$env:TEMP\Net48.exe" -ArgumentList "/q /norestart" -wait
+    $restart=$true}
+  $azModule=Get-Module -ListAvailable Az*|Sort-Object -Descending -Property version|Select-Object -First 1
+  if (!($azModule) -or ((Find-Module $azModule.Name).version -gt [version]$azModule.version)) {
+    echo "Installation module 'AZ'"
+    install-module az -Force}
+  if ($restart) { Restart-Computer -Force}
+
 # msaz101
   $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ101'
   get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest -srcPath Allfiles/labfiles

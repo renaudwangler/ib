@@ -1,4 +1,7 @@
-﻿**Version 2.5.24:**
+﻿**Version 2.5.27:**
+ - Ajout du stage msaz301
+
+**Version 2.5.24:**
  - Suppression de l'import du certificat des plateformes vmWare *mars* devenu obsolète
  - Ajout du stage msaz300
  - Ajout d'une installation générique *goDeploy*

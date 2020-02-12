@@ -3,7 +3,7 @@
 #
 # Généré par : Wangler
 #
-# Généré le : 09/02/2020
+# Généré le : 12/02/2020
 #
 
 @{
@@ -12,7 +12,7 @@
 RootModule = 'ib1.psm1'
 
 # Numéro de version de ce module.
-ModuleVersion = '2.5.27'
+ModuleVersion = '2.5.30'
 
 # Éditions PS prises en charge
 # CompatiblePSEditions = @()

@@ -79,7 +79,7 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Ateliers en ligne' -dest ([Environment]::GetFolderPath('CommonDesktopDirectory'))
 
 # msms100
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSMS100'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS100'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-100AIntro.pptx -OutFile "$env:userprofile\documents\MS-100AIntro.pptx"}
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
@@ -87,14 +87,14 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
 
 # msms101
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSMS101'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS101'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
   new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
 
 # msms200
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSMS200'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS200'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-200AIntro.pptx -OutFile "$env:userprofile\documents\MS-200AIntro.pptx"}
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
@@ -102,7 +102,7 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
 
 # msms300
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSMS300'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS300'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-300AIntro.pptx -OutFile "$env:userprofile\documents\MS-300AIntro.pptx"}
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
@@ -110,7 +110,7 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
 
 # msms500
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSMS500'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS500'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-500AIntro.pptx -OutFile "$env:userprofile\documents\MS-500AIntro.pptx"}
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
@@ -120,17 +120,15 @@ get-VM|Checkpoint-VM|Out-Null
 # m10979
   new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/10979-MicrosoftAzureFundamentals/tree/master/Instructions' -title 'Ateliers stage m10979'
 
-# m20533
-  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/20533-ImplementingMicrosoftAzureInfrastructureSolutions/tree/master/Instructions' -title 'Ateliers stage m20533'
-  if ($env:COMPUTERNAME -like '*mia-cl1*') {get-ib1Repo 20533-ImplementingMicrosoftAzureInfrastructureSolutions -srcPath Allfiles -destPath F:\}
-
 # msaz900
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Manipulations MSAZ900'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Manipulations MSAZ900'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
   if ($trainer) {invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-900AIntro.pptx -OutFile "$env:userprofile\documents\AZ-900AIntro.pptx"}
   new-ib1Shortcut -URL 'https://azure.microsoft.com/en-us/free/' -title 'Azure - Free Account' -dest $dest
+  new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
+  new-ib1Shortcut -URL 'https://microsoftlearning.github.io/AZ-900T0x-MicrosoftAzureFundamentals/' -title 'Instructions Ateliers' -dest $dest
   echo "Installation Framework .Net 4.8"
   if ([version](Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\' -Recurse|Get-ItemProperty -Name version,release -EA 0|where {$_.pschildName -match '^(?!S)\p{L}'}|Sort-Object -Descending -Property version|Select-Object -First 1).version -lt [version]'4.8.0') {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -142,20 +140,8 @@ get-VM|Checkpoint-VM|Out-Null
     install-module az -Force}
   if ($restart) { Restart-Computer -Force}
 
-# msaz100
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ100'
-  get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest -srcPath Allfiles/labfiles
-  if ($trainer) {
-    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-100AIntro.pptx -OutFile "$env:userprofile\documents\AZ-100AIntro.pptx"
-    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-100AExtraAutomation.pptx -OutFile "$env:userprofile\documents\AZ-100A-Extra-Automation.pptx"}
-  new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
-  new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
-  new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
-  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-100-MicrosoftAzureInfrastructureDeployment/tree/master/Instructions' -title 'Instructions Ateliers' -dest $dest
-  install-module azureRM -maximumVersion 6.12.0 -force
-  
 # msaz103
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ103'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSAZ103'
   $restart=$false
   get-ib1Repo AZ-103-MicrosoftAzureAdministrator -destPath $dest -srcPath Allfiles/labfiles
   if ($trainer) {
@@ -165,7 +151,7 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
   new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
-  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-103-MicrosoftAzureAdministrator/tree/master/Instructions/Labs' -title 'Instructions Ateliers' -dest $dest
+  new-ib1Shortcut -URL 'https://microsoftlearning.github.io/AZ-103-MicrosoftAzureAdministrator/' -title 'Instructions Ateliers' -dest $dest
   if ([version](Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\' -Recurse|Get-ItemProperty -Name version,release -EA 0|where {$_.pschildName -match '^(?!S)\p{L}'}|Sort-Object -Descending -Property version|Select-Object -First 1).version -lt [version]'4.8.0') {
     echo "Installation Framework .Net 4.8"
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -179,7 +165,7 @@ get-VM|Checkpoint-VM|Out-Null
   if ($restart) { Restart-Computer -Force}
 
 # msaz300
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ300'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSAZ300'
   $restart=$false
   get-ib1Repo AZ-300-MicrosoftAzureArchitectTechnologies -destPath $dest -srcPath Allfiles
   if ($trainer) {
@@ -202,9 +188,14 @@ get-VM|Checkpoint-VM|Out-Null
   if ($restart) { Restart-Computer -Force}
 
 # msaz301
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ301'
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSAZ301'
   $restart=$false
   get-ib1Repo AZ-301-MicrosoftAzureArchitectDesign -destPath $dest -srcPath Allfiles
+  invoke-webRequest -uri https://aka.ms/win32-x64-user-stable -OutFile "$env:TEMP\vsCode.exe"
+  & $env:TEMP\vsCode.exe /VERYSILENT /MERGETASKS=!runcode
+  $vsLnk="$env:AppDATA\Microsoft\Windows\Start Menu\Programs\Visual Studio Code\Visual Studio Code.lnk"
+  while (!(Test-Path $vsLnk)) { Start-Sleep 10 }
+  new-ib1Shortcut -File $vsLnk -TaskBar
   if ($trainer) {
     invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-301AIntro.pptx -OutFile "$env:userprofile\documents\AZ-301AIntro.pptx"
     invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-103APrequel.pptx -OutFile "$env:userprofile\documents\AZ-103APrequel.pptx"}
@@ -224,25 +215,4 @@ get-VM|Checkpoint-VM|Out-Null
     install-module az -Force}
   if ($restart) { Restart-Computer -Force}
 
-# msaz101
-  $dest=[Environment]::GetFolderPath('CommonDesktopDirectory')+'\Ateliers MSAZ101'
-  get-ib1Repo AZ-101-MicrosoftAzureIntegrationandSecurity -destPath $dest -srcPath Allfiles/labfiles
-  if ($trainer) {invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/AZ-101AIntro.pptx -OutFile "$env:userprofile\documents\AZ-101AIntro.pptx"}
-  new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
-  new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
-  new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'AZure - Validation pass' -dest $dest
-  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-101-MicrosoftAzureIntegrationandSecurity/tree/master/Instructions' -title 'Instructions Ateliers' -dest $dest
-  install-module azureRM -maximumVersion 6.12.0 -force
-
 # Fin
-
-#'msaz100old'='
-$dest=[Environment]::GetFolderPath("CommonDesktopDirectory")+"\Ateliers MSAZ100"
-get-ib1Repo AZ-100-MicrosoftAzureInfrastructureDeployment -destPath $dest
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-remove-item "$($dest)\AZ-100T03A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-remove-item "$($dest)\AZ-100T04A-ENU-LabFiles.zip" -force -errorAction SilentlyContinue
-remove-item "$($dest)\labfiles" -force -recurse -errorAction silentlyContinue
-get-childitem ($dest)|foreach-object {unzip $_.fullName $dest;remove-item $_.fullName -force -errorAction SilentlyContinue}
-get-childitem ($dest) -directory|foreach-object {move-item "$($_.fullname)\*" -destination $dest;remove-item $_.fullName -force}
-get-childitem ($dest) -file|foreach-object {rename-item -path $_.fullName -newName "Partie $($_.name[8]).pdf"}';

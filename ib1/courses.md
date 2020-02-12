@@ -93,37 +93,14 @@ Un dossier "**Ateliers MSMS500**" a été placé sur le bureau qui contient :
 # m10979
 Un raccourci "**Ateliers stage m10979**" a été placé sur le bureau vers les instructions d'ateliers.
 
-### m20533
-#Un raccourci "**Ateliers stage m20533**" a été placé sur le bureau vers les instructions d'ateliers.
-#
-#Lancer les commande suivantes *dans la machine virtuelle "MIA-CL1"* pour y installer les éléments utiles à la formation:
-#```install-module ib1<br/>ibSetup ##course##```
-
 # msaz900
 Un dossier "**Manipulations MSAZ900**" a été placé sur le bureau qui contient :
  - Un lien vers la création de compte Azure gratuit
+ - Un lien vers la création de Pass Azure (nommé " Azure - Validation pass")
  - Un lien vers le portail Azure
  - Un lien vers le Cloud Shell Azure
 
 Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
-
-# msaz100
-Un dossier "**Ateliers MSAZ100**" a été placé sur le bureau qui contient :
- - Un lien vers la création de Pass Azure (nommé "Azure - Valisation pass")
- - Un lien vers le portail Azure
- - Un lien vers le Cloud Shell Azure
- - Un lien vers les instructions des ateliers
-
-Le module **AzureRM** en version 6.12.0 a été installé dans le Powershell de la machine.
-
-# msaz101
-Un dossier "**Ateliers MSAZ101**" a été placé sur le bureau qui contient :
- - Un lien vers la création de Pass Azure (nommé "Azure - Valisation pass")
- - Un lien vers le portail Azure
- - Un lien vers le Cloud Shell Azure
- - Un lien vers les instructions des ateliers
-
-Le module **AzureRM** en version 6.12.0 a été installé dans le Powershell de la machine.
 
 # msaz103
 Un dossier "**Ateliers MSAZ103**" a été placé sur le bureau qui contient :
@@ -151,6 +128,7 @@ Un dossier "**Ateliers MSAZ301**" a été placé sur le bureau qui contient :
  - Un lien vers le Cloud Shell Azure
  - Un lien vers les instructions en ligne pour les divers ateliers.
  Le module **AZ** a été installé dans le Powershell de la machine (ainsi que le Framework .Net 4.8).
+ L'éditeur Visual Studio Code a été installé dans sa dernière version.
 
 # intro
 <!DOCTYPE html><html><head><title>##course##</title><style>body {padding:10px;color:gray;font-family:tahoma;}h1,h2{color:#EA690B;text-decoration:underline;margin:0em;}h2{margin-top:1em;margin-bottom:0.5em;}li{list-style:none;}li::before{color:#EA690B;content:"\2022";font-size:1em;padding-right:0.7em;}code{border:solid 1px darkgrey;padding:3px;margin:2px;margin-bottom:0px;background-color:lightgrey;display:inline-block;color:black;}strong {font-weight:bold;color:black;}hr {margin:2em;}</style></head><body><h1>Bienvenue !</h1>

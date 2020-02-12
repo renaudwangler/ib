@@ -36,6 +36,8 @@ if (!(Test-Path $env:SystemRoot\taskBarLayout.xml)) {Set-Content -Value ('<?xml 
 </CustomTaskbarLayoutCollection>
 </LayoutModificationTemplate>') -Path $env:SystemRoot\taskBarLayout.xml}
 $taskbarLayout=Get-Content $env:SystemRoot\taskBarLayout.xml
+#Correction pour master défextueux :
+Set-Content -Path $env:SystemRoot\taskBarLayout.xml -Value ($taskbarLayout -replace '<CustomTaskbarLayoutCollection><defaultlayout:TaskbarLayout>',"<CustomTaskbarLayoutCollection>`n<defaultlayout:TaskbarLayout>")
 $TBNewLine="<taskbar:DesktopApp DesktopApplicationLinkPath=""$Shortcut"" />"
 if ($taskbarLayout -notcontains $TBNewLine) {Set-Content -Path $env:SystemRoot\taskBarLayout.xml -Value ($taskbarLayout -replace '</taskbar:TaskbarPinList>',"$TBNewLine`n</taskbar:TaskbarPinList>")}
 #mise en place des clefs de registre pour impliquer le fichier précédent

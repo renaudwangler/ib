@@ -1,4 +1,11 @@
-﻿**Version 2.5.27:**
+﻿**Version 2.5.30:**
+ - Installation automatique de Visual Studio Code pour le stage msaz301
+ - Changement des raccourcis "ateliers xxx" pour les placer sur le bureau de l'utilisateur connecté.
+ - Correction du fichier XML de raccourcis dans la barre des tâches.
+ - Changement du raccourci vers les instructions des stages MSAZ103 et MSAZ900 (lien vers nouveau format MS).
+ - Suppression des stages m20533, msaz100 et msaz101
+
+**Version 2.5.27:**
  - Ajout du stage msaz301
 
 **Version 2.5.24:**

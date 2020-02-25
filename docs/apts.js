@@ -13,6 +13,8 @@ function aptsLoad() {
   readFile(ibMaster1+'/master1.html','master1');
   readFile(ibMaster0+'/master0.html','master0');
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy',true);}
+  if (document.getElementById('o365')) {readFile('o365.html','o365',true);}
+  if (document.getElementById('Azure')) {readFile('Azure.html','Azure',true);}
   readFile('outro.html','outro');
   document.title=ibCourse+' - APTS';}
 

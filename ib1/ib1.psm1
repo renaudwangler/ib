@@ -1617,6 +1617,7 @@ elseif ($Command -ne '') {
   write-ib1log "Lancement de la commande '$Command'" -DebugLog
   invoke-expression $Command}
   if ($Command -eq '' -or $File -ne '') {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $STCFiles=Invoke-RestMethod -Headers @{Accept='application/vnd.github.v3.full+json'} -uri "https://api.github.com/repos/$TechnicalSupportGit/contents/data" -UseBasicParsing
     if ($File -ne '') {$SelectedFiles=@{name=$File}}
     else {$SelectedFiles=$STCFiles|Select-Object -Property name,size|sort-object -Property name| Out-GridView -Title 'ib - STC - Fichier(s) à copier sur le bureau.' -OutputMode Multiple}

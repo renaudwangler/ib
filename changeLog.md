@@ -1,4 +1,10 @@
-﻿**Version 2.5.30:**
+﻿**Version 2.5.31:**
+ - Correction commande ** pour anciennes versions de Windows 10 (TLS 1.2)
+ - Timing du stage MSMS101 dans APTS
+ - Astuces génériuques sur Office 365 dans APTS
+ - Astuces généraiques sur Azure dans APTS
+
+**Version 2.5.30:**
  - Installation automatique de Visual Studio Code pour le stage msaz301
  - Changement des raccourcis "ateliers xxx" pour les placer sur le bureau de l'utilisateur connecté.
  - Correction du fichier XML de raccourcis dans la barre des tâches.

@@ -1,4 +1,7 @@
-﻿**Version 2.5.32:**
+﻿**Version 2.5.33:**
+ - Ajout de l'information de date de master à la commande complete-ib1Setup
+
+**Version 2.5.32:**
  - Préparation du stage AZ-104
  - Suppression du stage m10979
 

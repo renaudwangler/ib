@@ -1355,6 +1355,9 @@ function complete-ib1Setup{
 Cette commande permet de finaliser/réparer l'installation de la machine hôte ib
 #>
 get-ib1elevated $true
+$computerDesc=Get-WmiObject win32_OperatingSystem -ComputerName .
+$computerDesc.Description="Master $(get-date -Format 'yyyyMMdd') en cours de création"
+$computerDesc.put()|Out-Null
 write-ib1log "Désactivation de l'UAC" -DebugLog
 Set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name “ConsentPromptBehaviorAdmin” -Value “0”
 Set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name “PromptOnSecureDesktop” -Value “0”
@@ -1374,6 +1377,8 @@ if ((Get-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V-All -Online).stat
   write-ib1log 'Installation de Hyper-V' -DebugLog
   Enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V-All -NoRestart -WarningAction SilentlyContinue|out-null
   write-ib1log "Merci de redémarrer la machine et de relancer la commande après redémarrage pour finaliser la confirguration!" -warningLog
+  $computerDesc.Description="Master $(get-date -Format 'yyyyMMdd') en cours de création - Hyper-V installé"
+  $computerDesc.put()|Out-Null
   break}
 else {
   if ((get-VMHost).EnableEnhancedSessionMode) {
@@ -1464,6 +1469,8 @@ New-Item -Path HKLM:\SYSTEM\CurrentControlSet\Control\Network -Name newNetworkWi
 write-ib1log "Nettoyage des applications du Store empèchant la commande Sysprep." -DebugLog
 Remove-AppxPackage -Package 'Microsoft.LanguageExperiencePacken-US_18362.4.5.0_neutral__8wekyb3d8bbwe' -AllUsers
 Remove-AppxPackage -Package 'Microsoft.LanguageExperiencePacken-GB_18362.6.15.0_neutral__8wekyb3d8bbwe' -AllUsers
+$computerDesc.Description="Master $(get-date -Format 'yyyyMMdd') - Réalisé par module ib1 v$(get-ib1Version)"
+$computerDesc.put()|Out-Null
 Restart-Computer -Force}
 
 function set-ib1VMExternalMac{

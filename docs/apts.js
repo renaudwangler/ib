@@ -7,7 +7,7 @@
 
 function aptsLoad() {
   modDate=new Date(document.lastModified);
-  document.body.innerHTML='<h1>'+ibCourse+' - Accompagnement Pédagogique et Technique de stage</h1><div class="edition">(Dernière édition le '+modDate.getDate()+'/'+modDate.getMonth()+'/'+modDate.getFullYear()+')</div>'+document.body.innerHTML+'<div id="master1"></div><div id="master0"></div><div id="outro"></div>';
+  document.body.innerHTML='<a href="index.html" title="Retour à la liste." id="back">Retour</a><h1>'+ibCourse+' - Accompagnement Pédagogique et Technique de stage</h1><div class="edition">(Dernière édition le '+modDate.getDate()+'/'+(modDate.getMonth()+1)+'/'+modDate.getFullYear()+')</div>'+document.body.innerHTML+'<div id="master1"></div><div id="master0"></div><div id="outro"></div>';
   if (document.getElementById('custo')) {document.getElementById('custo').innerHTML='<h2>Customisation spécifique du stage '+ibCourse+'</h2>'+document.getElementById('custo').innerHTML+'<hr/>';}
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+ibCourse+'</h2>'+document.getElementById('conseils').innerHTML+'<div id="conseilsGeneriques">Prendre connaissance du fichier readme posé sur le bureau et suggérer aux stagiaires de faire de même.<br/>En cas de soucis sur un poste, il est possible de (re)lancer la commande <code>ibSetup '+ibCourse+' -force</code> pour mettre en place ou corriger les éléments de customisation décrits précédemment.<br/>(y ajouter l\'option "<code>-trainer</code>" sur le poste du formateur).</div>';}
   readFile(ibMaster1+'/master1.html','master1');

@@ -25,11 +25,15 @@ Il faudra également éviter de prévoir des journées de travail trop dense : e
 <h3>Timing exemple</h3>
 <ul>
 <li>Jour 1 : Modules 1, 2, 3 (lab) et 4
-<li>Jour 2 : Modules 5 (lab), 6
+<li>Jour 2 : Modules 5 (lab), 6, 7 (lab), 8 et 9 (lab)
 <li>Jour 3 : Modules
 <li>Jour 4 : Modules
 <li>Jour 5 : Modules
 </ul>
+<h3>Faire une démonstration de Office Message Encryption</h3>
+Utiliser la commande suivante:
+<code>Invoke-Command -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential (Get-Credential) -Authentication Basic -AllowRedirection -ScriptBlock {New-TransportRule -Name 'Office Message Encription  - Outside' -ApplyOME $true -ApplyRightsProtectionTemplate 'Encrypt' -SentToScope NotInOrganization}</code>
+puis envoyer un message vers une boite externe à l'organisation Exchange
 <div id="o365"></div>
 <div id="goDeploy"></div>
 </div>

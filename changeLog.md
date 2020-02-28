@@ -1,8 +1,12 @@
-﻿**Version 2.5.31:**
+﻿**Version 2.5.32:**
+ - Préparation du stage AZ-104
+ - Suppression du stage m10979
+
+**Version 2.5.31:**
  - Correction commande ** pour anciennes versions de Windows 10 (TLS 1.2)
  - Timing du stage MSMS101 dans APTS
  - Astuces génériuques sur Office 365 dans APTS
- - Astuces généraiques sur Azure dans APTS
+ - Astuces génériques sur Azure dans APTS
 
 **Version 2.5.30:**
  - Installation automatique de Visual Studio Code pour le stage msaz301

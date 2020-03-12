@@ -6,3 +6,6 @@ Ce compte pourra ensuite être utilisé pour créer un compte Azure de test (rac
 Pour fluidifier le déroulement du stage, ne pas hésiter à conseiller aux stagiaires de réaliser l'(éventuel) <b>exercice 0</b> (ou autre exercice de préparation) de chaque atelier au lancement de la présentation théorique.
 <b>Nota: </b>Pour faire une démonstration impliquant la mise en place de l'<i>autoscale</i>, commencez par passer la commande Powershell suivante dans le Cloud Shell:
 <code>Register-AzResourceProvider -ProviderNamespace 'microsoft.insights'</code>
+<b>Astuce: </b> Pour se connecter en RDP avec un compte AzureAD à une machine jointe au domaine AzureAD, Dans la gestion de connexion distante, décocher la case "<i>Allow connections only from computers running Remote Desktop with Network Level Authentication</i>" puis éditer le fichier .rdp pour y ajouter :
+<code>enablecredsspsupport:i:0
+  authentication level:i:2</code>

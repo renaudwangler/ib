@@ -13,7 +13,8 @@ $vmCourse=@{
 '20741B-LON-DC1-B'='m20741b';
 '20742B-LON-DC1'='m20742b';
 '20740C-LON-DC1-B'='m20740c';
-'20740C-LON-DC1-C'='m20740c';}
+'20740C-LON-DC1-C'='m20740c';
+'10997B-LON-DC1'='m10997c';}
 if ($env:ibCourse -eq $null) {
   if ($vms=get-vm -ErrorAction SilentlyContinue) {(Compare-Object -ReferenceObject $($vmCourse.Keys) -DifferenceObject $vms.VMName -ExcludeDifferent -IncludeEqual).inputObject|ForEach-Object{if ($_){$ibCourse=$vmCourse.$_}}}
   if ($ibCourse -ne $null) {

@@ -60,6 +60,19 @@ Cette commande (dont l'execution est un peu longue) va préparer l'atelier en
 # goDeploy
 Un raccourci "**Ateliers en ligne**" a été placé sur le bureau qui renvoie vers l'environement d'ateliers en ligne "goDeploy"
 
+# m10997c
+Un dossier "**Ateliers M10997**" a été placé sur le bureau qui contient :
+ - Un lien vers le portail principal d'Office 365
+ - Un lien vers le portail d'administration de Microsoft 365
+ - Un lien vers les instructions en ligne pour les divers ateliers.
+
+# msms030
+Un dossier "**Ateliers MSMS030**" a été placé sur le bureau qui contient :
+ - Un lien vers l'environement d'ateliers en ligne "goDeploy"
+ - Un lien vers le portail principal d'Office 365
+ - Un lien vers le portail d'administration de Microsoft 365
+ - Un lien vers les instructions d'atelier génériques sur Github
+
 # msms100
 Un dossier "**Ateliers MSMS100**" a été placé sur le bureau qui contient :
  - Un lien vers l'environement d'ateliers en ligne "goDeploy"

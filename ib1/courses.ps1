@@ -78,6 +78,16 @@ get-VM|Checkpoint-VM|Out-Null
 # goDeploy
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Ateliers en ligne' -dest ([Environment]::GetFolderPath('CommonDesktopDirectory'))
 
+  # m10997c
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers M10997'
+  if (!(get-vm *lon-dc1).notes.Contains('Switch clavier FR')) {switch-ib1VMFr}
+  connect-ib1VMNet "External Network"
+  set-ib1VMExternalMac
+  New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
+  new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
+  new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
+  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/10997-O365AdministrationandTroubleshooting/tree/10997C/Instructions' -title 'Instructions Ateliers' -dest $dest
+
 # msms100
   $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS100'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
@@ -85,6 +95,15 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
   new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
+
+# msms030
+  $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS030'
+  New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
+  if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-100AIntro.pptx -OutFile "$env:userprofile\documents\MS-100AIntro.pptx"}
+  new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
+  new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
+  new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
+  new-ib1shortcut -URL 'https://github.com/MicrosoftLearning/MS-030-Office365Administrator/tree/master/Instructions/Labs' -title 'Github Instructions' -dest $dest
 
 # msms101
   $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS101'
@@ -125,7 +144,7 @@ get-VM|Checkpoint-VM|Out-Null
   new-ib1Shortcut -URL 'https://www.microsoftazurepass.com' -title 'Azure - Validation pass' -dest $dest
   new-ib1Shortcut -URL 'https://portal.azure.com' -title 'Azure - Portail' -dest $dest
   new-ib1Shortcut -URL 'https://shell.azure.com' -title 'Azure - Cloud Shell' -dest $dest
-  new-ib1Shortcut -URL 'https://microsoftlearning.github.io/AZ-900T0x-MicrosoftAzureFundamentals/' -title 'Instructions Ateliers' -dest $dest
+  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/AZ-900T0x-MicrosoftAzureFundamentals/tree/master/Instructions/Walkthroughs' -title 'Instructions Ateliers' -dest $dest
   echo "Installation Framework .Net 4.8"
   if ([version](Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\' -Recurse|Get-ItemProperty -Name version,release -EA 0|where {$_.pschildName -match '^(?!S)\p{L}'}|Sort-Object -Descending -Property version|Select-Object -First 1).version -lt [version]'4.8.0') {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12

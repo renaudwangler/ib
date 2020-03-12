@@ -1,4 +1,8 @@
-﻿**Version 2.5.33:**
+﻿**Version 2.5.34:**
+ - Ajout du stage MSMS030
+ - Ajout de la détection du stage m10997c
+
+**Version 2.5.33:**
  - Ajout de l'information de date de master à la commande complete-ib1Setup
 
 **Version 2.5.32:**

@@ -8,8 +8,17 @@ Indiquer que, pour fluidifier l'expérience, les manipulation reposant purement 
     <li> Se déconnecter et <b>fermer toutes les fenêtres</b> du navigateur
     <li> <u>Nota:</u> Il peut y avoir une certaine latence dans la prise en compte....
   </ul>
-<i>Astuce</i>: Forcer la sauvegarde dans un site Sharepoint(online) lorsqu'il n'apparait pas dans l'interface :
+<b>Astuce</b>: Forcer la sauvegarde dans un site Sharepoint(online) lorsqu'il n'apparait pas dans l'interface :
 <ul><li>Copier/noter l'url du site Sharepoint cible (https://domaineO365.sharepoint.com/)
 <li>Dans la fenêtre "Save As", cliquer sur "browse"
 <li>Remplacer le chemin dans la barre d'adresse de la fenêtre par l'url précédemment notée.
 <li>Après un court instant, le navigateur du site Sharepoint apparait.</ul>
+<b>URLs directe pour accèder aux fonctions des groupes o365:</b>
+<ul><li>boite partagée d'un groupe Office 365:<code>https://outlook.office365.com/mail/group/TENANT.onmicrosoft.com/GROUPNAME/email</code></li>
+<li>Calendrier d'un groupe Office 365:<code>https://outlook.office365.com/calendar/group/TENANT.onmicrosoft.com/GROUPNAME</code></li></ul>
+<b>Afficher/masquer les groupe Office365</b> dans outlook(+online) (ces groupes sont masqués par défaut pour les teams):
+<code>set-unifiedGroup -Identity 'GroupName' -HiddenFromExchangeClientsEnabled:$false</code>
+<b>Se connecter à Exchange Online:</b>
+<code>$cred=get-credential 
+$session=new-pssession -configurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -credential $cred -Authentication Basic -AllowRedirection 
+  import-pssession $session</code>

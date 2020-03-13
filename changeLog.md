@@ -1,4 +1,7 @@
-﻿**Version 2.5.34:**
+﻿**Version 2.5.35:**
+ - Correction du stage m10997c : passage à goDeploy
+
+**Version 2.5.34:**
  - Ajout du stage MSMS030
  - Ajout de la détection du stage m10997c
 

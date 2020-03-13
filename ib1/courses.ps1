@@ -80,13 +80,10 @@ get-VM|Checkpoint-VM|Out-Null
 
   # m10997c
   $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers M10997'
-  if (!(get-vm *lon-dc1).notes.Contains('Switch clavier FR')) {switch-ib1VMFr}
-  connect-ib1VMNet "External Network"
-  set-ib1VMExternalMac
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
+  new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
   new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest
-  new-ib1Shortcut -URL 'https://github.com/MicrosoftLearning/10997-O365AdministrationandTroubleshooting/tree/10997C/Instructions' -title 'Instructions Ateliers' -dest $dest
 
 # msms100
   $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS100'

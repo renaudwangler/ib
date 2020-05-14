@@ -128,7 +128,9 @@ get-VM|Checkpoint-VM|Out-Null
 # msms500
   $dest=[Environment]::GetFolderPath('DesktopDirectory')+'\Ateliers MSMS500'
   New-Item -ItemType directory -Path $dest -erroraction silentlycontinue|out-null
-  if ($trainer) {  invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-500AIntro.pptx -OutFile "$env:userprofile\documents\MS-500AIntro.pptx"}
+  if ($trainer) {
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-500Videos.docx -OutFile "$env:userprofile\documents\MS-500 Vidéos.docx"
+    invoke-webRequest -uri https://raw.githubusercontent.com/renaudwangler/ib/master/extra/MS-500AIntro.pptx -OutFile "$env:userprofile\documents\MS-500AIntro.pptx"}
   new-ib1Shortcut -URL 'https://lms.godeploy.it' -title 'Labs Online' -dest $dest
   new-ib1Shortcut -URL 'https://portal.office.com' -title 'Office 365 - Portail principal' -dest $dest
   new-ib1Shortcut -URL 'https://admin.microsoft.com' -title 'Microsoft 365 - Portail d''administration' -dest $dest

@@ -19,18 +19,19 @@
   </ul>
 </div>
 <div id="conseils">
-Le contenu actuel du stage (Février 2020) reste plutôt léger.
-Selon le niveau des stagiaires, une forte frustration pourra être ressentie si l'on ne va pas plus loin que prévu.
-Il faudra également éviter de prévoir des journées de travail trop dense : elles ne pourraient être remplies....
+Le contenu actuel du stage (Juillet 2020) a bien progressé depuis sa version initiale mais reste plutôt léger.
+Il faudra éviter de prévoir des journées de travail trop dense : elles ne pourraient être remplies....
 <h3>Timing exemple</h3>
 <ul>
-<li>Jour 1 : Modules 1, 2, 3 (lab) et 4
-<li>Jour 2 : Modules 5 (lab), 6, 7 (lab), 8 et 9 (lab)
-<li>Jour 3 : Modules
-<li>Jour 4 : Modules
-<li>Jour 5 : Modules
+<li>Jour 1 : Modules 0, 1 et 2
+<li>Jour 2 : Modules 3 et 4
+<li>Jour 3 : Modules 5 et 6
+<li>Jour 4 : Modules 7, 8 et 9
+<li>Jour 5 : Modules 10 et 11 (attention, pas de lab sur le module 10)
 </ul>
-<h3>Faire une démonstration de Office Message Encryption</h3>
+<h3>Module 4 - IRM Sharepoint</h3>
+IRM dans Sharepoint online a pour objectif de conserver les possibilités utilisateur sur les documents téléchargés au plus proche de celles présentes sur le site Sharepoint.
+<h3>Pour faire une démonstration de Office Message Encryption</h3>
 Utiliser la commande suivante:
 <code>Invoke-Command -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential (Get-Credential) -Authentication Basic -AllowRedirection -ScriptBlock {New-TransportRule -Name 'Office Message Encription  - Outside' -ApplyOME $true -ApplyRightsProtectionTemplate 'Encrypt' -SentToScope NotInOrganization}</code>
 puis envoyer un message vers une boite externe à l'organisation Exchange

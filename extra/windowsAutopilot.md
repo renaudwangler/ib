@@ -14,7 +14,7 @@ Dans cet atelier, vous allez:
 # Instructions
 ## Tâche 1: Configurer l'interface de l'entreprise dans Azure AD.
 Cette tâche n'est pas directement liée à l'activation de la fonction Windows Autopilot sur un tenant 365, mais celle-ci échouera si la customisation d'interface de l'entreprise n'a pas été faite.
->En plus de notre tenant de test, il nous faudra pour réaliser cette tâche une image représentant le logo de notre entreprise virtuelle. Vous pouvez utiliser toute image de votre choix ou [télécharger le logo ib ici](https://www.ib-formation.fr/Portals/0/logo_ib.png) par exemple.
+>En plus de votre tenant de test, il vous faudra pour réaliser cette tâche une image représentant le logo de l'entreprise virtuelle. Vous pouvez utiliser toute image de votre choix ou [télécharger le logo ib ici](https://www.ib-formation.fr/Portals/0/logo_ib.png) par exemple.
 1. Connectez-vous au [Microsoft 365 admin center](https://admin.microsoft.com) en utilisant le compte *Global Administrator* de votre tenant de test.
 1. Dans le menu de navigation à gauche, cliquer sur "**... Show all**" puis, dans la section "**Admin centers**" sur "**Azure Active Directory**".
 1. Dans le "**Azure Active Directory admin center**", cliquez sur "**Azure Active Directory**" dans le menu de navigation à gauche.
@@ -33,8 +33,12 @@ Cette tâche n'est pas directement liée à l'activation de la fonction Windows 
 1. Dans la fenêtre "**Windows | Windows Enrollment**", cliquez sur la tuile "**Automatic Enrollment**".
 1. Dans la fenêtre "**Configure**" qui s'ouvre, passez le paramètre "**MDM user scope**" sur ```All``` avant de cliquer sur "**Save**"
 ## Tâche 3: Récupérer les informations de la machine de test
-1. Powershell/Run as Administrator
-1. Install-script Get-WindowsAutoPilotInfo
+1. Commencez par vous connecter sur la machine (physique ou virtuelle) qui servira de test à la fonction Autopilot avec un compte ayant les privilèges administratif en local.
+1. Faire un *clic-droit* sur le bouton Start et cliquer sur "**Windows Powershell (Admin)**".
+>Si une fenêtre *User Account Control* apparait, cliquez sur "**Yes**".
+3. Dans la fenêtre "**Administrator: Windows PowerShell**", tapez la commande suivante : ```Install-script Get-WindowsAutoPilotInfo```.
+1. A chaque demande de confirmation, saisir ```Y``` (ou ```O``` sur un Windows Français) et *Entrée*.
+3. Dans la fenêtre "**Administrator: Windows PowerShell**", tapez la commande suivante : ```Get-WindowsAutoPilotInfo.ps1 -outputFile $env:USERPROFILE\Documents\myVMautopilot.csv```.
 1. Get-WindowsAutoPilotInfo.ps1 -outputFile $env:USERPROFILE\Documents\myVMautopilot.csv
 ## Tâche 4: Inscrire la machine de test dans le programme Autopilot
 1. Microsoft 365 admin center

@@ -9,14 +9,18 @@ Dans cet atelier, vous allez:
 + Tâche 2: Activer la prise en charge d'Autopilot pour votre tenant 365.
 # Instructions
 ## Tâche 1: Configurer l'interface de l'entreprise dans Azure AD.
-Cette tâche n'est pas directement liée à l'activation de la fonction Windows Autopilot sur un tenant 365, mais celle-ci échouera si la customisation d'interface de l'entreprise n'a pas été faite. En plus de notre tenant de test, il nous faudra pour réaliser cette tâche une image représentant le logo de notre entreprise virtuelle. Vous pouvez utiliser toute image de votre choix ou [télécharger le logo ib ici](https://www.ib-formation.fr/Portals/0/logo_ib.png){:target="_blank"} par exemple 
-1. Microsoft 365 admin center
-1. Show All/Azure Active Directory
-1. Azure Active Directory
-1. Company Branding
-1. Default
-1. Sign-in page text : "bienvenue dans l'entreprise connectée"
-1. Square logo image
+Cette tâche n'est pas directement liée à l'activation de la fonction Windows Autopilot sur un tenant 365, mais celle-ci échouera si la customisation d'interface de l'entreprise n'a pas été faite.
+>En plus de notre tenant de test, il nous faudra pour réaliser cette tâche une image représentant le logo de notre entreprise virtuelle. Vous pouvez utiliser toute image de votre choix ou [télécharger le logo ib ici](https://www.ib-formation.fr/Portals/0/logo_ib.png) par exemple.
+
+1. Connectez-vous au [Microsoft 365 admin center](https://admin.microsoft.com) en utilisant le compte *Global Administrator* de votre tenant de test.
+1. Dans le menu de navigation à gauche, cliquer sur "**... Show all**" puis, dans la section "**Admin centers**" sur "**Azure Active Directory**".
+1. Dans le "**Azure Active Directory admin center**", cliquez sur "**Azure Active Directory**" dans le menu de navigation à gauche.
+1. Cliquez sur "**Company Branding**" dans la section "**Manage**" du menu de navigation de la fenêtre "**Overview**".
+1. Cliquez sur la ligne "**Default**" afin d'afficher la fenêtre "**Edit company branding**".
+1. Utilisez les valeurs suivantes pour la customisation, laissez les autres valeurs non renseignées ou par défaut:
+  - "**Sign-in page text**" : "Bienvenue dans l'enterprise connectée..."
+  - "**Square logo image**" : Utiliser l'image récupérée précédemment.
+7. Cliquez sur "**Save**" 
 ## Tâche 2: Activer la prise en charge d'Autopilot pour le tenant
 1. Microsoft 365 admin center
 1. Show All/Endpoint Manager

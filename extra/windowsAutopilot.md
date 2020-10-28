@@ -9,6 +9,7 @@ Dans cet atelier, vous allez:
 + Tâche 2: Activer la prise en charge d'Autopilot pour votre tenant 365.
 # Instructions
 ## Tâche 1: Configurer l'interface de l'entreprise dans Azure AD.
+Cette tâche n'est pas directement liée à l'activation de la fonction Windows Autopilot sur un tenant 365, mais celle-ci échouera si la customisation d'interface de l'entreprise n'a pas été faite. En plus de notre tenant de test, il nous faudra pour réaliser cette tâche une image représentant le logo de notre entreprise virtuelle. Vous pouvez utiliser toute image de votre choix ou [télécharger le logo ib ici](https://www.ib-formation.fr/Portals/0/logo_ib.png){:target="_blank"} par exemple 
 1. Microsoft 365 admin center
 1. Show All/Azure Active Directory
 1. Azure Active Directory

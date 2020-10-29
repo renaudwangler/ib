@@ -19,8 +19,9 @@ Cette tâche n'est pas directement liée à l'activation de la fonction Windows 
 1. Dans le menu de navigation à gauche, cliquer sur "**... Show all**" puis, dans la section "**Admin centers**" sur "**Azure Active Directory**".
 1. Dans le "**Azure Active Directory admin center**", cliquez sur "**Azure Active Directory**" dans le menu de navigation à gauche.
 1. Cliquez sur "**Company Branding**" dans la section "**Manage**" du menu de navigation de la fenêtre "**Overview**".
-1. Cliquez sur la ligne "**Default**" afin d'afficher la fenêtre "**Edit company branding**".
-1. Utilisez les valeurs suivantes pour la customisation, laissez les autres valeurs non renseignées ou par défaut:
+1. Cliquez sur "**Configure**" dans la barre d'outil de la page "**Company Branding**".
+>Si une configuration est déjà présente, cliquez sur son titre ("**Default**" par exemple) afin d'afficher la fenêtre "**Edit company branding**".
+6. Utilisez les valeurs suivantes pour la customisation, laissez les autres valeurs non renseignées ou par défaut:
   - "**Sign-in page text**" : "```Bienvenue dans l'enterprise connectée...```"
   - "**Square logo image**" : Utiliser l'image récupérée précédemment.
 7. Cliquez sur "**Save**" 
@@ -36,9 +37,15 @@ Cette tâche n'est pas directement liée à l'activation de la fonction Windows 
 1. Commencez par vous connecter sur la machine (physique ou virtuelle) qui servira de test à la fonction Autopilot avec un compte ayant les privilèges administratif en local.
 1. Faites un *clic-droit* sur le bouton Start et cliquez sur "**Windows Powershell (Admin)**".
 >Si une fenêtre *User Account Control* apparait, cliquez sur "**Yes**".
-3. Dans la fenêtre "**Administrator: Windows PowerShell**", tapez la commande suivante : ```Install-script Get-WindowsAutoPilotInfo```.
+3. Dans la fenêtre "**Administrator: Windows PowerShell**", tapez la commande suivante :
+```
+Install-script Get-WindowsAutoPilotInfo
+```
 1. A chaque demande de confirmation, saisir ```Y``` (ou ```O``` sur un Windows Français) et *Entrée*.
-3. Dans la fenêtre "**Administrator: Windows PowerShell**", tapez la commande suivante : ```Get-WindowsAutoPilotInfo.ps1 -outputFile $env:USERPROFILE\Documents\myVMautopilot.csv```.
+3. Dans la fenêtre "**Administrator: Windows PowerShell**", tapez la commande suivante :
+```
+Get-WindowsAutoPilotInfo.ps1 -outputFile $env:USERPROFILE\Documents\myVMautopilot.csv
+```
 ## Tâche 4: Inscrire la machine de test dans le programme Autopilot
 1. Connectez-vous au [Microsoft 365 admin center](https://admin.microsoft.com) en utilisant le compte *Global Administrator* de votre tenant de test.
 1. Dans le menu de navigation à gauche, cliquer sur "**... Show all**" puis, dans la section "**Admin centers**" sur "**Endpoint Manager**".
@@ -70,5 +77,9 @@ Cette tâche n'est pas directement liée à l'activation de la fonction Windows 
 ## Tâche 6: Tester le déploiement Autopilot de la machine.
 1. Si vous avez fermé l'invite Powershell administrative, faties un *clic-droit* sur le bouton Start et cliquer sur "**Windows Powershell (Admin)**".
 >Si une fenêtre *User Account Control* apparait, cliquez sur "**Yes**".
-2. Dans la fenêtre "**Administrator: Windows PowerShell**", tapez la commande suivante : ```& "$env:SystemRoot\system32\sysprep\sysprep" /reboot /oobe /generalize```.
-1. une fenêtre "**Sysprep is working**" va apparaître, puis le poste Windows redémarre et vous allez pouvoir procéder à sa mise en service connectée...
+2. Dans la fenêtre "**Administrator: Windows PowerShell**", tapez la commande suivante : 
+```psh
+& "$env:SystemRoot\system32\sysprep\sysprep" /reboot /oobe /generalize
+```
+>Il est possible d'omettre le paramètre ```/generalize``` pour que le redémarrage soit plus rapide !
+3. une fenêtre "**Sysprep is working**" va apparaître, puis le poste Windows redémarre et vous allez pouvoir procéder à sa mise en service connectée...

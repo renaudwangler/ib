@@ -1,7 +1,7 @@
-﻿# Module 1 - Lab 2: Key Vault (Implementing Secure Data by setting up Always Encrypted)
+﻿# Lab: Key Vault and managed Identity
 
 **Scenario**
-In this lab, you will have a VM looking in a Key Vault for the credentials needed to access a Storage Account. The VM won't need to authenticate to the Key vault, by using a Managed Identity.
+In this lab, you will have a VM looking in a Key Vault for the secret needed to access a Storage Account. The VM won't need to authenticate to the Key vault, by using a Managed Identity.
 
 This lab includes the following tasks:
 
@@ -73,7 +73,16 @@ This lab includes the following tasks:
   - **Name:** **sakey**
   - **Value:** Paste the key value you copied in task 2
   - leave all other values to their default
-    
+  
+### Task 5: Give access to the key vault to the VM
+1. In the key vault page, click on **Access control (IAM)**
+1. click on the **+Add** button and select **Add role assignment**
+1. On the **Add role assigment** pane, use the following values and click on the **Save** button
+  - **Role:** **Reader**
+  - **Assign access to:** **System assigned managed identity/Virtual Machine**
+  - **Subscription:** your current demo subscription
+  - **Select** : click on the **demoVM**
+  
     ```powershell
     $subscriptionName = '[Azure_Subscription_Name]'
     $applicationId = '[Azure_AD_Application_ID]'

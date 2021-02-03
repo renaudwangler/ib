@@ -94,13 +94,13 @@ This lab includes the following tasks:
 ```powershell
 install-module az
 ```
-1. Type **Y** and **Enter** twice to install the required Azure Powershell module
+8. Type **Y** and **Enter** twice to install the required Azure Powershell module
 1. At the Powershell prompt, use the following command to connect to the Azure account, using the VM managed identity:
 ```powershell
 connect-azAccount -Identity
 ```
   **(You don't need any certificate nor password to connect!)**
-1. Use the 2 following commands to retrieve the secret from the vault and connect to the file share:
+10. Use the 2 following commands to retrieve the secret from the vault and connect to the file share:
 ```powershell
 $sakey=get-AzKeyVaultSecret -vaultName demoKVXXX -Name sakey -asplaintext
 net use z: \\demosaXXXXX.file.core.windows.net\demoshare /user:demosaXXXX $sakey

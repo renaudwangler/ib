@@ -75,29 +75,35 @@ This lab includes the following tasks:
   - leave all other values to their default
   
 ### Task 5: Give access to the key vault to the VM
-1. In the key vault page, click on **Access control (IAM)**
-1. click on the **+Add** button and select **Add role assignment**
-1. On the **Add role assigment** pane, use the following values and click on the **Save** button
-  - **Role:** **Reader**
-  - **Assign access to:** **System assigned managed identity/Virtual Machine**
-  - **Subscription:** your current demo subscription
-  - **Select** : click on the **demoVM**
+1. In the key vault page, click on **Settings/Access policies**
+1. click on **+ Add Access Policy** and use the following values before clicking on the **Add** button
+  - **Configure from template:** **Secret Management**
+  - **Select principal:** click on **None selected** and search for **demoVM** to click on it and click on the **Select** button
+3. Back on the **Access policies** page, click on the **Save** button
   
-    ```powershell
-    $subscriptionName = '[Azure_Subscription_Name]'
-    $applicationId = '[Azure_AD_Application_ID]'
-    $resourceGroupName = '[Resource_Group_with_KeyVault]'
-    $location = '[Azure_Region_of_KeyVault]'
-    $vaultName = '[KeyVault_Name]' 
-    ```
-    
-    ```powershell
-    Login-AzAccount
-    ```
-    
-    ```powershell
-    Set-AZKeyVaultAccessPolicy -VaultName $vaultName -ResourceGroupName $resourceGroupName -ServicePrincipalName $applicationId -PermissionsToKeys get,wrapKey,unwrapKey,sign,verify,list
-    ```
+### Task 6: use the provisioned environment
+1. Go to the previously provisionned demoVM (for instance, click on the **demoVM** in the **Recent resources** on the portal home page).
+1. On the **demoVM** page, click **Connect** and select **RDP**
+1. On the **Connect with RDP** page, leave the default values for IP address and Port number and click **Download RDP File**
+1. Access the downloaded file in your web browser and use it to connect to the VM with the following informations :
+  - **Username:** **Student**
+  - **Password:** **ibForm@tion2021**
+5. In the remote desktop, select **yes** int the **Networks** pane
+1. Right-click the start button an select **Windows Powershell (Admin)**
+1. In the **Administrator: Windows Powershell** window, type the following command and press **Enter**:
+```powershell
+install-module az
+```
+1. Type **Y** and **Enter** twice to install the required Azure Powershell module
+1. At the Powershell prompt, use the following command to connect to the Azure account, using the VM managed identity:
+```powershell
+connect-azAccount -Identity
+```
+  **(You don't need any certificate nor password to connect!)**
+1. Use the 2 following commands to retrieve the secret from the vault and connect to the file share:
+```powershell
+$sakey=get-AzKeyVaultSecret -vaultName demoKVXXX -Name sakey -asplaintext
+net use z: \\demosaXXXXX.file.core.windows.net\demoshare /user:demosaXXXX $sakey
+```
 
-**Results** : You have now completed this Lab.
-
+**Results** : You have now connected to a file share from a VM without using any stored password/certificate

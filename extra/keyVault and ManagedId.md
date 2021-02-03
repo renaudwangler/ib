@@ -62,7 +62,7 @@ This lab includes the following tasks:
   - **Pricing tier:** **Standard**
   - **Days to retain deleted vaults:** **7**
   - **Purge protection:** **Disable purge protection**
-4. In the **Create key vault** window, once the *Validation passed* message appears, click **Create**
+5. In the **Create key vault** window, once the *Validation passed* message appears, click **Create**
 1. Once the key vault is created, click on **Go to resource**
 
 ### Task 4: Add a secret to Key Vault

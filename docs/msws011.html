@@ -24,12 +24,18 @@
   </ul>
   <h3>remarque ateliers</h3>
   Dans plusieurs ateliers, on indique de fermer un outil puis d'en agrandir la fenêtre par la suite : soit indiquer d'iconiser les outils au lieu de les fermer, soit de relancer les outils ensuite.
+  Pour faciliter les démonstrations, le script "iscsiCluster.ps1" met en place les 3 disques partagés iSCSI nécessaires dans l'atelier/les démonstrations.
   <h3>Pour l'atelier 3</h3>
   Les outils DHCP et DNS peuvent également être installés dans "Roles and Features/Remote Server Administration/Tools/xxx"
   <h3>Erreur goDeploy</h3>
+  Bien laisser le clavier en EN-US, y compris pendant les ateliers d'installation : c'est l'environnement web goDeploy qui fera la transition avec la langue du clavier du poste du stagiaire.
   <b>[ATTENTION Atelier 4]</b>
   <ul><li>Exercice 1, tâche 2, point 7 : mettre "0" et non "1" comme indiqué en âge des fichiers à dé-dupliquer...</li>
-    <li>Exercice 2, tâche 2, point 3 : Seuls les 2 nouveaux disques iSCSI sont en <i>offline</i></li></ul>
+  <li>Exercice 2, tâche 2, point 3 : Seuls les 2 nouveaux disques iSCSI sont en <i>offline</i></li></ul>
+  <b>Atelier 5</b>
+  Dans la partie conteneurs (exercice 2), il semblerait que le premier lancement du conteneur IIS se solde par un arrêt prématuré de celui-ci (vérifialble avec la commande <i>docker ps</i>), le cas échéant:
+  La commande <i>docker container prune</i> permet de purger tous les conteneurs arrêtés,
+  On pourra ensuite rappeler la commande <i>docker run</i> précédente pour relancer le conteneur et vérifier qu'il est stable par appel à la commande <i> docker ps</i>.
   <hr/>
   </div>
 <script>window.onload=aptsLoad;</script>

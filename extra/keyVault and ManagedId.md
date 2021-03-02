@@ -103,7 +103,9 @@ connect-azAccount -Identity
 10. Use the 2 following commands to retrieve the secret from the vault and connect to the file share:
 ```powershell
 $sakey=get-AzKeyVaultSecret -vaultName demoKVXXX -Name sakey -asplaintext
+$sakey
 net use z: \\demosaXXXXX.file.core.windows.net\demoshare /user:demosaXXXX $sakey
 ```
+  **(Your commands have retrieved the stored key!)**
 
 **Results** : You have now connected to a file share from a VM without using any stored password/certificate

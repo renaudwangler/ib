@@ -31,7 +31,7 @@ This lab includes the following tasks:
 1. Click on **Review + create**
 1. In the **Create a virtual machine** window, once the *Validation passed* message appears, click **Create**
 
-**Note:** You do not need to wait for VM to provision before continuing.
+**Note:** You do not need to wait for VM to provision, you may continue to task 2.
 
 ### Task 2: Provision a Storage account
 1. Back in the Azure portal home click **+ Create a resource**
@@ -41,7 +41,7 @@ This lab includes the following tasks:
   - **storage account name:** **demosaXXX**, replace XXX with a globally unique string made of lowercase letters
   - **Region:** The same as the VM
   - **Performance:** **Standard**
-  - **Account kind:** **StandardV2**
+  - **Account kind:** **StorageV2**
   - **Replication:** **Localy-redundant storage**
 4. In the **Create storage account** window, once the *Validation passed* message appears, click **Create**
 1. Once the storage account is created, click on **Go to resource**

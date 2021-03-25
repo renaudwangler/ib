@@ -19,10 +19,15 @@ Indiquer que, pour fluidifier l'expérience, les manipulation reposant purement 
 <li>Calendrier d'un groupe Office 365:<code>https://outlook.office365.com/calendar/group/TENANT.onmicrosoft.com/GROUPNAME</code></li></ul>
 <b>Afficher/masquer les groupe Office365</b> dans outlook(+online) (ces groupes sont masqués par défaut pour les teams):
 <code>set-unifiedGroup -Identity 'GroupName' -HiddenFromExchangeClientsEnabled:$false</code>
-<b>Se connecter à Exchange Online:</b>
+
+<b>Pour faire du PowerShell sur Exchange Online (<i>ancienne</i> méthode = PowerShell remoting):</b>
 <code>$cred=get-credential 
 $session=new-pssession -configurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -credential $cred -Authentication Basic -AllowRedirection 
 import-pssession $session</code>
+<b>Pour faire du PowerShell sur Exchange Online (<i>ancienne</i> méthode = PowerShell remoting):</b>
+<code>Install-Module -Name ExchangeOnlineManagement
+Connect-ExchangeOnline</code>
+
 <b>Installer le module de gestion de Sharepoint Online:</b>
 <code>Install-Module -Name Microsoft.Online.SharePoint.PowerShell</code>
 <b>Site (régulièrement tenu à jour) répertoriant les portails d'administration MS :</b>

@@ -1,14 +1,22 @@
 ﻿<h3>Conseils génériques concernant Azure:</h3>
 Indiquer que, pour fluidifier l'expérience, les manipulation reposant purement sur le portail web n'ont pas besoin d'être réalisées à distance.
+
 Si pas de Pass Azure Disponible:
 <ul><li>il faudra fournir un tenant ou un resource group aux stagiaires.</li>
   <li>Dans le cas d'un resource Group, les instructions d'atelier devront être adaptée pour utiliser le RG fourni (et non celui créé dans le lab).</li></ul>
+
 <a href="https://youtu.be/85VSGsMMJTo" target="_blank">Vidéo de démonstration de la mise en place d'une connexion vNet to vNet</a>
+
 Pour fluidifier le déroulement du stage, ne pas hésiter à conseiller aux stagiaires de réaliser l'(éventuel) <b>exercice 0</b> (ou autre exercice de préparation) de chaque atelier au lancement de la présentation théorique.
 <b>Nota: </b>Pour faire une démonstration impliquant la mise en place de l'<i>autoscale</i>, commencez par passer la commande Powershell suivante dans le Cloud Shell:
 <code>Register-AzResourceProvider -ProviderNamespace 'microsoft.insights'</code>
+
 <b>Astuce: </b> Pour se connecter en RDP avec un compte AzureAD à une machine jointe au domaine AzureAD, Dans la gestion de connexion distante, décocher la case "<i>Allow connections only from computers running Remote Desktop with Network Level Authentication</i>" puis éditer le fichier .rdp pour y ajouter :
 <code>enablecredsspsupport:i:0
   authentication level:i:2</code>
+
 <b>Site (régulièrement tenu à jour) répertoriant les portails d'administration MS :</b>
 https://msportals.xyz/
+
+Il semblerait qu'il y ai des problèmes pour lier un workspace <i>loganalytics</i> en EastUs avec un <i>Automation account</i> en EastUs également. (Février 2021).
+La solution serait de créer le workspace LogAnalytics en EastUs 2 : peut-être lié à une surcharge du moteur logAnalytics en EastUS.... 

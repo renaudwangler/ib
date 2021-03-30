@@ -22,6 +22,13 @@
   Un stage initialement extrait du MS-030.
   <h3>Module 3</h3>
   En plus de la synchronisation Azure AD Connect, ce module comporte la présentation des utilisateurs, licences et groupes dans Azure AD.
+  <h3>Atelier 3</h3>
+  Eviter de se loger localement avec le compte adatum/holly car elle n'est pas membre des groupes admin...
+  les outils ADDS ne sont pas installés sur lon-cl1 : lancer la commande suivante pour faire fonctionner l'exercice 4 :
+  <code>get-windowsCapability -Name RSAT.activedirectory* -online |add-windowsCapability –online</code>
+  <h3>Atelier 4</h3>
+  Pour réarmer la période de grâce de Office, lancer la commande suivante (en admin):
+  <code>c:\Program Files(x86)\Microsoft Office\Office16\OSPPREARM.EXE</code>
 <div id="o365"></div>
 <div id="goDeploy"></div>
 </div>

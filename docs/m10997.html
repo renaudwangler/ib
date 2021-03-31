@@ -29,6 +29,11 @@
   <h3>Atelier 4</h3>
   Pour réarmer la période de grâce de Office, lancer la commande suivante (en admin):
   <code>c:\Program Files(x86)\Microsoft Office\Office16\OSPPREARM.EXE</code>
+  <h3>Atelier 5</h3>
+  Exercice 3, tâche 1 : il faut passer par la nouvelle commande de login du module PowerShell Teams:
+  remplacer <code>$TeamsSession = New-CSOnlineSession -Credential $msolcred
+  Import-PSSession $TeamsSession</code>
+  par <code>Connect-MicrosoftTeams -Credential $credential</code>
 <div id="o365"></div>
 <div id="goDeploy"></div>
 </div>

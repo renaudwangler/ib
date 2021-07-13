@@ -14,3 +14,4 @@ li::before{color:#EA690B;content:"\2022";font-size:1em;padding-right:0.7em;}
 code{border:solid 1px darkgrey;padding:3px;margin:2px;margin-bottom:0px;background-color:lightgrey;display:inline-block;color:black;}
 strong,b {font-weight:bold;color:black;}
 hr {margin:2em;}
+img {height:100px}

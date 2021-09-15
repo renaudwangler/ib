@@ -17,7 +17,7 @@
   <h3>Timing exemple</h3>
   <ul>
   <li>Jour 1 : Modules 1 et 2
-  <li>Jour 2 : Modules 3 et 4
+  <li>Jour 2 : (fin Module 2 Si nécessaire), Modules 3 et 4
   <li>Jour 3 : Modules 5, 6 et 7
   <li>Jour 4 : Modules 8 et 9
   <li>Jour 5 : Modules 10, 11 et 12
@@ -25,14 +25,24 @@
   <h3>remarque ateliers</h3>
   Dans plusieurs ateliers, on indique de fermer un outil puis d'en agrandir la fenêtre par la suite : soit indiquer d'iconiser les outils au lieu de les fermer, soit de relancer les outils ensuite.
   Pour faciliter les démonstrations, le script "iscsiCluster.ps1" met en place les 3 disques partagés iSCSI nécessaires dans l'atelier/les démonstrations.
-  <h3>Pour l'atelier 3</h3>
-  Les outils DHCP et DNS peuvent également être installés dans "Roles and Features/Remote Server Administration/Tools/xxx"
-  <h3>Erreur goDeploy</h3>
+  <h3><i>Nettoyer</i> les ateliers</h3>
+  Le code suivant permettra de s'assurer que l'environnement d'atelier a bien démarrer (à lancer en powershell depuis SEA-DC1 après que toutes les machines du lab aient démarré) :
+  <code>
+  Powershell
+  Get-netAdapter|restart-netAdapter
+  Get-ADDomain|foreach-object {
+  get-ADComputer -Filter * -searchBase $_.computersContainer|foreach-object {
+    echo "Redémarrage de $($_.DNSHostName)"
+	Restart-Computer -ComputerName $_.DNSHostName -Force}}
+  </code>
+  <h3>Ateliers goDeploy</h3>
   Bien laisser le clavier en EN-US, y compris pendant les ateliers d'installation : c'est l'environnement web goDeploy qui fera la transition avec la langue du clavier du poste du stagiaire.
-  <b>[ATTENTION Atelier 4]</b>
+  <h3>Atelier 3</h3>
+  Les outils DHCP et DNS peuvent également être installés dans "Roles and Features/Remote Server Administration/Tools/xxx"
+  <h3>Atelier 4</h3>
   <ul><li>Exercice 1, tâche 2, point 7 : mettre "0" et non "1" comme indiqué en âge des fichiers à dé-dupliquer...</li>
   <li>Exercice 2, tâche 2, point 3 : Seuls les 2 nouveaux disques iSCSI sont en <i>offline</i></li></ul>
-  <b>Atelier 5</b>
+  <h3>Atelier 5</h3>
   Dans la partie conteneurs (exercice 2), il semblerait que le premier lancement du conteneur IIS se solde par un arrêt prématuré de celui-ci (vérifialble avec la commande <i>docker ps</i>), le cas échéant:
   La commande <i>docker container prune</i> permet de purger tous les conteneurs arrêtés,
   On pourra ensuite rappeler la commande <i>docker run</i> précédente pour relancer le conteneur et vérifier qu'il est stable par appel à la commande <i> docker ps</i>.

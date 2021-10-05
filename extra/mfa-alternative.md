@@ -1,21 +1,29 @@
-# Lab: Key Vault and managed Identity
+# Lab: Setup Multifactor Authentication with APP on Windows 10
 
 **Scenario**
-In this lab, you will have a VM looking in a Key Vault for the secret needed to access a Storage Account. The VM won't need to authenticate to the Key vault, by using a Managed Identity.
+In this lab, you will use an application on a Windows 10 workstation to setup multifactor authentication. This setup could be used to authenticate in a m365 or Azure AD environment.
 
 This lab includes the following tasks:
 
- - Create a Windows VM
- - Create a storage Account
- - Create an Azure Key Vault
- - Access the Storage Account content from the VM
+ - Enable MFA for the user
+ - Disable the MFA for the user
 
-## Exercise 1: Provision the lab environment
+## Exercise 1: Enable MFA for the user
 
-### Task 1: Provision a Windows Virtual Machine
-1. In the Azure portal home (http://portal.azure.com) click **+ Create a resource**
-1. In the **New** window, select **Compute** and **Virtual Machine**.
-1. In the **Create a virtual machine** window, use the following parameters in the **Basics** tab
+### Task 1: Install a Windows 10 Store Application
+1. Click on the Windows 10 **Start** button and type **"Store"**
+1. Click on the **"Microsoft Store"** shortcut
+
+**Note:** The Windows Update service must be enabled and running to use the Microsoft Store.
+3. Click on the **Profile** button (top right corner of the Microsoft Store app, with the user picture) and click **Add professionnal/student account**
+4. Enter the required informations to logon to the Microsoft Store with the user you want to setup.
+5. Click on the "No, just connect to this app" link to finish logon.
+6. Click on the **"Search"** field (top right corner of the Microsoft Store app) and type **2fast**.
+7. Click on the **"2fast - Two factor authentiction[...]"** link
+8. Click on the **Get** button
+9. 
+10. In the **New** window, select **Compute** and **Virtual Machine**.
+11. In the **Create a virtual machine** window, use the following parameters in the **Basics** tab
   - **Resource Group:** click **Create new** and use **DemoRG** for its name.
   - **Virtual machine name:** **DemoVM**
   - **Region:** An Azure region near you
@@ -27,13 +35,13 @@ This lab includes the following tasks:
   - **Administrator account - Password:** type **ibForm@tion2021**
   - **Public Inbound ports:** **Allow selected ports** and select **RDP (3389)**
   - **Licensing:** Leave the box unchecked
-4. Switch to the **Management** tab and select the **System Assigned managed identity** checkbox (leave all other values to their default)
-1. Click on **Review + create**
-1. In the **Create a virtual machine** window, once the *Validation passed* message appears, click **Create**
+12. Switch to the **Management** tab and select the **System Assigned managed identity** checkbox (leave all other values to their default)
+13. Click on **Review + create**
+14. In the **Create a virtual machine** window, once the *Validation passed* message appears, click **Create**
 
 **Note:** You do not need to wait for VM to provision, you may continue to task 2.
 
-### Task 2: Provision a Storage account
+### Task 2: Enable MFA for the user account
 1. Back in the Azure portal home click **+ Create a resource**
 1. In the **New** window, select **Storage account**.
 1. In the **Create storage account** window, use the following parameters and click **Review + create**

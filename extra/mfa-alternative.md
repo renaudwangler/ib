@@ -5,115 +5,78 @@ In this lab, you will use an application on a Windows 10 workstation to setup mu
 
 This lab includes the following tasks:
 
- - Enable MFA for the user
- - Disable the MFA for the user
+ - Enable MFA for a user
+ - Disable  MFA for the user
 
-## Exercise 1: Enable MFA for the user
+## Exercise 1: Enable MFA for a user
 
-### Task 1: Install a Windows 10 Store Application
-1. Click on the Windows 10 **Start** button and type **"Store"**
+### Task 1: Install a Windows 10/11 Store Application
+1. On a test/lab windows system, I advise to *clean* the Microsoft store.
+1. Click on the Windows 10/11 **Start** button and type **"store"**
 1. Click on the **"Microsoft Store"** shortcut
+---
+**Note :** The Windows Update service must be enabled and running to use the Microsoft Store.
 
-**Note:** The Windows Update service must be enabled and running to use the Microsoft Store.
-3. Click on the **Profile** button (top right corner of the Microsoft Store app, with the user picture) and click **Add professionnal/student account**
-4. Enter the required informations to logon to the Microsoft Store with the user you want to setup.
-5. Click on the "No, just connect to this app" link to finish logon.
-6. Click on the **"Search"** field (top right corner of the Microsoft Store app) and type **2fast**.
-7. Click on the **"2fast - Two factor authentiction[...]"** link
-8. Click on the **Get** button
-9. 
-10. In the **New** window, select **Compute** and **Virtual Machine**.
-11. In the **Create a virtual machine** window, use the following parameters in the **Basics** tab
-  - **Resource Group:** click **Create new** and use **DemoRG** for its name.
-  - **Virtual machine name:** **DemoVM**
-  - **Region:** An Azure region near you
-  - **Availability options:** No insfrastructure redondancy required
-  - **Image:** Windows Server 2019 Datacenter - Gen1
-  - **Azure Spot intance:** Unchecked
-  - **Size:** Leave the default size
-  - **Administrator account - Username:** type **Student**
-  - **Administrator account - Password:** type **ibForm@tion2021**
-  - **Public Inbound ports:** **Allow selected ports** and select **RDP (3389)**
-  - **Licensing:** Leave the box unchecked
-12. Switch to the **Management** tab and select the **System Assigned managed identity** checkbox (leave all other values to their default)
-13. Click on **Review + create**
-14. In the **Create a virtual machine** window, once the *Validation passed* message appears, click **Create**
+---
+4. Click on the **Sign in** button (at top of the Microsoft Store app, with a user picture) and click **Sign in**
+1. Enter the username to logon to the Microsoft Store with the user you want to setup (any Microsoft account would do the job) and click **Next**.
+1. Enter the user's password and click **Sign in**.
+1. On the **"Use this account everywhere on your device"**, click **Microsoft apps only**.
+1. Click on the **"Search apps, games, movies and more"** field and type **2fast**.
+1. Click on the **"2fast - Two factor authentictior[...]"** link.
+1. Click on the **Install** button.
+1. Wait for the App to Install before proceding.
+1. On the **Microsoft Store** app, on the **"2 fast - Two factor[...]"** page, click on the **Open** button.
+1. On the **Welcome** page, click on the **Create new datafile** button.
+1. On the **Create datafile** window, click on the **Choose local path** button.
+1. On the **Select Folder** window, slect any folder you want to store the app config into (for instance the *Documents* folder) and click the **Select Folder** button.
+1. Back on the **Create datafile** window, type any value for the **Filename** and the two **Password** fields and click on the **Create datafile** button.
 
-**Note:** You do not need to wait for VM to provision, you may continue to task 2.
 
-### Task 2: Enable MFA for the user account
-1. Back in the Azure portal home click **+ Create a resource**
-1. In the **New** window, select **Storage account**.
-1. In the **Create storage account** window, use the following parameters and click **Review + create**
-  - **Resource Group:** select **DemoRG**.
-  - **storage account name:** **demosaXXX**, replace XXX with a globally unique string made of lowercase letters
-  - **Region:** The same as the VM
-  - **Performance:** **Standard**
-  - **Account kind:** **StorageV2**
-  - **Replication:** **Localy-redundant storage**
-4. In the **Create storage account** window, once the *Validation passed* message appears, click **Create**
-1. Once the storage account is created, click on **Go to resource**
-1. On the storage Account page, click on **File Service/File shares**
-1. On the **File share settings** page, click on **+ File share** button
-1. On the **New file share** pane, type **demoshare** in the **Name** field and click on the **Create** button.
-1. On the storage Account page, click on **Settings/Access keys*
-1. Click on the **Show keys** button and copy the value of the **key1** field (you may use the copy button at the end of the field)
+### Task 2: Enable MFA for a user account
+1. Launch your favorite Internet browser and log into either 365 or Azure portal wiht the user account you want to enable MFA for
+1. On the portal webpage, click on the account information (picture/logo in the top-right corner) and click on the **View account** link.
+---
+**Note :** The user may access directly the **My Account** webpage by going to the **https://myaccount.microsoft.com** url.
 
-### Task 3: Provision a Key vault
-1. Back in the Azure portal home click **+ Create a resource**
-1. In the **New** window, type **Key** in the **Search the marketplace** field and select **Key Vault*.
-1. In the **Key Vault** page, click **create**.
-1. In the **Create key vault** window, use the following parameters and click **Review + create**
-  - **Resource Group:** select **DemoRG**.
-  - **Key vault name:** **demoKVXXX**, replace XXX with a globally unique string
-  - **Region:** The same as the VM
-  - **Pricing tier:** **Standard**
-  - **Days to retain deleted vaults:** **7**
-  - **Purge protection:** **Disable purge protection**
-5. In the **Create key vault** window, once the *Validation passed* message appears, click **Create**
-1. Once the key vault is created, click on **Go to resource**
+---
+3. Click on the **Security info** link.
+1. On the **Security info** page, click on the **+ Add method** button.
+1. On the **Add a method** window, select **"Authenticator app"** and clcik on the **Add** button.
+1. On the **Microsoft Authenticator** window, click on the **I want to use a different authenticator app** link.
+1. On the **Auhtenticator app** window, click on the **Next** button.
+1. On the **Scan QR code** page, click on the **Can't scan image?** button.
+1. Copy the "Account name" value in your clipboard.
+1. Switch back to the **2fast** app window.
+1. On the **Accounts** page, click on the *Add* **+** button on top.
+1. On the **Input type** page, click on the **Manual key entry** button.
+1. On the **Inputs** page, choose any label and ensure the **Manual key input** checkbox is selected.
+1. Paste the account name in the **Account name** field (remove any character before the real user logon name).
+1. Switch back to your Internet browser and copy the **Secret key** value to your clipboard.
+1. Switch back to the **2fast** app window and paste the secret key in the **Secret key** field.
+1. Click on the **Create account** button.
+1. Copy the 6 digits code showed in the **2fast** app.
+1. Switch back to your Internet browser and click on the **Next** button.
+1. On the **Enter code** page, paste the 6 digits code and click **Next** (if the code/session is out of date, repeat the 2 previous steps).
 
-### Task 4: Add a secret to Key Vault
-1. In the key vault page, click on **Settings/Secrets**
-1. click on the **+ Generate/import** button
-1. Use the following values and click on the **Create** button
-  - **Upload options:** **Manual**
-  - **Name:** **sakey**
-  - **Value:** Paste the key value you copied in task 2
-  - leave all other values to their default
-  
-### Task 5: Give access to the key vault to the VM
-1. In the key vault page, click on **Settings/Access policies**
-1. click on **+ Add Access Policy** and use the following values before clicking on the **Add** button
-  - **Configure from template:** **Secret Management**
-  - **Select principal:** click on **None selected** and search for **demoVM** to click on it and click on the **Select** button
-3. Back on the **Access policies** page, click on the **Save** button
-  
-### Task 6: use the provisioned environment
-1. Go to the previously provisionned demoVM (for instance, click on the **demoVM** in the **Recent resources** on the portal home page).
-1. On the **demoVM** page, click **Connect** and select **RDP**
-1. On the **Connect with RDP** page, leave the default values for IP address and Port number and click **Download RDP File**
-1. Access the downloaded file in your web browser and use it to connect to the VM with the following informations :
-  - **Username:** **Student**
-  - **Password:** **ibForm@tion2021**
-5. In the remote desktop, select **yes** int the **Networks** pane
-1. Right-click the start button an select **Windows Powershell (Admin)**
-1. In the **Administrator: Windows Powershell** window, type the following command and press **Enter**:
-```powershell
-install-module az
-```
-8. Type **Y** and **Enter** twice to install the required Azure Powershell module
-1. At the Powershell prompt, use the following command to connect to the Azure account, using the VM managed identity:
-```powershell
-connect-azAccount -Identity
-```
-  **(You don't need any certificate nor password to connect!)**
-10. Use the 2 following commands to retrieve the secret from the vault and connect to the file share:
-```powershell
-$sakey=get-AzKeyVaultSecret -vaultName demoKVXXX -Name sakey -asplaintext
-$sakey
-net use z: \\demosaXXXXX.file.core.windows.net\demoshare /user:demosaXXXX $sakey
-```
-  **(Your commands have retrieved the stored key!)**
+**Results** : You may now use the **2fast** app to generate 6 digit codes to login with the user you just setup.
 
-**Results** : You have now connected to a file share from a VM without using any stored password/certificate
+## Exercise 2: Disbale MFA for the user
+
+### Task 1: Install a Windows 10/11 Store Application
+1. Launch your favorite Internet browser and log into either 365 or Azure portal wiht the user account you want to enable MFA for
+1. On the portal webpage, click on the account information (picture/logo in the top-right corner) and click on the **View account** link.
+---
+**Note :** The user may access directly the **My Account** webpage by going to the *https://myaccount.microsoft.com** url.
+
+---
+3. Click on the **Security info** link.
+4. If needed use the 6 digits code from the **2fast** app to verify your MFA logon.
+5. On the **Security info** page, click on the **Delete** link on the line matching the **"Authenticator app"**
+6. Confirm your choice by clicking on the **Ok** button.
+---
+**Note :** Since we are on a test/lab environment, there is no readon to delete the account information in the **2fast** application...
+
+---
+
+**Results** : You have now removed the MFA information form the user account.

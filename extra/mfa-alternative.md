@@ -61,7 +61,7 @@ This lab includes the following tasks:
 
 **Results** : You may now use the **2fast** app to generate 6 digit codes to login with the user you just setup.
 
-## Exercise 2: Disbale MFA for the user
+## Exercise 2: Disable MFA for the user
 
 ### Task 1: Install a Windows 10/11 Store Application
 1. Launch your favorite Internet browser and log into either 365 or Azure portal wiht the user account you want to enable MFA for

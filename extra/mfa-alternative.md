@@ -1,7 +1,7 @@
-# Lab: Setup Multifactor Authentication with APP on Windows 10
+# Lab: Setup Multifactor Authentication with APP on Windows
 
 **Scenario**
-In this lab, you will use an application on a Windows 10 workstation to setup multifactor authentication. This setup could be used to authenticate in a m365 or Azure AD environment.
+In this lab, you will use an application on a Windows 10/11 workstation to setup multifactor authentication. This setup could be used to authenticate in a m365 or Azure AD environment.
 
 This lab includes the following tasks:
 

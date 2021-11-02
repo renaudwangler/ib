@@ -29,7 +29,7 @@ Attention à la gestion du temps : il s'agit d'un stage de 4 jours, avec des pet
   <code>
     Invoke-Command -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential (Get-Credential) -Authentication Basic -AllowRedirection -ScriptBlock {New-TransportRule -Name 'Seamless Office Message Encription - Outside' -ApplyRightsProtectionTemplate 'Encrypt' -SentToScope NotInOrganization}
   </code>
-  <h3>Exemple de Timing</h3>
+  <h3>Exemple de Timing (5 jours)</h3>
   <ul>
     <li>Jour 1 : Intro + modules 1 et 2
     <li>Jour 2 : Lab 2 + modules 3, 4 et 5
@@ -37,6 +37,35 @@ Attention à la gestion du temps : il s'agit d'un stage de 4 jours, avec des pet
     <li>Jour 4 : Modules 9, 10 et 11
     <li>Jour 5 : Module 12 (sans lab), 13 et 14
   </ul>
+  
+  <h3>Exemple de Timing (4 jours)</h3>
+  Le contenu est beaucoup trop riche pour être intégralement traité en 4 jours, il faudra faires des choix entre la théories/les échanges/les labs...
+  <ul>
+    <li>Jour 1 : Intro + modules 1 et 2
+    <li>Jour 2 : modules 3, 4, 5 et 6
+    <li>Jour 3 : 7 (sans lab),8, 9 et 10
+    <li>Jour 4 : Modules 11, 12 (sans lab), 13 et 14
+  </ul>
+  
+  <h3>Correspondance des ateliers</h3>
+  à date (02/11/21) voici les correspondances en la numérotation des modules officiels et des ateliers chez goDeploy:
+  <table>
+    <tr><th>Module MS</th><th>Module goDeploy</th></tr>
+    <tr><td>1</td><td>1</td></tr>
+    <tr><td>2</td><td>2</td></tr>
+    <tr><td>3</td><td>3</td></tr>
+    <tr><td>4</td><td>4</td></tr>
+    <tr><td>5</td><td>5</td></tr>
+    <tr><td>6</td><td>6 (Ex 2 supprimé)</td></tr>
+    <tr><td>7</td><td>Pas de labs</td></tr>
+    <tr><td>8</td><td>7</td></tr>
+    <tr><td>9</td><td>8</td></tr>
+    <tr><td>10</td><td>9</td></tr>
+    <tr><td>11</td><td>10</td></tr>
+    <tr><td>12</td><td>Pas de labs</td></tr>
+    <tr><td>13</td><td>11</td></tr>
+    <tr><td>14</td><td>12</td></tr>
+  </table>
   
   <h3>Transition de terminologie</h3>
   A l'heure d'écrire ces lignes, les technologies changent de nom, à priori pour donner du sens à une offre de sécurité globale Cloud MS "Defender" :

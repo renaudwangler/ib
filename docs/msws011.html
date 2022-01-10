@@ -28,11 +28,11 @@
   <h3><i>Nettoyer</i> les ateliers</h3>
   Le code suivant permettra de s'assurer que l'environnement d'atelier a bien démarrer (à lancer en powershell depuis SEA-DC1 après que toutes les machines du lab aient démarré) :
   <code>Powershell
-  Get-netAdapter|restart-netAdapter
-  Get-ADDomain|foreach-object {
-  get-ADComputer -Filter * -searchBase $_.computersContainer|foreach-object {
-    echo "Redémarrage de $($_.DNSHostName)"
-	Restart-Computer -ComputerName $_.DNSHostName -Force}}</code>
+  Get-netAdapter|restart-netAdapter;Get-ADDomain|foreach-object {get-ADComputer -Filter * -searchBase $_.computersContainer|foreach-object {echo "Redémarrage de $($_.DNSHostName)";Restart-Computer -ComputerName $_.DNSHostName -Force}}</code>
+  <h3>SSO sur Windows Admin Center</h3>
+  Le code suivant permet d'activer le SSO sur Windows Admin Center :
+  <code>Powershell
+  $wacobject = Get-ADComputer -Identity $env:computername; Get-ADDomain|foreach-object { get-ADComputer -Filter * -searchBase $_.computersContainer|foreach-object {Set-ADComputer -Identity $_.Name -PrincipalsAllowedToDelegateToAccount $wacobject;Invoke-Command -ComputerName $_.name -ScriptBlock {klist purge -li 0x3e7}}}</code>
   <h3>Ateliers goDeploy</h3>
   Bien laisser le clavier en EN-US, y compris pendant les ateliers d'installation : c'est l'environnement web goDeploy qui fera la transition avec la langue du clavier du poste du stagiaire.
   <h3>Atelier 3</h3>

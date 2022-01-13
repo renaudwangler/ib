@@ -1,7 +1,7 @@
 $cred=Get-Credential
 #Installation de la target iSCSI sur sea-adm et de ses 3 disques
 Add-WindowsFeature FS-iSCSITarget-Server
-New-IscsiServerTarget iSCSI-23 -InitiatorIds "IQN:iqn.1991-05.com.microsoft:sea-svr2.contoso.com","IQN:iqn.1991-05.com.microsoft:sea-svr3.contoso.com"
+New-IscsiServerTarget iSCSI-mod6 -InitiatorIds "IQN:iqn.1991-05.com.microsoft:sea-svr2.contoso.com","IQN:iqn.1991-05.com.microsoft:sea-svr3.contoso.com"
 for ($i=1;$i -le 3;$i++) {
   New-IscsiVirtualDisk c:\storage\disk$i.vhdx -size 10GB
   Add-IscsiVirtualDiskTargetMapping iSCSI-23 c:\storage\disk$i.vhdx}
@@ -13,7 +13,7 @@ $servers|ForEach-Object {
   Start-Service msiscsi
   Set-Service msiscsi -StartupType Automatic
   New-IscsiTargetPortal -TargetPortalAddress sea-adm1.contoso.com
-  Connect-IscsiTarget -NodeAddress iqn.1991-05.com.microsoft:sea-adm1-iSCSI-23-target}}
+  Connect-IscsiTarget -NodeAddress iqn.1991-05.com.microsoft:sea-adm1-iSCSI-mod6-target}}
 
 #Initialisation des disques montés sur le premier serveur
 Invoke-Command -ComputerName $servers[0] -Credential $cred -ScriptBlock {

@@ -1,5 +1,4 @@
 courses = {
-  'm20411':'Administrer Windows Server 2012 R2',
   'm20411d':'Administrer Windows Server 2012 R2',
   'm20740c':'Installation de Windows Server 2016, gestion du stockage et de la virtualisation',
   'm20741b':'Les services réseaux Windows Server 2016',
@@ -28,6 +27,19 @@ function sortObj(obj) {
   return Object.keys(obj).sort().reduce(function (result, key) {result[key] = obj[key];return result;}, {});}
 
 function links() {
+  courseTable=courseTable=document.getElementsByTagName('table')[0];
+  Object.entries(courses).forEach(([courseId,courseTitle]) => {
+    var newCourse=courseTable.insertRow(0);
+    newCourse.id=courseId;
+    //<tr id="m20411d"><td>M20411</td><td>Administrer Windows Server 2012 R2</td></tr>
+    var cell1=row.insertCell(0);
+    var cell2=row.insertCell(1);
+    cell1.innerHTML=courseId;
+    cell2.innerHTML=courseTitle;
+  });
+}
+
+function linksOld() {
   var rows=document.getElementsByTagName('tr');
   for (i=0;i<rows.length;i++) {
     var currentRow=rows[i];

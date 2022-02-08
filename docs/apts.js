@@ -15,7 +15,14 @@ function aptsLoad(courseId) {
   if (document.getElementById('o365')) {readFile('o365.html','o365',false);}
   if (document.getElementById('Azure')) {readFile('Azure.html','Azure',false);}
   readFile('outro.html','outro');
-  document.title=courseId+' - APTS';}
+  document.title=courseId+' - APTS';
+ 
+  var fileref = document.createElement('link');
+  fileref.setAttribute('rel','stylesheet');
+  fileref.setAttribute('type','text/css');
+  fileref.setAttribute('href','ib-apts.css');
+  document.getElementsByTagName("head")[0].appendChild(fileref);
+}
 
 function readFile(fileName,divID,noHr=false) {
   var txtFile=new XMLHttpRequest();

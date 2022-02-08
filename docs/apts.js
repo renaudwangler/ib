@@ -5,18 +5,15 @@ function links() {
     var createClickHandler=function(row){return function(){window.location=(row.id+'.html');};};
     currentRow.onclick=createClickHandler(currentRow);}}
 
-function aptsLoad(courseId) {
+function aptsLoad() {
   var pageName = window.location.pathname.split('/').pop().split('.')[0];
-  console.log( pageName );
-  courseId=document.title;
-  if (courseId==undefined) {courseId=ibCourse;}
-  document.body.innerHTML='<a href="index.html" title="Retour à la liste." id="back">Retour</a><h1>'+courseId+' - Accompagnement Pédagogique et Technique de stage</h1>'+document.body.innerHTML+'<div id="outro"></div>';
-  if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+courseId+'</h2>'+document.getElementById('conseils').innerHTML;}
+  document.body.innerHTML='<a href="index.html" title="Retour à la liste." id="back">Retour</a><h1>'+pageName+' - Accompagnement Pédagogique et Technique de stage</h1>'+document.body.innerHTML+'<div id="outro"></div>';
+  if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy',false);}
   if (document.getElementById('o365')) {readFile('o365.html','o365',false);}
   if (document.getElementById('Azure')) {readFile('Azure.html','Azure',false);}
   readFile('outro.html','outro');
-  document.title=courseId+' - APTS';
+  document.title=pageName+' - APTS';
 
   var iconRef=document.createElement('link');
   var cssRef = document.createElement('link');

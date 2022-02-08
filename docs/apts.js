@@ -32,8 +32,8 @@ function links() {
     var newCourse=courseTable.insertRow(0);
     newCourse.id=courseId;
     //<tr id="m20411d"><td>M20411</td><td>Administrer Windows Server 2012 R2</td></tr>
-    var cell1=row.insertCell(0);
-    var cell2=row.insertCell(1);
+    var cell1=newCourse.insertCell(0);
+    var cell2=newCourse.insertCell(1);
     cell1.innerHTML=courseId;
     cell2.innerHTML=courseTitle;
   });

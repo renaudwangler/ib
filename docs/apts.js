@@ -73,8 +73,5 @@ function readFile(fileName,divID) {
   var txtFile=new XMLHttpRequest();
   txtFile.open('GET',fileName,true);
   txtFile.onreadystatechange = function() {
-    if (txtFile.readyState === 4) {
-      if (txtFile.status === 200) {
-        var customTextElement = document.getElementById(divID);
-        customTextElement.innerHTML = '<hr/>'+txtFile.responseText;}}}
+    if (txtFile.readyState === 4) {if (txtFile.status === 200) {document.getElementById(divID).innerHTML = txtFile.responseText;}}}
 txtFile.send(null);}

@@ -31,7 +31,7 @@ function links() {
   Object.entries(courses).forEach(([courseId,courseTitle]) => {
     var newCourse=courseTable.insertRow(0);
     newCourse.id=courseId;
-    //<tr id="m20411d"><td>M20411</td><td>Administrer Windows Server 2012 R2</td></tr>
+    newCourse.onclick=window.location=(courseId+'.html');
     var cell1=newCourse.insertCell(0);
     var cell2=newCourse.insertCell(1);
     cell1.innerHTML=courseId;

@@ -1,4 +1,4 @@
-courses = sortKeys({
+courses = {
   'm20411d':'Administrer Windows Server 2012 R2',
   'm20740c':'Installation de Windows Server 2016, gestion du stockage et de la virtualisation',
   'm20741b':'Les services réseaux Windows Server 2016',
@@ -19,9 +19,10 @@ courses = sortKeys({
   'msms500':' 365 - Security Administration',
   'msms700':'Administration de Microsoft Teams'
 
-        });
+        };
 
 const sortKeys=(obj)=>{return Object.assign(...Object.entries(obj).sort().map(([key,value])=>{return{[key]:value}}));};
+courses=sortKeys(courses);
 
 function links() {
   courseTable=courseTable=document.getElementsByTagName('table')[0];

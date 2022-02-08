@@ -1,4 +1,4 @@
-courses = {
+courses = sortKeys({
   'm20411d':'Administrer Windows Server 2012 R2',
   'm20740c':'Installation de Windows Server 2016, gestion du stockage et de la virtualisation',
   'm20741b':'Les services réseaux Windows Server 2016',
@@ -19,9 +19,9 @@ courses = {
   'msms500':' 365 - Security Administration',
   'msms700':'Administration de Microsoft Teams'
 
-        };
+        });
 
-var sortKeys=(courses)=>{return Object.assign(...Object.entries(courses).sort().map(([key,value])=>{return{[key]:value}}));};
+const sortKeys=(obj)=>{return Object.assign(...Object.entries(obj).sort().map(([key,value])=>{return{[key]:value}}));};
 
 function links() {
   courseTable=courseTable=document.getElementsByTagName('table')[0];
@@ -45,7 +45,7 @@ function linksOld() {
 
 function aptsLoad() {
   var pageName = window.location.pathname.split('/').pop().split('.')[0];
-  document.body.innerHTML='<h1>'+pageName+' - Accompagnement Pédagogique et Technique de stage<a href="index.html" title="Retour à la liste." id="back"></a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
+  document.body.innerHTML='<h1>'+pageName+' - Accompagnement Pédagogique et Technique de stage<a href="index.html" title="Retour à la liste." id="back">&nbsp;</a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy',false);}
   if (document.getElementById('o365')) {readFile('o365.html','o365',false);}

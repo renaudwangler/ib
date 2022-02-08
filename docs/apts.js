@@ -22,12 +22,8 @@ courses = {
         };
 //courses=sortObj(courses);
 
-var sortKeys = (courses) => {
-  return Object.assign(...Object.entries(courses).sort().map(([key, value]) => {
-     return {[key]:value}
-  }));
-};
-
+var sortKeys=(courses)=>{return Object.assign(...Object.entries(courses).sort().map(([key,value])=>{return{[key]:value}}));};
+console.log(courses);
 courses=sortKeys;
 
 function sortObj(obj) {

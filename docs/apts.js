@@ -20,11 +20,10 @@ courses = {
   'msms700':'Administration de Microsoft Teams'
 
         };
-courses=sortObj(courses);
-console.log(courses);
+//courses=sortObj(courses);
 
 function sortObj(obj) {
-  return Object.keys(obj).sort().reduce(function (result, key) {result[key] = obj[key];return result;}, {});}
+  return Object.keys(obj).sort().reduce(function(result,key){result[key]=obj[key];return result;},{});}
 
 function links() {
   courseTable=courseTable=document.getElementsByTagName('table')[0];
@@ -48,7 +47,7 @@ function linksOld() {
 
 function aptsLoad() {
   var pageName = window.location.pathname.split('/').pop().split('.')[0];
-  document.body.innerHTML='<h1>'+pageName+' - Accompagnement Pédagogique et Technique de stage<a href="index.html" title="Retour à la liste." id="back"/></h1>'+document.body.innerHTML+'<div id="outro"></div>';
+  document.body.innerHTML='<h1>'+pageName+' - Accompagnement Pédagogique et Technique de stage<a href="index.html" title="Retour à la liste." id="back"></a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy',false);}
   if (document.getElementById('o365')) {readFile('o365.html','o365',false);}

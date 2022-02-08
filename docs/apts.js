@@ -6,9 +6,8 @@ function links() {
     currentRow.onclick=createClickHandler(currentRow);}}
 
 function aptsLoad(courseId) {
-  var path = window.location.pathname;
-  var page = path.split('/').pop();
-  console.log( page );
+  var pageName = window.location.pathname.split('/').pop().split('.')[0];
+  console.log( pageName );
   courseId=document.title;
   if (courseId==undefined) {courseId=ibCourse;}
   document.body.innerHTML='<a href="index.html" title="Retour à la liste." id="back">Retour</a><h1>'+courseId+' - Accompagnement Pédagogique et Technique de stage</h1>'+document.body.innerHTML+'<div id="outro"></div>';

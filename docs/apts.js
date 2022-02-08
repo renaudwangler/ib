@@ -21,17 +21,12 @@ courses = {
 
         };
 
-//const sortKeys=(obj)=>{return Object.assign(...Object.entries(obj).sort().map(([key,value])=>{return{[key]:value}}));};
-//courses=sortKeys(courses);
-
 
 const unsortedObjArr = [...Object.entries(courses)];
-const sortedObjArr = unsortedObjArr.sort(([key1, value1], [key2, value2]) => key1.localeCompare(key2));
+const sortedObjArr = unsortedObjArr.sort(([key1, value1], [key2, value2]) => key2.localeCompare(key1));
 const sortedObject = {}
 sortedObjArr.forEach(([key, value]) => (sortedObject[key] = value));
 courses=sortedObject;
-
- 
 
 function links() {
   courseTable=courseTable=document.getElementsByTagName('table')[0];
@@ -55,7 +50,7 @@ function linksOld() {
 
 function aptsLoad() {
   var pageName = window.location.pathname.split('/').pop().split('.')[0];
-  document.body.innerHTML='<h1>'+pageName+' - Accompagnement Pédagogique et Technique de stage<a href="index.html" title="Retour à la liste." id="back">&nbsp;</a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
+  document.body.innerHTML='<h1>'+pageName+' - Accompagnement Pédagogique et Technique de stage<a href="index.html" title="Retour à la liste." id="back"><img src="logo_ib.png" alt="Retour"></a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy',false);}
   if (document.getElementById('o365')) {readFile('o365.html','o365',false);}
@@ -70,7 +65,7 @@ function aptsLoad() {
   cssRef.setAttribute('rel','stylesheet');
   cssRef.setAttribute('type','text/css');
   cssRef.setAttribute('href','ib-apts.css');
-  document.getElementsByTagName("head")[0].appendChild(cssRef);
+  document.getElementsByTagName('head')[0].appendChild(cssRef);
   document.getElementsByTagName('head')[0].appendChild(iconRef);
 }
 

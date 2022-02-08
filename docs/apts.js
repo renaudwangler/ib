@@ -15,7 +15,7 @@ function aptsLoad(courseId) {
   if (document.getElementById('o365')) {readFile('o365.html','o365',false);}
   if (document.getElementById('Azure')) {readFile('Azure.html','Azure',false);}
   readFile('outro.html','outro');
-  document.title=ibCourse+' - APTS';}
+  document.title=CourseId+' - APTS';}
 
 function readFile(fileName,divID,noHr=false) {
   var txtFile=new XMLHttpRequest();

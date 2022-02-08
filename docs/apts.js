@@ -31,7 +31,7 @@ function links() {
   Object.entries(courses).forEach(([courseId,courseTitle]) => {
     var newCourse=courseTable.insertRow(0);
     newCourse.id=courseId;
-    newCourse.onclick=window.location=(courseId+'.html');
+    newCourse.onclick=function(){window.location=(courseId+'.html')};
     var cell1=newCourse.insertCell(0);
     var cell2=newCourse.insertCell(1);
     cell1.innerHTML=courseId;

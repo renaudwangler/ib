@@ -1,6 +1,4 @@
-﻿body {padding:10px;color:gray;font-family:tahoma;}
-body.master0 {padding:0px;margin:0px;}
-body.master1 {padding:0px;margin:0px;}
+body {padding:10px;color:gray;font-family:tahoma;background-color:#F8F8F8;background-image:url('logo_ib.png');background-repeat:no-repeat;background-attachment:fixed;background-position:right top;}
 h1,h2{color:#EA690B;text-decoration:underline;margin:0em;display:block;}
 h2{margin-top:1em;margin-bottom:0.5em;}
 h3{margin-top:1em;margin-bottom:-1em;padding-bottom:0px;}

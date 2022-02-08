@@ -6,7 +6,9 @@ function links() {
     currentRow.onclick=createClickHandler(currentRow);}}
 
 function aptsLoad(courseId) {
-  if (courseId==undefined) {courseId=ibCourse;}
+  if (courseId==undefined) {
+    console.log(ibCourse);
+    courseId=ibCourse;}
   document.body.innerHTML='<a href="index.html" title="Retour à la liste." id="back">Retour</a><h1>'+courseId+' - Accompagnement Pédagogique et Technique de stage</h1>'+document.body.innerHTML+'<div id="outro"></div>';
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+courseId+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy',false);}

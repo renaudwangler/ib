@@ -21,9 +21,11 @@ courses = {
   'msms700':'Administration de Microsoft Teams'
 
         };
-courses.sort(function(a,b) {returna.key - b.key;});
+courses=sortObj(courses);
 console.log(courses);
 
+function sortObj(obj) {
+  return Object.keys(obj).sort().reduce(function (result, key) {result[key] = obj[key];return result;}, {});}
 
 function links() {
   var rows=document.getElementsByTagName('tr');

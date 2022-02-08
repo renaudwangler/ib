@@ -1,3 +1,30 @@
+courses = {
+  'm20411':'Administrer Windows Server 2012 R2',
+  'm20411d':'Administrer Windows Server 2012 R2',
+  'm20740c':'Installation de Windows Server 2016, gestion du stockage et de la virtualisation',
+  'm20741b':'Les services réseaux Windows Server 2016',
+  'm20742b':'Gestion des identités avec Windows Server 2016',
+  'msws011':'Windows Server 2019 Administration',
+  'msws012':'Windows Server 2019 hybride et Azure IaaS',
+  'msaz104':'Microsoft Azure - Administration',
+  'msaz303':'Microsoft Azure - Technologies pour les architectes',
+  'msaz305':'Microsoft Azure - Conception d\'architectures',
+  'msaz500':'Microsoft Azure - Technologies de sécurité',
+  'msaz900':'Microsoft Azure - Notions fondamentales',
+  'msms030':'Microsoft 365 - Administration',
+  'm10997':'Microsoft 365 - Administration courante et dépannage',
+  'msms100':'Microsoft 365 - Gestion des identités et des services',
+  'msms101':'Microsoft 365 - Gestion de la sécurité et de la mobilité',
+  'msms200':'Microsoft 365 - Planification et configuration d’une plate-forme de messagerie',
+  'msms300':'Microsoft 365 - Déploiement de Teamwork',
+  'msms500':' 365 - Security Administration',
+  'msms700':'Administration de Microsoft Teams'
+
+        };
+courses.sort(function(a,b) {returna.key - b.key;});
+console.log(courses);
+
+
 function links() {
   var rows=document.getElementsByTagName('tr');
   for (i=0;i<rows.length;i++) {

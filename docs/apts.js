@@ -21,8 +21,17 @@ courses = {
 
         };
 
-const sortKeys=(obj)=>{return Object.assign(...Object.entries(obj).sort().map(([key,value])=>{return{[key]:value}}));};
-courses=sortKeys(courses);
+//const sortKeys=(obj)=>{return Object.assign(...Object.entries(obj).sort().map(([key,value])=>{return{[key]:value}}));};
+//courses=sortKeys(courses);
+
+
+const unsortedObjArr = [...Object.entries(courses)];
+const sortedObjArr = unsortedObjArr.sort(([key1, value1], [key2, value2]) => key1.localeCompare(key2));
+const sortedObject = {}
+sortedObjArr.forEach(([key, value]) => (sortedObject[key] = value));
+courses=sortedObject;
+
+ 
 
 function links() {
   courseTable=courseTable=document.getElementsByTagName('table')[0];

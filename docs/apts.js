@@ -22,6 +22,17 @@ courses = {
         };
 //courses=sortObj(courses);
 
+var sortKeys = (courses) => {
+  return Object.assign(...Object.entries(courses).sort().map(([key, value])
+  => {
+     return {
+        [key]: value
+     }
+  }));
+};
+
+courses=sortKeys;
+
 function sortObj(obj) {
   return Object.keys(obj).sort().reduce(function(result,key){result[key]=obj[key];return result;},{});}
 

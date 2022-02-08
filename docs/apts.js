@@ -6,9 +6,8 @@ function links() {
     currentRow.onclick=createClickHandler(currentRow);}}
 
 function aptsLoad(courseId) {
-  console.log ('courseId avant : '+courseId);
+  courseId=document.title;
   if (courseId==undefined) {courseId=ibCourse;}
-  console.log ('courseId avant : '+courseId);
   document.body.innerHTML='<a href="index.html" title="Retour à la liste." id="back">Retour</a><h1>'+courseId+' - Accompagnement Pédagogique et Technique de stage</h1>'+document.body.innerHTML+'<div id="outro"></div>';
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+courseId+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy',false);}
@@ -16,12 +15,16 @@ function aptsLoad(courseId) {
   if (document.getElementById('Azure')) {readFile('Azure.html','Azure',false);}
   readFile('outro.html','outro');
   document.title=courseId+' - APTS';
- 
-  var fileref = document.createElement('link');
-  fileref.setAttribute('rel','stylesheet');
-  fileref.setAttribute('type','text/css');
-  fileref.setAttribute('href','ib-apts.css');
-  document.getElementsByTagName("head")[0].appendChild(fileref);
+
+  var iconRef=document.createElement('link');
+  var cssRef = document.createElement('link');
+  iconRef.setAttribute('rel','icon');
+  iconRef.setAttribute('href','favicon.ico'); 
+  cssRef.setAttribute('rel','stylesheet');
+  cssRef.setAttribute('type','text/css');
+  cssRef.setAttribute('href','ib-apts.css');
+  document.getElementsByTagName("head")[0].appendChild(cssRef);
+  document.getElementsByTagName('head')[0].appendChild(iconRef);
 }
 
 function readFile(fileName,divID,noHr=false) {

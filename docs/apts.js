@@ -87,8 +87,8 @@ function readFile(fileName,divID) {
         div.appendChild(newDiv);}}}}
 txtFile.send(null);}
 
-function switchDiv(divId) {
-  div=document.getElementById(divId).style.display;
+function switchDiv() {
+  div=document.getElementById(this).style.display;
   if (div=='none') {
     div='block'}
   else {

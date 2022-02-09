@@ -73,7 +73,7 @@ function readFile(fileName,divID) {
       div=document.getElementById(divID);
       div.className='grey';
       div.innerHTML=txtFile.responseText;
-      if (divId!='outro') {
+      if (divID!='outro') {
         h3=document.querySelectorAll('#'+divID+'> h3');
         console.log(h3);
         h3.parentElement.removeChild(h3);

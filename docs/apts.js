@@ -71,10 +71,11 @@ function readFile(fileName,divID) {
   txtFile.onreadystatechange = function() {
     if (txtFile.readyState === 4) {if (txtFile.status === 200) {
       div=document.getElementById(divID);
-      div.className='grey';
       div.innerHTML=txtFile.responseText;
       if (divID!='outro') {
-        h3=document.querySelectorAll('#'+divID+'> h3');
+        div.className='grey';
+        h3=document.querySelector('#'+divID+'> h3');
+        subDiv=document.querySelector('#'+divID+' h3::after');
         console.log(h3);
         h3.parentElement.removeChild(h3);
         console.log(h3);

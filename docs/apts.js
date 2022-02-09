@@ -77,7 +77,7 @@ function readFile(fileName,divID) {
         h3=document.querySelector('#'+divID+'> h3');
         subDiv=document.querySelector('#'+divID+' h3::after');
         h3.parentElement.removeChild(h3);
-        h3.addEventListener('click', switchDiv(this), false)
+        h3.onclick=switchDiv(this);
         var newDiv=document.createElement('div');
         newDiv.id=divID+'-sub';
         newDiv.style.display='none';

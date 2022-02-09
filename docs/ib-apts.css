@@ -17,5 +17,5 @@ hr {margin:2em;}
 div.edition {padding:0px;margin:0px;margin-bottom:3px;color:black;font-size:10px;font-weight:normal;padding-left:100px;}
 div#conseilsGeneriques {width:80%;margin-left:10%;margin-top:10px;border-left:double 3px gray;padding:2px;}
 div#custo,div#conseils,div#master0,div#master1,div#outro {white-space:pre-line;}
-#goDeploy,#o365,#Azure {box-shadow: 0 4px 6px rgb(0 0 0 / 10%);margin:10%;margin-top:10px;margin-bottom:0px;background-color:white;padding:10px;}
+#goDeploy,#o365,#Azure {box-shadow: 0 4px 6px rgb(0 0 0 / 10%);margin:10%;margin-top:10px;margin-bottom:0px;background-color:white;padding:10px;background-color: darkgrey;color:aliceblue;}
 #goDeploy h3,#o365 h3,#Azure h3 {display:block;width:100%;text-align:center;margin-top:5px;margin-bottom: 10px;}

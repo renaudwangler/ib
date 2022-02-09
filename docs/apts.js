@@ -50,6 +50,7 @@ function linksOld() {
 
 function aptsLoad() {
   var pageName = window.location.pathname.split('/').pop().split('.')[0];
+  console.log(courses[pageName]);
   document.body.innerHTML='<h1>'+pageName+' - Accompagnement Pédagogique et Technique de stage<a href="index.html" title="Retour à la liste." id="back"><img src="logo_ib.png" alt="Retour"></a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy');}

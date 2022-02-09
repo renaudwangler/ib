@@ -19,5 +19,6 @@ div#conseilsGeneriques {width:80%;margin-left:10%;margin-top:10px;border-left:do
 div {white-space:pre-line;}
 div.grey {box-shadow: 0 4px 6px rgb(0 0 0 / 10%);margin:10%;margin-top:10px;margin-bottom:0px;padding:10px;background-color: darkgrey;color:aliceblue;}
 div.grey h3 {display:block;width:100%;text-align:center;margin-top:5px;margin-bottom: 10px;}
+div.grey h3:hover {cursor: pointer;}
 div.grey strong,b{color:aliceblue;}
 div.grey a,div.grey a:visited {color:darkred;font-weight:bold;}

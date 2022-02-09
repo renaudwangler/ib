@@ -87,13 +87,12 @@ function readFile(fileName,divID) {
         div.appendChild(newDiv);}}}}
 txtFile.send(null);}
 
-function switchDiv(divId,param2,param3) {
+function switchDiv(divId,param2) {
   console.log(divId);
   console.log(param2);
-  console.log(param3);
   div=document.getElementById(divId).style.display;
-  if (div=='none') {
-    div='block'}
+  if (div.style.display=='none') {
+    div.style.display='block'}
   else {
-    div='none'};
+    div.style.display='none'};
 }

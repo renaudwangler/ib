@@ -85,7 +85,7 @@ function readFile(fileName,divID) {
         div.innerHTML='';
         div.appendChild(h3);
         div.appendChild(newDiv);
-        document.querySelector('#'+divID+'> h3').addEventListener('click',switchDiv(divID));
+        //document.querySelector('#'+divID+'> h3').addEventListener('click',switchDiv(divID));
 
         
       }
@@ -94,6 +94,7 @@ function readFile(fileName,divID) {
 txtFile.send(null);}
 
 function switchDiv(h3Id) {
+  console.log(h3Id);
   divId=h3Id.parentElement.id;
   div=document.getElementById(divId+'-sub').style.display;
   if (div=='none') {

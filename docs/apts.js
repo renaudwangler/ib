@@ -76,7 +76,7 @@ function readFile(fileName,divID) {
       h3=document.querySelectorAll('#'+divID+'> h3');
       //h3=div.getElementsByClassName('h3')[0];
       console.log(h3);
-      h3.parentNode.removeChild(h3);
+      h3.parentElement.removeChild(h3);
       console.log(h3);
       div.removeChild(h3);
       var newDiv=document.createElement('div');

@@ -18,6 +18,6 @@ div.edition {padding:0px;margin:0px;margin-bottom:3px;color:black;font-size:10px
 div#conseilsGeneriques {width:80%;margin-left:10%;margin-top:10px;border-left:double 3px gray;padding:2px;}
 div#custo,div#conseils,div#master0,div#master1,div#outro {white-space:pre-line;}
 div:not(#conseils) {box-shadow: 0 4px 6px rgb(0 0 0 / 10%);margin:10%;margin-top:10px;margin-bottom:0px;background-color:white;padding:10px;background-color: darkgrey;color:aliceblue;}
-div:not(#conseils) h3 {display:block;width:100%;text-align:center;margin-top:5px;margin-bottom: 10px;}
-div:not(#conseils) b {color:aliceblue;}
-div:not(#conseils) a,div:not(#conseils) a:visited {color:darkred;font-weight:bold;}
+div:not(#conseils,#outro) h3 {display:block;width:100%;text-align:center;margin-top:5px;margin-bottom: 10px;}
+div:not(#conseils,#outro) b {color:aliceblue;}
+div:not(#conseils,#outro) a,div:not(#conseils) a:visited {color:darkred;font-weight:bold;}

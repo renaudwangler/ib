@@ -77,7 +77,7 @@ function readFile(fileName,divID) {
   txtFile.open('GET',fileName,true);
   txtFile.onreadystatechange = function() {
     if (txtFile.readyState === 4) {if (txtFile.status === 200) {
-      div=document.getElementById(divId);
+      div=document.getElementById(divID);
       div.className='grey';
       div.innerHTML=txtFile.responseText;}}}
 txtFile.send(null);}

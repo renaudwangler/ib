@@ -88,9 +88,8 @@ function readFile(fileName,divID) {
 txtFile.send(null);}
 
 function switchDiv(divId,param2) {
-  console.log(divId);
   console.log(param2);
-  div=document.getElementById(divId).style.display;
+  div=document.getElementById(divId);
   if (div.style.display=='none') {
     div.style.display='block'}
   else {

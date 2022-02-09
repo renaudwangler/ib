@@ -91,7 +91,10 @@ function switchDiv(divId,param2) {
   console.log(param2);
   div=document.getElementById(divId);
   if (div.style.display=='none') {
+    param2.className='moins';
     div.style.display='block'}
   else {
-    div.style.display='none'};
+    div.style.display='none'
+    param2.className='plus';
+  };
 }

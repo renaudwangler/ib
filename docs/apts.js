@@ -77,25 +77,18 @@ function readFile(fileName,divID) {
         h3=document.querySelector('#'+divID+'> h3');
         subDiv=document.querySelector('#'+divID+' h3::after');
         h3.parentElement.removeChild(h3);
-        h3.onclick=switchDiv;
+        h3.onclick=switchDiv(this.id);
         var newDiv=document.createElement('div');
         newDiv.id=divID+'-sub';
         newDiv.style.display='none';
         newDiv.innerHTML=div.innerHTML;
         div.innerHTML='';
         div.appendChild(h3);
-        div.appendChild(newDiv);
-        //document.querySelector('#'+divID+'> h3').addEventListener('click',switchDiv(divID));
-
-        
-      }
-    
-    }}}
+        div.appendChild(newDiv);}}}}
 txtFile.send(null);}
 
 function switchDiv() {
-  testDiv=document.querySelector(this);
-  console.log(testDiv);
+  console.log(this);
   divId=h3Id.parentElement.id;
   div=document.getElementById(divId+'-sub').style.display;
   if (div=='none') {

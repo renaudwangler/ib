@@ -74,7 +74,9 @@ function readFile(fileName,divID) {
       div.className='grey';
       div.innerHTML=txtFile.responseText;
       h3=div.getElementsByClassName('h3')[0];
-
+      console.log(h3);
+      h3.parentNode.removeChild(h3);
+      console.log(h3);
       div.removeChild(h3);
       var newDiv=document.createElement('div');
       newDiv.id=div.id+'-sub';

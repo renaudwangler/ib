@@ -84,16 +84,14 @@ function readFile(fileName,divID) {
         div.innerHTML='';
         div.appendChild(h3);
         div.appendChild(newDiv);
-        document.querySelector('#'+divID+'> h3').addEventListener('click', function(e) {
-          divDisp=document.getElementById(divID+'-sub').style.display;if (divDisp=='none'){divDisp='block'} else {divDisp='none'}
-      }, false);
+        document.querySelector('#'+divID+'> h3').addEventListener('click',switchDiv(divID));
       }
     
     }}}
 txtFile.send(null);}
 
 function switchDiv(divId) {
-  div=document.getElementById(divId).style.display;
+  div=document.getElementById(divId+'-sub').style.display;
   if (div=='none') {
     div='block'}
   else {

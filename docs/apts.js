@@ -87,10 +87,8 @@ function readFile(fileName,divID) {
         div.appendChild(newDiv);}}}}
 txtFile.send(null);}
 
-function switchDiv() {
-  console.log(this);
-  divId=h3Id.parentElement.id;
-  div=document.getElementById(divId+'-sub').style.display;
+function switchDiv(divId) {
+  div=document.getElementById(divId).style.display;
   if (div=='none') {
     div='block'}
   else {

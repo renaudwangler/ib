@@ -79,9 +79,8 @@ function readFile(fileName,divID) {
         console.log(h3);
         h3.parentElement.removeChild(h3);
         console.log(h3);
-        div.removeChild(h3);
         var newDiv=document.createElement('div');
-        newDiv.id=div.id+'-sub';
+        newDiv.id=divID+'-sub';
         newDiv.innerHTML=div.innerHTML;
         div.innerHTML='';
         div.appendChild(h3);

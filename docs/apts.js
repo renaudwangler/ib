@@ -54,7 +54,7 @@ function aptsLoad() {
   if (courses[pageName]==undefined) h1+=' - Accompagnement Pédagogique et Technique de stage';
   else h1+=' - '+courses[pageName];
   document.body.innerHTML=h1+'<a href="index.html" title="Retour à la liste." id="back"><img src="logo_ib.png" alt="Retour"></a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
-  if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Conseils d\'animation pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
+  if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Accompagnement Pédagogique et Technique pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy');}
   if (document.getElementById('o365')) {readFile('o365.html','o365');}
   if (document.getElementById('Azure')) {readFile('Azure.html','Azure');}
@@ -76,5 +76,7 @@ function readFile(fileName,divID) {
   var txtFile=new XMLHttpRequest();
   txtFile.open('GET',fileName,true);
   txtFile.onreadystatechange = function() {
-    if (txtFile.readyState === 4) {if (txtFile.status === 200) {document.getElementById(divID).innerHTML = txtFile.responseText;}}}
+    if (txtFile.readyState === 4) {if (txtFile.status === 200) {
+      document.getElementById(divID).className='grey';
+      document.getElementById(divID).innerHTML=txtFile.responseText;}}}
 txtFile.send(null);}

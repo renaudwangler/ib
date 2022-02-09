@@ -93,7 +93,7 @@ function readFile(fileName,divID) {
     }}}
 txtFile.send(null);}
 
-function switchDiv {
+function switchDiv() {
   console.log(this);
   divId=h3Id.parentElement.id;
   div=document.getElementById(divId+'-sub').style.display;

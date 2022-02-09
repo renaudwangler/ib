@@ -76,9 +76,11 @@ function readFile(fileName,divID) {
         div.className='grey';
         h3=document.querySelector('#'+divID+'> h3');
         subDiv=document.querySelector('#'+divID+' h3::after');
-        console.log(h3);
         h3.parentElement.removeChild(h3);
-        h3.onclick=function(){divDisp=document.getElementById(divID+'-sub').style.display;if (divDisp=='none'){divDisp='block'} else {divDisp='none'}};
+
+        h3.addEventListener('click', function(e) {
+          divDisp=document.getElementById(divID+'-sub').style.display;if (divDisp=='none'){divDisp='block'} else {divDisp='none'}
+      }, false);
         var newDiv=document.createElement('div');
         newDiv.id=divID+'-sub';
         newDiv.style.display='none';

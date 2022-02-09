@@ -17,9 +17,7 @@ courses = {
   'msms200':'Microsoft 365 - Planification et configuration d’une plate-forme de messagerie',
   'msms300':'Microsoft 365 - Déploiement de Teamwork',
   'msms500':' 365 - Security Administration',
-  'msms700':'Administration de Microsoft Teams'
-
-        };
+  'msms700':'Administration de Microsoft Teams'};
 
 
 const unsortedObjArr = [...Object.entries(courses)];
@@ -38,10 +36,9 @@ function links() {
     var cell2=newCourse.insertCell(1);
     cell1.innerHTML=courseId;
     cell2.innerHTML=courseTitle;
-  });
-}
+  });}
 
-function aptsLoad() {
+if (document.title!='ib - APTS') {
   var pageName = window.location.pathname.split('/').pop().split('.')[0];
   h1='<h1>'+pageName;
   if (courses[pageName]==undefined) h1+=' - Accompagnement Pédagogique et Technique de stage';

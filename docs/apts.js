@@ -77,7 +77,7 @@ function readFile(fileName,divID) {
         h3=document.querySelector('#'+divID+'> h3');
         subDiv=document.querySelector('#'+divID+' h3::after');
         h3.parentElement.removeChild(h3);
-        h3.onclick=switchDiv(this);
+        h3.onclick=switchDiv;
         var newDiv=document.createElement('div');
         newDiv.id=divID+'-sub';
         newDiv.style.display='none';
@@ -93,8 +93,8 @@ function readFile(fileName,divID) {
     }}}
 txtFile.send(null);}
 
-function switchDiv(h3Id) {
-  console.log(h3Id);
+function switchDiv {
+  console.log(this);
   divId=h3Id.parentElement.id;
   div=document.getElementById(divId+'-sub').style.display;
   if (div=='none') {

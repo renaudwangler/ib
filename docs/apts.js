@@ -77,6 +77,7 @@ function readFile(fileName,divID) {
         h3=document.querySelector('#'+divID+'> h3');
         subDiv=document.querySelector('#'+divID+' h3::after');
         h3.parentElement.removeChild(h3);
+        h3.addEventListener('click', switchDiv(this), false)
         var newDiv=document.createElement('div');
         newDiv.id=divID+'-sub';
         newDiv.style.display='none';
@@ -85,12 +86,15 @@ function readFile(fileName,divID) {
         div.appendChild(h3);
         div.appendChild(newDiv);
         document.querySelector('#'+divID+'> h3').addEventListener('click',switchDiv(divID));
+
+        
       }
     
     }}}
 txtFile.send(null);}
 
 function switchDiv(divId) {
+  divId=divId.parentElement.id;
   div=document.getElementById(divId+'-sub').style.display;
   if (div=='none') {
     div='block'}

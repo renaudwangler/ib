@@ -93,8 +93,8 @@ function readFile(fileName,divID) {
     }}}
 txtFile.send(null);}
 
-function switchDiv(divId) {
-  divId=divId.parentElement.id;
+function switchDiv(h3Id) {
+  divId=h3Id.parentElement.id;
   div=document.getElementById(divId+'-sub').style.display;
   if (div=='none') {
     div='block'}

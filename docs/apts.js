@@ -78,6 +78,7 @@ function readFile(fileName,divID) {
         subDiv=document.querySelector('#'+divID+' h3::after');
         h3.parentElement.removeChild(h3);
         h3.onclick=switchDiv.bind(h3,divID+'-sub',h3);
+        h3.className='moins';
         var newDiv=document.createElement('div');
         newDiv.id=divID+'-sub';
         newDiv.style.display='none';
@@ -87,14 +88,13 @@ function readFile(fileName,divID) {
         div.appendChild(newDiv);}}}}
 txtFile.send(null);}
 
-function switchDiv(divId,param2) {
-  console.log(param2);
+function switchDiv(divId,titre) {
   div=document.getElementById(divId);
   if (div.style.display=='none') {
-    param2.className='moins';
+    titre.className='plus';
     div.style.display='block'}
   else {
     div.style.display='none'
-    param2.className='plus';
+    titre.className='moins';
   };
 }

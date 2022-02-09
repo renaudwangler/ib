@@ -77,17 +77,17 @@ function readFile(fileName,divID) {
         h3=document.querySelector('#'+divID+'> h3');
         subDiv=document.querySelector('#'+divID+' h3::after');
         h3.parentElement.removeChild(h3);
-
-        h3.addEventListener('click', function(e) {
-          divDisp=document.getElementById(divID+'-sub').style.display;if (divDisp=='none'){divDisp='block'} else {divDisp='none'}
-      }, false);
         var newDiv=document.createElement('div');
         newDiv.id=divID+'-sub';
         newDiv.style.display='none';
         newDiv.innerHTML=div.innerHTML;
         div.innerHTML='';
         div.appendChild(h3);
-        div.appendChild(newDiv);}
+        div.appendChild(newDiv);
+        document.querySelector('#'+divID+'> h3').addEventListener('click', function(e) {
+          divDisp=document.getElementById(divID+'-sub').style.display;if (divDisp=='none'){divDisp='block'} else {divDisp='none'}
+      }, false);
+      }
     
     }}}
 txtFile.send(null);}

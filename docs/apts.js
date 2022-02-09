@@ -17,7 +17,8 @@ courses = {
   'msms200':'Microsoft 365 - Planification et configuration d’une plate-forme de messagerie',
   'msms300':'Microsoft 365 - Déploiement de Teamwork',
   'msms500':' 365 - Security Administration',
-  'msms700':'Administration de Microsoft Teams'};
+  'msms700':'Administration de Microsoft Teams'
+};
 
 
 const unsortedObjArr = [...Object.entries(courses)];
@@ -35,10 +36,9 @@ function links() {
     var cell1=newCourse.insertCell(0);
     var cell2=newCourse.insertCell(1);
     cell1.innerHTML=courseId;
-    cell2.innerHTML=courseTitle;
-  });}
+    cell2.innerHTML=courseTitle;});}
 
-if (document.title!='ib - APTS') {
+function aptsLoad() {
   var pageName = window.location.pathname.split('/').pop().split('.')[0];
   h1='<h1>'+pageName;
   if (courses[pageName]==undefined) h1+=' - Accompagnement Pédagogique et Technique de stage';
@@ -50,7 +50,6 @@ if (document.title!='ib - APTS') {
   if (document.getElementById('Azure')) {readFile('Azure.html','Azure');}
   readFile('outro.html','outro');
   document.title=pageName+' - APTS';
-
   var iconRef=document.createElement('link');
   var cssRef = document.createElement('link');
   iconRef.setAttribute('rel','icon');
@@ -59,8 +58,7 @@ if (document.title!='ib - APTS') {
   cssRef.setAttribute('type','text/css');
   cssRef.setAttribute('href','ib-apts.css');
   document.getElementsByTagName('head')[0].appendChild(cssRef);
-  document.getElementsByTagName('head')[0].appendChild(iconRef);
-}
+  document.getElementsByTagName('head')[0].appendChild(iconRef);}
 
 function readFile(fileName,divID) {
   var txtFile=new XMLHttpRequest();
@@ -92,6 +90,4 @@ function switchDiv(divId,titre) {
     div.style.display='block'}
   else {
     div.style.display='none'
-    titre.className='moins';
-  };
-}
+    titre.className='moins';}}

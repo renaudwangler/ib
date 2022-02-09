@@ -94,7 +94,8 @@ function readFile(fileName,divID) {
 txtFile.send(null);}
 
 function switchDiv() {
-  console.log(this);
+  testDiv=document.querySelector(this);
+  console.log(testDiv);
   divId=h3Id.parentElement.id;
   div=document.getElementById(divId+'-sub').style.display;
   if (div=='none') {

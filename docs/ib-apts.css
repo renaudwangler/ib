@@ -3,6 +3,8 @@ h1 {box-shadow: 0 4px 6px rgb(0 0 0 / 10%);height: 90px;width:100%;position: fix
 h1 a {display:block; width:73px;height:60px;position:absolute;top:10px;right:20px;background-image:url('logo_ib.png');background-repeat:no-repeat;background-attachment:fixed;}
 h2{color:#EA690B;text-decoration:underline;margin:0em;display:block;margin-bottom:0.5em;width: 100%;text-align:center;}
 h3{margin-top:1em;margin-bottom:-1em;padding-bottom:0px;}
+h3.plus:before {content: '+';}
+h3.moins:before {content: '-';}
 table.cRef {border-collapse:collapse;font-weight:bold;text-decoration:none;color:#EA690B;margin:0px;margin-bottom:4px;}
 table.cRef td{border:solid 2px #EA690B;padding:2px;}
 table.cRef tr:hover{background-color:gray;color:white;cursor:pointer;}

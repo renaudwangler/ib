@@ -78,9 +78,10 @@ function readFile(fileName,divID) {
         subDiv=document.querySelector('#'+divID+' h3::after');
         console.log(h3);
         h3.parentElement.removeChild(h3);
-        console.log(h3);
+        h3.onclick=function(){divDisp=document.getElementById(divID+'-sub').style.display;if (divDisp=='none'){divDisp='block'} else {divDisp='none'}};
         var newDiv=document.createElement('div');
         newDiv.id=divID+'-sub';
+        newDiv.style.display='none';
         newDiv.innerHTML=div.innerHTML;
         div.innerHTML='';
         div.appendChild(h3);

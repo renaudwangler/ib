@@ -44,6 +44,7 @@ function aptsLoad() {
   if (courses[pageName]==undefined) h1+=' - Accompagnement Pédagogique et Technique de stage';
   else h1+=' - '+courses[pageName];
   document.body.innerHTML=h1+'<a href="index.html" title="Retour à la liste." id="back"><img src="logo_ib.png" alt="Retour"></a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
+  document.body.innerHTML+='<a href=https://github.com/renaudwangler/ib/blob/master/docs/m10979.html class="gitbutton pill"><span class="class="icon  icon--github">{% include git-logo.html %}</span>Edition/Suggestion</a>';
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Accompagnement Pédagogique et Technique pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy');}
   if (document.getElementById('o365')) {readFile('o365.html','o365');}

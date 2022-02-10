@@ -43,7 +43,7 @@ function aptsLoad() {
   h1='<h1>'+pageName;
   if (courses[pageName]==undefined) h1+=' - Accompagnement Pédagogique et Technique de stage';
   else h1+=' - '+courses[pageName];
-  document.body.innerHTML=h1+'<a href=https://github.com/renaudwangler/ib/edit/master/docs/'+pageName+'.html>\
+  document.body.innerHTML=h1+'<a href=https://github.com/renaudwangler/ib/edit/master/docs/'+pageName+'.html title="Edition/Suggestion">\
   <span>\
   <svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.3\
 53-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7\

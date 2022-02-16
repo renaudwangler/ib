@@ -39,6 +39,12 @@
     $i=1; foreach ($test in $tests) {Write-Progress -Activity "Waiting for results" -Status "$($test.sourceVM) to $($test.destinationVM)" -PercentComplete ($i/$VMNum*100);$i++; While ($test.job.state -notlike 'completed') {Start-Sleep -s 15}; $results+=[pscustomobject]@{sourceVM=$test.sourceVM;targetVM=$test.destinationVM;targetIP=$test.destinationIP;targetPort='3389';result=$test.job.output.connectionStatus;latency=$test.job.output.avglatencyinms}}
     $results|format-table</code>
   S'il est impossible d'ajouter une table de routage à un subnet depuis ladite table (latence d'affichage), essayer de passer par l'édtion du dubnet...  
+  Voici un code Powershell pour réaliser le loadBalancer si les vNet tardent à remonter dans l'interface du portail:
+  <code>$publicip=New-AzPublicIpAddress -Name 'az104-06-pip4' -ResourceGroupName 'az104-06-rg1' -Location (Get-AzResourceGroup -Name 'az104-06-rg1').location -Sku standard -AllocationMethod static
+$frontIp = New-AzLoadBalancerFrontendIpConfig -Name 'frontEnd' -PublicIpAddress $publicIp;$bepool = New-AzLoadBalancerBackendAddressPoolConfig -Name 'az104-06-lb4-be1';$probe = New-AzLoadBalancerProbeConfig -Name 'az104-06-lb4-hp1' -Protocol tcp -Port 80 -IntervalInSeconds 5 -ProbeCount 2;$lbRule = New-AzLoadBalancerRuleConfig -Name 'az104-06-lb4-lbrule1' -Protocol tcp -FrontendPort 80 -BackendPort 80 -IdleTimeoutInMinutes 4 -FrontendIpConfiguration $frontIp -BackendAddressPool $bePool -EnableTcpReset -DisableOutboundSNAT
+New-AzLoadBalancer -ResourceGroupName 'az104-06-rg1' -Name 'az104-06-lb4' -Location (Get-AzResourceGroup -Name 'az104-06-rg1').location -Sku Standard -FrontendIpConfiguration $frontIp -BackendAddressPool $bePool -LoadBalancingRule $lbRule -Probe $probe
+$bepool = get-AzLoadBalancerBackendAddressPool -ResourceGroupName 'az104-06-rg1' -LoadBalancerName 'az104-06-lb4' -Name 'az104-06-lb4-be1'
+$vNet = Get-AzVirtualNetwork -Name 'az104-06-vnet01' -ResourceGroupName 'az104-06-rg1';$ip0 = New-AzLoadBalancerBackendAddressConfig -IpAddress "10.60.0.4" -Name "az104-06-vm0" -VirtualNetworkid $vNet.id;$ip1 = New-AzLoadBalancerBackendAddressConfig -IpAddress "10.60.1.4" -Name "az104-06-vm1" -VirtualNetworkid $vNet.id;$bepool.LoadBalancerBackendAddresses.Add($ip0);$bepool.LoadBalancerBackendAddresses.Add($ip1);Set-AzLoadBalancerBackendAddressPool -InputObject $bepool</code>
   <h3>Module 9</h3>
   Il pourra être pertinent de faire une double-démonstration :
   <ul>

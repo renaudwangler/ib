@@ -32,6 +32,13 @@
   Expliquer la procédure de nettoyage consistant à supprimer le Resource Group, souvent plus pertinente que les commandes fournies.
   <h3>Atelier 6</h3>
   Il semblerait que, de manière aléatoire, le "network watcher" pose des problèmes dans certaines régions avec les limitations des Pass azure...  
+  Voici un code Powershell permettant de réaliser les test Network Watcher dans tous les cas : 
+  <code>
+    $rgName = "az104-06-rg1"
+    echo 'getting VMs'' informations.'; $VMs=@();$tests=@();$results=@();Get-AzVM -ResourceGroupName $rgName|ForEach-Object {$vms+=[pscustomobject]@{name=$_.name;location=$_.location;id=$_.id;ip=(Get-AzNetworkInterface -ResourceId ($_.networkprofile.networkInterfaces[0].id)).IpConfigurations[0].PrivateIpAddress}}
+    $VMNum=$VMs.count*($VMs.count-1); $i=1; foreach ($vmSource in $VMs) {foreach ($vmDest in $VMs) {if ($vmSource.name -ne $vmDest.name) { Write-Progress -Activity "Launching tests" -Status "$($vmSource.name) to $($vmDest.name)" -PercentComplete ($i/$VMNum*100);$i++;$tests+=[pscustomobject]@{sourceVM=$vmSource.name;destinationVM=$vmDest.name;destinationIP=$vmDest.ip;job=Test-AzNetworkWatcherConnectivity -NetworkWatcher (Get-AzNetworkWatcher|Where-Object -Property Location -eq $vmSource.location) -SourceId $vmSource.id -DestinationAddress $vmDest.ip -DestinationPort 3389 -AsJob}}}}
+    $i=1; foreach ($test in $tests) {Write-Progress -Activity "Waiting for results" -Status "$($test.sourceVM) to $($test.destinationVM)" -PercentComplete ($i/$VMNum*100);$i++; While ($test.job.state -notlike 'completed') {Start-Sleep -s 15}; $results+=[pscustomobject]@{sourceVM=$test.sourceVM;targetVM=$test.destinationVM;targetIP=$test.destinationIP;targetPort='3389';result=$test.job.output.connectionStatus;latency=$test.job.output.avglatencyinms}}
+    $results|format-table</code>
   S'il est impossible d'ajouter une table de routage à un subnet depuis ladite table (latence d'affichage), essayer de passer par l'édtion du dubnet...  
   <h3>Module 9</h3>
   Il pourra être pertinent de faire une double-démonstration :

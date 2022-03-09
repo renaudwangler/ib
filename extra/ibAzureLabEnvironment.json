@@ -39,23 +39,16 @@
                     {
                         "name": "10.255.0",
                         "properties": {
-                            "addressPrefix": "10.255.0.0/24",
-                            "delegations": [],
-                            "privateEndpointNetworkPolicies": "Enabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
+                            "addressPrefix": "10.255.0.0/24"
                         }
                     },
                     {
                         "name": "AzureBastionSubnet",
                         "properties": {
-                            "addressPrefix": "10.255.255.0/24",
-                            "delegations": [],
-                            "privateEndpointNetworkPolicies": "Enabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
+                            "addressPrefix": "10.255.255.0/24"
                         }
                     }
                 ],
-                "virtualNetworkPeerings": [],
                 "enableDdosProtection": false
             }
         },
@@ -70,32 +63,14 @@
             },
             "kind": "StorageV2",
             "properties": {
-                "defaultToOAuthAuthentication": false,
-                "allowCrossTenantReplication": false,
                 "minimumTlsVersion": "TLS1_2",
                 "allowBlobPublicAccess": false,
                 "allowSharedKeyAccess": true,
                 "networkAcls": {
                     "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
                     "defaultAction": "Allow"
                 },
                 "supportsHttpsTrafficOnly": true,
-                "encryption": {
-                    "requireInfrastructureEncryption": false,
-                    "services": {
-                        "file": {
-                            "keyType": "Account",
-                            "enabled": true
-                        },
-                        "blob": {
-                            "keyType": "Account",
-                            "enabled": true
-                        }
-                    },
-                    "keySource": "Microsoft.Storage"
-                },
                 "accessTier": "Hot"
             }
         },
@@ -107,10 +82,7 @@
                 "[resourceId('Microsoft.Network/virtualNetworks', 'ibLabVnet')]"
             ],
             "properties": {
-                "addressPrefix": "10.255.0.0/24",
-                "delegations": [],
-                "privateEndpointNetworkPolicies": "Enabled",
-                "privateLinkServiceNetworkPolicies": "Enabled"
+                "addressPrefix": "10.255.0.0/24"
             }
         },
         {
@@ -121,40 +93,7 @@
                 "[resourceId('Microsoft.Network/virtualNetworks', 'ibLabVnet')]"
             ],
             "properties": {
-                "addressPrefix": "10.255.255.0/24",
-                "delegations": [],
-                "privateEndpointNetworkPolicies": "Enabled",
-                "privateLinkServiceNetworkPolicies": "Enabled"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices",
-            "apiVersion": "2021-08-01",
-            "name": "[concat(parameters('storageAccountName'), '/default')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
-            ],
-            "sku": {
-                "name": "Standard_LRS",
-                "tier": "Standard"
-            },
-            "properties": {
-                "changeFeed": {
-                    "enabled": false
-                },
-                "restorePolicy": {
-                    "enabled": false
-                },
-                "containerDeleteRetentionPolicy": {
-                    "enabled": false
-                },
-                "cors": {
-                    "corsRules": []
-                },
-                "deleteRetentionPolicy": {
-                    "enabled": false
-                },
-                "isVersioningEnabled": false
+                "addressPrefix": "10.255.255.0/24"
             }
         },
         {
@@ -167,32 +106,6 @@
             "sku": {
                 "name": "Standard_LRS",
                 "tier": "Standard"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/queueServices",
-            "apiVersion": "2021-08-01",
-            "name": "[concat(parameters('storageAccountName'), '/default')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
-            ],
-            "properties": {
-                "cors": {
-                    "corsRules": []
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/tableServices",
-            "apiVersion": "2021-08-01",
-            "name": "[concat(parameters('storageAccountName'), '/default')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
-            ],
-            "properties": {
-                "cors": {
-                    "corsRules": []
-                }
             }
         },
         {

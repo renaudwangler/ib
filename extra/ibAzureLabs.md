@@ -1,4 +1,4 @@
-# Lab: Mise en place d'un environnement d'atelier *ib* sur un compte Azure de test
+# Mise en place d'un environnement d'atelier *ib* sur un compte Azure de test
 
 ## Objectifs
 Le présent document explique comment mettre en place quelques resource dans un compte Azure (*Azure Pass Sponsorship* par exemple).  
@@ -23,8 +23,14 @@ Voici les tâches que nous vous proposons de réaliser:
 [![Deployer Dans Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frenaudwangler%2Fib%2Fmaster%2Fextra%2FibAzureLabEnvironment.json)
 
 2. Ce bouton, ouvre votre portail Azure, si vous n'étiez pas encore connecté à votre compte Azure, dans le navigateur, procédez à la connexion.
-4. Saisissez les informations suivantes dans la page **Deploy a cutsom Template**
-5. Click on the **"Microsoft Store"** shortcut
+1. Saisissez les informations suivantes dans la page **Custom Deployment** :  
+   - **Subscription** : Selectionnez votre abonnement Azure
+   - **Resource group** : Cliquer sur **Create new** puis choisissez un nom (*ibLabs* par exemple) et cliquez sur **OK**
+   - **Region** : Choisissez **(Europe) West Europe** ou tout autre région désignée par votre formateur/trice
+   - **Storage Account Name** : Tapez un nom mondialement unique **composé de minuscules et de chiffres uniquement**.
+1. Cliquez sur **review + Create**
+1. Si la validation échoue, retournez sur l'onglet **Basics** pour corriger votre saisie, sinon cliquez sur **Create**
+1. Attendez que le déploiment soit terminé avant de passer à l'étape suivante  
 ---
 **Note :** The Windows Update service must be enabled and running to use the Microsoft Store.
 

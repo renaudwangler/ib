@@ -97,4 +97,13 @@ Si vous ne pouvez-souhaitez pas accèder aux VMs Azure directement en RDP ou SSH
 
 **Nota 2** : Cette *Procédure 3** sera à répéter pour tout nouveau *Virtual Netork* hébergeant une machine virtuelle à laquelle vous souhaiteriez vous connecter...
 
+**Astuce** : La commande suivante (qui peut être ustilisée dans le *CloudShell*) connecte tous vos *Virtual Networks* actuels au *Virtual Network* permettabt de faire la connexion *bastion*...
+```pwsh
+if ($ibLabVnet=Get-AzVirtualNetwork -Name ibLabVnet) {Get-AzVirtualNetwork|where name -notlike ibLabVnet|foreach {`
+  $alterNet=$_;if(!(Get-AzVirtualNetworkPeering -VirtualNetworkName $alterNet.name -ResourceGroupName $alterNet.ResourceGroupName)) {`
+    $newPeer=Add-AzVirtualNetworkPeering -Name "$($alterNet.name)_to_ibLabVnet" -VirtualNetwork $alterNet -RemoteVirtualNetworkId $ibLabVnet.id;echo $newPeer.name};`
+  if(!((Get-AzVirtualNetworkPeering -VirtualNetworkName $ibLabVnet.name -ResourceGroupName $ibLabVnet.ResourceGroupName).RemoteVirtualNetwork|where id -eq $alterNet.id)) {`
+    $newPeer=Add-AzVirtualNetworkPeering -Name "ibLabVnet_to_$($alterNet.name)" -VirtualNetwork $ibLabVnet -RemoteVirtualNetworkId $alterNet.id;echo $newPeer.name}}}
+```
+
 ---

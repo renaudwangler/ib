@@ -1,5 +1,13 @@
 # Plateforme goDeploy
 Les ateliers en ligne goDeploy sont particulièrement pratiques mais toutes leurs fonctions ne sont pas forcément intuitives. Le présent document a pour but d’aider les formateurs ib à appréhender cette plateforme et à la présenter aux stagiaires.  
+## Contenu de ce document
+- [L'interface formateur](https:#linterface-formateur)
+- [L'interface stagiaire](https:#linterface-stagiaire)
+- [Clavier dans les VMs](https:#clavier-dans-les-vms)
+- [Copier/coller dans les VMs](https:#copiercoller-dans-les-vms)
+- [Conserver/Terminer un atelier](https:#conserverterminer-un-atelier)
+- [Les instructions d'atelier](https:#les-instructions-datelier)  
+
 Il est impératif que chaque formateur MCT ait, avant animation, [demandé un accès à la plateforme goDeploy](https://aka.gd/MCTRequest). Cet accès permet de lancer n’importe quel atelier de l’offre goDeploy (préparation de stage/ateliers avant animation) et permettra donc également de présenter l’interface de l’outil aux stagiaires en début de session.  
 La suite de ce document suppose que le formateur a un compte lui permettant d’accéder aux ateliers de la plateforme goDeploy.  
 Il faudra, en début de session, inviter les stagiaires à se rendre sur le lien [lms goDeploy](https://lms.godeploy.it/) et à cliquer sur "**Register**" afin de créer un compte. Ensuite, ils pourront cliquer sur le bouton "**Register for a lab**" et rentrer le code fourni par ib (ou l’éventuel organisme partenaire). ***Le formateur ne doit en aucun cas utiliser le code fourni*** dans cette interface. L’interface suivante apparait alors :  

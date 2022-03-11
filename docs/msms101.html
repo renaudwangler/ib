@@ -48,6 +48,8 @@ IRM dans Sharepoint online a pour objectif de conserver les possibilités utilis
   <h3>Lab 8</h3>
   Utiliser Edge uniquement (et dernière version = mise à jour et reboot) pour les manipulations sur le Microsoft Store for Business.
   Les applications par défaut de Microsoft peuvent ne pas apparaitre dans le store...
+  <h3>Module 9</h3>
+  Pas de lab officiel, ce [lab perso](https://github.com/renaudwangler/ib/blob/master/extra/windowsAutopilot.md#lab--mise-en-place-dun-test-windows-autopilot) pourra être proposé, an conseillant de le réaliser **après** tous les autres ateliers....  
 <h3>Pour faire une démonstration de Office Message Encryption</h3>
 Utiliser la commande suivante:
 <code>Invoke-Command -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential (Get-Credential) -Authentication Basic -AllowRedirection -ScriptBlock {New-TransportRule -Name 'Office Message Encription  - Outside' -ApplyOME $true -ApplyRightsProtectionTemplate 'Encrypt' -SentToScope NotInOrganization}</code>

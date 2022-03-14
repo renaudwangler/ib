@@ -24,7 +24,7 @@ Il sera donc plu efficace d'avoir votre portail Azure dans cette même langue an
 5. Cliquez sur **Appliquer** puis sur **OK** dans la fenêtre de confirmation qui indique que le portail sera rechargé.
 6. Vous pouvez fermer la page des paramètres.
 ## Procédure 1: Créer des resources dans Azure
-1. Cliquez (préférez ouvrir dans un autre onglet pour ne pas quitter le présent document) sur le bouton suivant afin d'initialiser le déploiement des resources dans Azure :  
+1. Cliquez (préférez ouvrir dans un autre onglet pour ne pas quitter le présent document) directement sur le bouton ci-dessous afin d'initialiser le déploiement des resources dans Azure :  
 [![Deployer Dans Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frenaudwangler%2Fib%2Fmaster%2Fextra%2FibAzureLabEnvironment.json)
 
 1. Ce bouton, ouvre votre portail Azure.  
@@ -45,6 +45,7 @@ Le plus simple est de rester sur la page **Template overview** jusqu'à ce que l
 ## Procédure 2 : Initialiser le Cloud Shell
 1. Dans votre protail Azure, cliquer sur l'icône du **Cloud Shell** dans la barre des icônes en haut à droite.  
 ![Lancer le Cloud Shell](images/cloudShell0.png)  
+1. Cliquez sur "**Powershell**  
 1. Au premier lancement du *Cloud Shell*, il faudra lier le *Storage Account* qui a été créé dans la procédure précédente. Pour ce faire, commencez par cliquer sur **Show Advanced Settings**  
 ![Show Advanced Settings](images/cloudShell1.png)  
 1. Remplissez les **Advanced Settings** avec les valeurs suivantes :   
@@ -63,7 +64,8 @@ Le plus simple est de rester sur la page **Template overview** jusqu'à ce que l
 Si vous ne pouvez-souhaitez pas accèder aux VMs Azure directement en RDP ou SSH depuis votre réseau, vous pouvez utiliser la procédure suivante pour vous connecter à l'interface d'une VM Azure directement dans votre navigateur.  
 
 ---
-**Nota :** Azure Bastion est un service facturé par Microsoft. Si vous ne souhaitez pas l'utiliser dans vos labs, nous vous conseillons de supprimer la resource **ibLabBastion** qui a été créée par la procédure 1 précedente (la facturation des resource réseau associées est nulle/négligeable).
+**Nota 1 :** Cette procédure n'est pas à utiliser dans la foulée des précédentes. Il faudra vous y référer au besoin, lorsque vous souhaiterez accéder à une VM que vous aurez créée dans un atelier.  
+**Nota 2 :** Azure Bastion est un service facturé par Microsoft. Si vous ne souhaitez pas l'utiliser dans vos labs, nous vous conseillons de supprimer la resource **ibLabBastion** qui a été créée par la procédure 1 précedente (la facturation des resource réseau associées est nulle/négligeable).
 
 ---
 1. Commencez par accèder au **Resource Group** créé par la procédure 1 précédente.

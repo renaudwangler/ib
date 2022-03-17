@@ -8,6 +8,7 @@ courses = {
   'msaz104':'Microsoft Azure - Administration',
   'msaz303':'Microsoft Azure - Technologies pour les architectes',
   'msaz305':'Microsoft Azure - Conception d\'architectures',
+  'msaz400':'Concevoir et mettre en oeuvre des solutions Microsoft DevOps',
   'msaz500':'Microsoft Azure - Technologies de sécurité',
   'msaz900':'Microsoft Azure - Notions fondamentales',
   'msms030':'Microsoft 365 - Administration',

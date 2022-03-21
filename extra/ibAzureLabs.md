@@ -11,7 +11,7 @@ La **Procédure 1** comprend aussi la création d'un *Strorage Account* pour y l
 ---
 Voici les tâches que nous vous proposons de réaliser:
  - [Passer son compte Azure en anglais.](https:#proc%C3%A9dure-0-passer-son-compte-azure-en-anglais)
- - [Créer des resources dans Azure.](https:#proc%C3%A9dure-1-cr%C3%A9er-des-resources-dans-azure)
+ - [Créer quelques resources génériques dans Azure.](https:#proc%C3%A9dure-1-cr%C3%A9er-quelques-resources-g%C3%A9n%C3%A9riques-dans-azure)
  - [Initialiser le Cloud Shell.](https:#proc%C3%A9dure-2--initialiser-le-cloud-shell)
  - [Permettre l'accès Bastion à une VM.](https:#proc%C3%A9dure-3--permettre-lacc%C3%A8s-bastion-%C3%A0-une-vm)
 ## Procédure 0: Passer son compte Azure en anglais
@@ -23,7 +23,7 @@ Il sera donc plu efficace d'avoir votre portail Azure dans cette même langue an
 4. Dans la page **Paramètres du portail|Langue + région**, sélectionnez **English** dans le menu **Langue**
 5. Cliquez sur **Appliquer** puis sur **OK** dans la fenêtre de confirmation qui indique que le portail sera rechargé.
 6. Vous pouvez fermer la page des paramètres.
-## Procédure 1: Créer des resources dans Azure
+## Procédure 1: Créer quelques resources génériques dans Azure
 1. Cliquez (préférez ouvrir dans un autre onglet pour ne pas quitter le présent document) directement sur le bouton ci-dessous afin d'initialiser le déploiement des resources dans Azure :  
 [![Deployer Dans Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frenaudwangler%2Fib%2Fmaster%2Fextra%2FibAzureLabEnvironment.json)
 

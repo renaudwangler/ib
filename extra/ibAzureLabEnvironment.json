@@ -205,7 +205,10 @@
                         },
                         "adminPassword": {
                             "type": "secureString",
-                            "defaultValue": "Pa55w.rd1234"
+                            "defaultValue": "Pa55w.rd1234",
+                            "metadata": {
+                                "description": "La valeur par défaut est 'Pa55w.rd1234'."
+                              }
                         }
                     },
                     "variables": {},
@@ -292,6 +295,7 @@
                                 },
                                 "storageProfile": {
                                     "osDisk": {
+                                        "name": "ibLabOsDisk",
                                         "createOption": "fromImage",
                                         "managedDisk": {
                                             "storageAccountType": "Standard_LRS"

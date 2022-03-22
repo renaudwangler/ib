@@ -13,18 +13,6 @@
     "variables": {},
     "resources": [
         {
-            "type": "Microsoft.Network/publicIPAddresses",
-            "apiVersion": "2020-08-01",
-            "name": "ibLabBastionIp",
-            "location": "[resourceGroup().location]",
-            "sku": {
-                "name": "Standard"
-            },
-            "properties": {
-                "publicIPAllocationMethod": "Static"
-            }
-        },
-        {
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-11-01",
             "name": "ibLabVnet",
@@ -86,17 +74,6 @@
             }
         },
         {
-            "type": "Microsoft.Network/virtualNetworks/subnets",
-            "apiVersion": "2020-11-01",
-            "name": "ibLabVnet/AzureBastionSubnet",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', 'ibLabVnet')]"
-            ],
-            "properties": {
-                "addressPrefix": "10.255.255.0/24"
-            }
-        },
-        {
             "type": "Microsoft.Storage/storageAccounts/fileServices",
             "apiVersion": "2021-08-01",
             "name": "[concat(parameters('storageAccountName'), '/default')]",
@@ -106,34 +83,6 @@
             "sku": {
                 "name": "Standard_LRS",
                 "tier": "Standard"
-            }
-        },
-        {
-            "type": "Microsoft.Network/bastionHosts",
-            "apiVersion": "2020-11-01",
-            "name": "ibLabBastion",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses', 'ibLabBastionIp')]",
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]"
-            ],
-            "sku": {
-                "name": "Basic"
-            },
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "IpConf",
-                        "properties": {
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses','ibLabBastionIp')]"
-                            },
-                            "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]"
-                            }
-                        }
-                    }
-                ]
             }
         },
         {
@@ -149,6 +98,243 @@
                 "shareQuota": 5120,
                 "enabledProtocols": "SMB"
             }
+        },
+        {
+            "type": "Microsoft.Resources/templateSpecs",
+            "apiVersion": "2021-05-01",
+            "name": "ibAzureLabBastion",
+            "location": "[resourceGroup().location]",
+            "properties": {
+               "description": "Ce modèle crée le nécessaire pour un Bastion pour les ateliers Azure ib.",
+                "displayName": "ibAzureLabBastion"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/templateSpecs/versions",
+            "apiVersion": "2021-05-01",
+            "name": "[format('{0}/{1}', 'ibAzureLabBastion', '1.0')]",
+                "location": "[resourceGroup().location]",
+                "dependsOn": [
+                  "[resourceId('Microsoft.Resources/templateSpecs','ibAzureLabBastion')]"
+                ],
+                "properties": {
+                  "mainTemplate": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/publicIPAddresses",
+                            "apiVersion": "2020-08-01",
+                            "name": "ibLabBastionIp",
+                            "location": "[[resourceGroup().location]]",
+                            "sku": {
+                                "name": "Standard"
+                            },
+                            "properties": {
+                                "publicIPAllocationMethod": "Static"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/subnets",
+                            "apiVersion": "2020-11-01",
+                            "name": "ibLabVnet/AzureBastionSubnet",
+                            "properties": {
+                                "addressPrefix": "10.255.255.0/24"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/bastionHosts",
+                            "apiVersion": "2020-11-01",
+                            "name": "ibLabBastion",
+                            "location": "[[resourceGroup().location]]",
+                            "dependsOn": [
+                                "[[resourceId('Microsoft.Network/publicIPAddresses', 'ibLabBastionIp')]]",
+                                "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]]"
+                            ],
+                            "sku": {
+                                "name": "Basic"
+                            },
+                            "properties": {
+                                "ipConfigurations": [
+                                    {
+                                        "name": "IpConf",
+                                        "properties": {
+                                            "publicIPAddress": {
+                                                "id": "[[resourceId('Microsoft.Network/publicIPAddresses','ibLabBastionIp')]]"
+                                            },
+                                            "subnet": {
+                                                "id": "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]]"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                } 
+            }
+        },
+        {
+            "type": "Microsoft.Resources/templateSpecs",
+            "apiVersion": "2021-05-01",
+            "name": "ibAzureLabVM",
+            "location": "[resourceGroup().location]",
+            "properties": {
+               "description": "Ce modèle crée le nécessaire pour une VM administrative pour les ateliers Azure ib.",
+                "displayName": "ibAzureLabVM"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/templateSpecs/versions",
+            "apiVersion": "2021-05-01",
+            "name": "[format('{0}/{1}', 'ibAzureLabVM', '1.0')]",
+                "location": "[resourceGroup().location]",
+                "dependsOn": [
+                  "[resourceId('Microsoft.Resources/templateSpecs','ibAzureLabVM')]"
+                ],
+                "properties": {
+                  "mainTemplate": {
+                    "$schema": "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "virtualMachineSize": {
+                            "type": "string",
+                            "defaultValue": "Standard_DS1_v2"
+                        },
+                        "adminPassword": {
+                            "type": "secureString",
+                            "defaultValue": "Pa55w.rd1234"
+                        }
+                    },
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "ibLabNic",
+                            "type": "Microsoft.Network/networkInterfaces",
+                            "apiVersion": "2021-03-01",
+                            "location": "[[resourceGroup().location]]",
+                            "dependsOn": [
+                                "Microsoft.Network/networkSecurityGroups/ibLabNSG",
+                                "Microsoft.Network/publicIpAddresses/ibLabVmIP"
+                            ],
+                            "properties": {
+                                "ipConfigurations": [
+                                    {
+                                        "name": "ipconfig1",
+                                        "properties": {
+                                            "subnet": {
+                                                "id": "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', '10.255.0')]]"
+                                            },
+                                            "privateIPAllocationMethod": "Dynamic",
+                                            "publicIpAddress": {
+                                                "id": "[[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', 'ibLabVmIP')]]",
+                                                "properties": {
+                                                    "deleteOption": "Delete"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "enableAcceleratedNetworking": true,
+                                "networkSecurityGroup": {
+                                    "id": "[[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', 'ibLabNSG')]]"
+                                }
+                            }
+                        },
+                        {
+                            "name": "ibLabNSG",
+                            "type": "Microsoft.Network/networkSecurityGroups",
+                            "apiVersion": "2019-02-01",
+                            "location": "[[resourceGroup().location]]",
+                            "properties": {
+                                "securityRules": [
+                                    {
+                                        "name": "RDPin",
+                                        "properties": {
+                                            "priority": 300,
+                                            "protocol": "TCP",
+                                            "access": "Allow",
+                                            "direction": "Inbound",
+                                            "sourceAddressPrefix": "*",
+                                            "sourcePortRange": "*",
+                                            "destinationAddressPrefix": "*",
+                                            "destinationPortRange": "3389"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "ibLabVmIP",
+                            "type": "Microsoft.Network/publicIpAddresses",
+                            "apiVersion": "2019-02-01",
+                            "location": "[[resourceGroup().location]]",
+                            "properties": {
+                                "publicIpAllocationMethod": "Dynamic"
+                            },
+                            "sku": {
+                                "name": "Basic"
+                            }
+                        },
+                        {
+                            "name": "ibLabVM",
+                            "type": "Microsoft.Compute/virtualMachines",
+                            "apiVersion": "2021-07-01",
+                            "location": "[[resourceGroup().location]]",
+                            "dependsOn": [
+                                "Microsoft.Network/networkInterfaces/ibLabNic"
+                            ],
+                            "properties": {
+                                "hardwareProfile": {
+                                    "vmSize": "[[parameters('virtualMachineSize')]]"
+                                },
+                                "storageProfile": {
+                                    "osDisk": {
+                                        "createOption": "fromImage",
+                                        "managedDisk": {
+                                            "storageAccountType": "Standard_LRS"
+                                        },
+                                        "deleteOption": "Delete"
+                                    },
+                                    "imageReference": {
+                                        "publisher": "MicrosoftWindowsServer",
+                                        "offer": "WindowsServer",
+                                        "sku": "2022-datacenter-azure-edition",
+                                        "version": "latest"
+                                    }
+                                },
+                                "networkProfile": {
+                                    "networkInterfaces": [
+                                        {
+                                            "id": "[[resourceId('Microsoft.Network/networkInterfaces', 'ibLabNic')]]",
+                                            "properties": {
+                                                "deleteOption": "Delete"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "osProfile": {
+                                    "computerName": "ibLabVM",
+                                    "adminUsername": "Student",
+                                    "adminPassword": "[[parameters('adminPassword')]]",
+                                    "windowsConfiguration": {
+                                        "enableAutomaticUpdates": true,
+                                        "provisionVmAgent": true,
+                                        "patchSettings": {
+                                            "enableHotpatching": false,
+                                            "patchMode": "AutomaticByOS"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "outputs": {}
+                    }
+                }
         }
+
     ]
 }

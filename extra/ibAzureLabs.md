@@ -16,7 +16,7 @@ Voici les tâches que nous vous proposons de réaliser:
  - [Permettre l'accès Bastion à une VM.](https:#proc%C3%A9dure-3--permettre-lacc%C3%A8s-bastion-%C3%A0-une-vm)
 ## Procédure 0: Passer son compte Azure en anglais
 Tous les labs officiels fournis par Microsoft le sont en langue anglaise.  
-Il sera donc plu efficace d'avoir votre portail Azure dans cette même langue anglaise. Ce ne sera pas le cas si vous avez activé votre compte de test depuis un navigateur Internet configuré en Français. Voici donc les quelques étapes pour changer la langue de votre portail Azure :  
+Il sera donc plus efficace d'avoir votre portail Azure dans cette même langue anglaise. Ce ne sera pas le cas si vous avez activé votre compte de test depuis un navigateur Internet configuré en Français. Voici donc les quelques étapes pour changer la langue de votre portail Azure :  
 1. Cliquez sur l'icône des paramètres en haut à droite du portail Azure.  
 ![paramètres Azure](images/azureSettings.png)  
 3. Dans la page **Paramètres du portail** Sélectionnez l'affichage des **langues + région** en sélectionnant cet onglet (dans la liste à gauche)
@@ -32,14 +32,18 @@ Si vous n'étiez pas encore connecté à votre compte Azure dans le navigateur I
 1. Saisissez les informations suivantes dans la page **Custom Deployment** :  
    - **Subscription** : Selectionnez votre abonnement Azure
    - **Resource group** : Cliquer sur **Create new** puis choisissez un nom (*ibLabs* par exemple) et cliquez sur **OK**
-   - **Region** : Choisissez **(Europe) West Europe** ou tout autre région désignée par votre formateur/trice
-   - **Storage Account Name** : Tapez un nom mondialement unique **composé de minuscules et de chiffres uniquement**.
+   - **Region** : Choisissez **East US** (ou tout autre région désignée par votre formateur/trice)
+   - **Storage Account Name** : Tapez un nom mondialement unique **composé de minuscules et de chiffres uniquement**.  
+1. Cliquez en dehors du champ **Storage Account Name** pour vérifier que le nom choisi est unique et correct.  
+
+![Custom Deployment](images/customDeployment.png)  
 1. Cliquez sur **review + Create**
 1. Si la validation échoue, retournez sur l'onglet **Basics** pour corriger votre saisie, sinon cliquez sur **Create**
 1. Attendez que le déploiment soit terminé avant de passer à l'étape suivante  
 ---
-**Nota :** Le déploiemet va prendre quelques minutes.  
-Le plus simple est de rester sur la page **Template overview** jusqu'à ce que le bouton **Go to resoruce group** aparaisse.
+**Nota :** Le déploiemet va prendre quelques instants.  
+Le plus simple est de rester sur la page **Template overview** jusqu'à ce que le bouton **Go to resoruce group** aparaisse.  
+![go to resource group](images/gotoRG.png)
 
 ---
 ## Procédure 2 : Initialiser le Cloud Shell
@@ -49,26 +53,43 @@ Le plus simple est de rester sur la page **Template overview** jusqu'à ce que l
 1. Au premier lancement du *Cloud Shell*, il faudra lier le *Storage Account* qui a été créé dans la procédure précédente. Pour ce faire, commencez par cliquer sur **Show Advanced Settings**  
 ![Show Advanced Settings](images/cloudShell1.png)  
 1. Remplissez les **Advanced Settings** avec les valeurs suivantes :   
-![Advanced Settings values](images/cloudShell2.png)
    - **Subscription** : Selectionnez votre abonnement Azure,
-   - **Region** : Selectionnez **West Europe** ou tout autre région désignée par votre formateur/trice,
+   - **Region** : Selectionnez **East US** ou tout autre région désignée par votre formateur/trice,
    - **Resource group** : Cliquez sur **Use existing** et choisissez le *Resource group* créé dans la procédure 1 précédente,
    - **Storage account** : Cliquez sur **Use existing** et choisissez le *Storage Account* créé par la procédure 1 précédente,
-   - **File share** : Cliquez sur **Use existing** et saisissez la valeur "**cloudshell**".
+   - **File share** : Cliquez sur **Use existing** et saisissez la valeur "**cloudshell**".  
+
+![Advanced Settings values](images/cloudShell2.png)  
 1. Cliquez sur **Attach storage**. logiquement, votre première session de *Cloud Shell* se lance.
 ---
 **Nota :** Votre *Cloud Shell* est donc associé à un *Storage Account* qui se trouve dans votre *Resource group*. Ainsi, à la fin de chaque atelier, pour faire le ménage, vous pourrez supprimer tous les **autres** *Resource groups* et conserver celui créé par la procédure 1 précédente.
 
 ---
 ## Procédure 3 : Permettre l'accès *Bastion* à une VM  
-Si vous ne pouvez-souhaitez pas accèder aux VMs Azure directement en RDP ou SSH depuis votre réseau, vous pouvez utiliser la procédure suivante pour vous connecter à l'interface d'une VM Azure directement dans votre navigateur.  
+Si vous ne pouvez/souhaitez pas accèder aux VMs Azure directement en RDP ou SSH depuis votre réseau/machine, vous pouvez utiliser la procédure suivante pour vous connecter à l'interface d'une VM Azure directement depuis votre navigateur.  
 
 ---
 **Nota 1 :** Cette procédure n'est pas à utiliser dans la foulée des précédentes. Il faudra vous y référer au besoin, lorsque vous souhaiterez accéder à une VM que vous aurez créée dans un atelier.  
-**Nota 2 :** Azure Bastion est un service facturé par Microsoft. Si vous ne souhaitez pas l'utiliser dans vos labs, nous vous conseillons de supprimer la resource **ibLabBastion** qui a été créée par la procédure 1 précedente (la facturation des resource réseau associées est nulle/négligeable).
+**Nota 2 :** Azure Bastion est un service facturé par Microsoft. Si vous ne souhaitez pas/plus l'utiliser dans vos labs, nous vous conseillons de supprimer la resource **ibLabBastion**.
 
 ---
 1. Commencez par accèder au **Resource Group** créé par la procédure 1 précédente.
+1. Dans la liste des resources (moitié droite de l'écran), cliquez sur le *Template spec* **ibAzureLabBastion**  
+1. Cliquez sur l'action **Deploy**  
+![ibAzureLabBastionDeploy](images/ibAzureLabBastionDeploy.png)  
+1. Dans la page **Deploy ibAzureLabBastion (1.0)**, sélectionnez les valeurs suivantes :  
+    - **Subscription** : Selectionnez votre abonnement Azure,
+    - **Resource Group** : Choisissez le *Resource group* créé dans la procédure 1 précédente,
+     - **Region** : Laissez **East US** (ou tout autre région désignée par votre formateur/trice).  
+1. Cliquez sur **Review + Create** puis, une fois la validation passée, cliquez sur **Create**  
+1. Attendez que le déploiment soit terminé avant de passer à l'étape suivante  
+---
+**Nota :** Le déploiemet va prendre quelques minutes.  
+Le plus simple est de rester sur la page **Template overview** jusqu'à ce que le bouton **Go to resoruce group** aparaisse.
+
+---
+![go to resource group](images/gotoRG.png)  
+1. Cliquez sur **Go to resource group**.
 1. Dans la liste des resources (moitié droite de l'écran), cliquez sur le *Virtual Network* **ibLabVnet**
 1. Dans la page **ibLabVnet** Sélectionnez l'affichage des **Properties** en sélectionnant cet onglet (sous **Settings** dans la liste à gauche)
 1. Dans la page **ibLabVnet|Properties**, copiez la valeur **Resource ID**, vous en aurez besoin dans un instant.  
@@ -97,7 +118,7 @@ Si vous ne pouvez-souhaitez pas accèder aux VMs Azure directement en RDP ou SSH
 ---
 **Nota** : Si ce n'est pas le cas mais que la création d'un *bastion* vous est proposée à la place, patientez et rafraichissez la page jusque voir apparâitre la mention "*using Bastion: **ibLabBastion**, Provisioning State: **Succeeded**".
 
-**Nota 2** : Cette *Procédure 3** sera à répéter pour tout nouveau *Virtual Netork* hébergeant une machine virtuelle à laquelle vous souhaiteriez vous connecter...
+**Nota 2** : Cette *Procédure 3* sera à répéter pour tout nouveau *Virtual Netork* hébergeant une machine virtuelle à laquelle vous souhaiteriez vous connecter...
 
 **Astuce** : La commande suivante (qui peut être ustilisée dans le *CloudShell*) connecte tous vos *Virtual Networks* actuels au *Virtual Network* permettabt de faire la connexion *bastion*...
 ```pwsh

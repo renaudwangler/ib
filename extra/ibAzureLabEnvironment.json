@@ -128,7 +128,7 @@
                             "type": "Microsoft.Network/publicIPAddresses",
                             "apiVersion": "2020-08-01",
                             "name": "ibLabBastionIp",
-                            "location": "[[resourceGroup().location]]",
+                            "location": "[[resourceGroup().location]",
                             "sku": {
                                 "name": "Standard"
                             },
@@ -148,10 +148,10 @@
                             "type": "Microsoft.Network/bastionHosts",
                             "apiVersion": "2020-11-01",
                             "name": "ibLabBastion",
-                            "location": "[[resourceGroup().location]]",
+                            "location": "[[resourceGroup().location]",
                             "dependsOn": [
-                                "[[resourceId('Microsoft.Network/publicIPAddresses', 'ibLabBastionIp')]]",
-                                "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]]"
+                                "[[resourceId('Microsoft.Network/publicIPAddresses', 'ibLabBastionIp')]",
+                                "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]"
                             ],
                             "sku": {
                                 "name": "Basic"
@@ -162,10 +162,10 @@
                                         "name": "IpConf",
                                         "properties": {
                                             "publicIPAddress": {
-                                                "id": "[[resourceId('Microsoft.Network/publicIPAddresses','ibLabBastionIp')]]"
+                                                "id": "[[resourceId('Microsoft.Network/publicIPAddresses','ibLabBastionIp')]"
                                             },
                                             "subnet": {
-                                                "id": "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]]"
+                                                "id": "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]"
                                             }
                                         }
                                     }
@@ -214,7 +214,7 @@
                             "name": "ibLabNic",
                             "type": "Microsoft.Network/networkInterfaces",
                             "apiVersion": "2021-03-01",
-                            "location": "[[resourceGroup().location]]",
+                            "location": "[[resourceGroup().location]",
                             "dependsOn": [
                                 "Microsoft.Network/networkSecurityGroups/ibLabNSG",
                                 "Microsoft.Network/publicIpAddresses/ibLabVmIP"
@@ -225,11 +225,11 @@
                                         "name": "ipconfig1",
                                         "properties": {
                                             "subnet": {
-                                                "id": "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', '10.255.0')]]"
+                                                "id": "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', '10.255.0')]"
                                             },
                                             "privateIPAllocationMethod": "Dynamic",
                                             "publicIpAddress": {
-                                                "id": "[[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', 'ibLabVmIP')]]",
+                                                "id": "[[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', 'ibLabVmIP')]",
                                                 "properties": {
                                                     "deleteOption": "Delete"
                                                 }
@@ -239,7 +239,7 @@
                                 ],
                                 "enableAcceleratedNetworking": true,
                                 "networkSecurityGroup": {
-                                    "id": "[[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', 'ibLabNSG')]]"
+                                    "id": "[[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', 'ibLabNSG')]"
                                 }
                             }
                         },
@@ -247,7 +247,7 @@
                             "name": "ibLabNSG",
                             "type": "Microsoft.Network/networkSecurityGroups",
                             "apiVersion": "2019-02-01",
-                            "location": "[[resourceGroup().location]]",
+                            "location": "[[resourceGroup().location]",
                             "properties": {
                                 "securityRules": [
                                     {
@@ -270,7 +270,7 @@
                             "name": "ibLabVmIP",
                             "type": "Microsoft.Network/publicIpAddresses",
                             "apiVersion": "2019-02-01",
-                            "location": "[[resourceGroup().location]]",
+                            "location": "[[resourceGroup().location]",
                             "properties": {
                                 "publicIpAllocationMethod": "Dynamic"
                             },
@@ -282,13 +282,13 @@
                             "name": "ibLabVM",
                             "type": "Microsoft.Compute/virtualMachines",
                             "apiVersion": "2021-07-01",
-                            "location": "[[resourceGroup().location]]",
+                            "location": "[[resourceGroup().location]",
                             "dependsOn": [
                                 "Microsoft.Network/networkInterfaces/ibLabNic"
                             ],
                             "properties": {
                                 "hardwareProfile": {
-                                    "vmSize": "[[parameters('virtualMachineSize')]]"
+                                    "vmSize": "[[parameters('virtualMachineSize')]"
                                 },
                                 "storageProfile": {
                                     "osDisk": {
@@ -308,7 +308,7 @@
                                 "networkProfile": {
                                     "networkInterfaces": [
                                         {
-                                            "id": "[[resourceId('Microsoft.Network/networkInterfaces', 'ibLabNic')]]",
+                                            "id": "[[resourceId('Microsoft.Network/networkInterfaces', 'ibLabNic')]",
                                             "properties": {
                                                 "deleteOption": "Delete"
                                             }
@@ -318,7 +318,7 @@
                                 "osProfile": {
                                     "computerName": "ibLabVM",
                                     "adminUsername": "Student",
-                                    "adminPassword": "[[parameters('adminPassword')]]",
+                                    "adminPassword": "[[parameters('adminPassword')]",
                                     "windowsConfiguration": {
                                         "enableAutomaticUpdates": true,
                                         "provisionVmAgent": true,

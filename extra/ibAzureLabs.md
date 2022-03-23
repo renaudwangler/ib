@@ -26,7 +26,7 @@ Il sera donc plus efficace d'avoir votre portail Azure dans cette même langue a
 [(Retour au Sommaire)](#objectifs)  
 # Procédure 1: Créer quelques ressources génériques dans Azure
 1. Cliquez (préférez ouvrir dans un autre onglet pour ne pas quitter le présent document) directement sur le bouton ci-dessous afin d'initialiser le déploiement des ressources dans Azure :  
-[![Deployer Dans Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frenaudwangler%2Fib%2Fmaster%2Fextra%2FibAzureLabEnvironment.json)
+[![Deployer Dans Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frenaudwangler%2Fib%2Fmaster%2Fextra%2FarmTemplates%2FibAzureLabEnvironment.json)
 
 1. Ce bouton, ouvre votre portail Azure.  
 Si vous n'étiez pas encore connecté à votre compte Azure dans le navigateur Internet, procédez à la connexion.
@@ -41,7 +41,9 @@ Si vous n'étiez pas encore connecté à votre compte Azure dans le navigateur I
 1. Cliquez sur **review + Create**
 1. Si la validation échoue, retournez sur l'onglet **Basics** pour corriger votre saisie, sinon cliquez sur **Create**
 1. Attendez que le déploiement soit terminé avant de passer à la procédure suivante  
->**Nota :** Le déploiement va prendre quelques instants : Le plus simple est de rester sur la page **Template overview** jusqu'à ce que le bouton **Go to resource group** apparaisse.  
+>**Nota 1:** Le déploiement va prendre quelques instants : Le plus simple est de rester sur la page **Template overview** jusqu'à ce que le bouton **Go to resource group** apparaisse.  
+
+>**Nota 2:** Le *resource group* créé est **vérouillé** pour empècher sa supression accidentelle. Si vous souhaitez supprimer une resource, il faudra supprimer le verrou/lock **ibLabVerrou**. Demandez de l'aide à votre formateur/trice si nécessaire.  
 
 [(Retour au Sommaire)](#objectifs)   
 # Procédure 2 : Initialiser le Cloud Shell  

@@ -34,7 +34,7 @@ Si vous n'étiez pas encore connecté à votre compte Azure dans le navigateur I
    - **Subscription** : Sélectionnez votre abonnement Azure
    - **Resource group** : Cliquer sur **Create new** puis choisissez un nom (*ibLabs* par exemple) et cliquez sur **OK**
    - **Region** : Choisissez **East US** (ou tout autre région désignée par votre formateur/trice)
-   - **Storage Account Name** : Tapez un nom mondialement unique **composé de minuscules et de chiffres uniquement**.  
+   - **Storage Account Name** : Vous pouvez taper un nom mondialement unique **composé de minuscules et de chiffres uniquement**. Si vous laissez la formule par défaut, un nom unique sera généré, basé sur la date et l'heure de création.   
 1. Cliquez en dehors du champ **Storage Account Name** pour vérifier que le nom choisi est unique et correct.  
 
 ![Custom Deployment](images/customDeployment.png)  

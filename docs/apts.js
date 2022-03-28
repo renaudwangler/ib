@@ -40,6 +40,10 @@ function links() {
     cell2.innerHTML=courseTitle;});}
 
 function aptsLoad() {
+  let setFavicon = document.createElement('link');
+  setFavicon.setAttribute('rel','shortcut icon');
+  setFavicon.setAttribute('href','favicon.ico');
+  document.querySelector('head').appendChild(setFavicon);
   var pageName = window.location.pathname.split('/').pop().split('.')[0];
   h1='<h1>'+pageName;
   if (courses[pageName]==undefined) h1+=' - Accompagnement Pédagogique et Technique de stage';

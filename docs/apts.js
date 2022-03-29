@@ -63,15 +63,11 @@ function aptsLoad() {
   if (document.getElementById('Azure')) {readFile('Azure.html','Azure');}
   readFile('outro.html','outro');
   document.title=pageName+' - APTS';
-  var iconRef=document.createElement('link');
   var cssRef = document.createElement('link');
-  iconRef.setAttribute('rel','icon');
-  iconRef.setAttribute('href','favicon.ico'); 
   cssRef.setAttribute('rel','stylesheet');
   cssRef.setAttribute('type','text/css');
   cssRef.setAttribute('href','ib-apts.css');
-  document.getElementsByTagName('head')[0].appendChild(cssRef);
-  document.getElementsByTagName('head')[0].appendChild(iconRef);}
+  document.getElementsByTagName('head')[0].appendChild(cssRef);}
 
 function readFile(fileName,divID) {
   var txtFile=new XMLHttpRequest();

@@ -137,4 +137,12 @@ Vous avez mis en place la synchronisation des fichiers contenus entre un serveur
 Pour rappel, vous pourriez également lier plusieurs partages de plusieurs serveurs SMB pour en synchroniser le contenu sur plusieurs de vos sites.
 
 ## Nettoyage
-Une fois cet atelier terminé, nous vous conseillons de supprimer le *resource group* **demoRG** afin d'éviter toute facturation inutile sur votre compte Azure.
+Une fois cet atelier terminé, nous vous conseillons de supprimer le *resource group* **demoRG** afin d'éviter toute facturation inutile sur votre compte Azure.  
+> **Nota :** Pour supprimer le *storage sync service*, il pourra être nécessaire de l'ouvrir dans le portail puis :
+>   - Cliquer sur **registered servers** dans la section **sync**
+>   - Cliquer sur les points de suspension (...) en fin de la ligne **demoFiler** et sélectionner **Unregister server**
+>   - Taper le nom **demoFiler** dans le champ de confirmation et cliquer sur **Unregister**
+>   - Cliquer sur **Sync group** dans la section **sync**
+>   - Ouvrir le *sync group* **demoSync**
+>   - Cliquer sur les points de suspension (...) en fin de la ligne **syncedshare**, sélectionner **Delete** et valider par **OK**
+>   - Cliquer sur **Delete sync group** dans la barre de menu en haut de la page **demoSyncXXXX** et cliquers sur **OK** pour confirmer

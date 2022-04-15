@@ -52,7 +52,7 @@ function aptsLoad() {
   document.querySelector('head').appendChild(setFavicon);
   let pageName = window.location.pathname.split('/').pop().split('.')[0];
   //Variable locale pour mettre en avant le dernier stage consulté
-  if (localStorage.getItem('ibAPTSlastcourseView') === undefined) localStorage.getItem('ibAPTSlastcourseView',pageName);
+  localStorage.setItem('ibAPTSlastcourseView',pageName);
     h1='<h1>'+pageName;
   if (courses[pageName]==undefined) h1+=' - Accompagnement Pédagogique et Technique de stage';
   else h1+=' - '+courses[pageName];

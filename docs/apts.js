@@ -38,7 +38,7 @@ function links() {
     let cell2=newCourse.insertCell(1);
     cell1.innerHTML=courseId;
     cell2.innerHTML=courseTitle;
-    if (localStorage.getItem(ibAPTSlastcourseView) !== undefined && localStorage.getItem(ibAPTSlastcourseView) == courseId) {
+    if (localStorage.getItem('ibAPTSlastcourseView') !== undefined && localStorage.getItem('ibAPTSlastcourseView') == courseId) {
       cell1.className='lastCourse';
       cell2.className='lastCourse';
     }

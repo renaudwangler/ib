@@ -23,29 +23,37 @@ courses = {
 
 
 const unsortedObjArr = [...Object.entries(courses)];
-const sortedObjArr = unsortedObjArr.sort(([key1, value1], [key2, value2]) => key2.localeCompare(key1));
-const sortedObject = {}
+let sortedObjArr = unsortedObjArr.sort(([key1, value1], [key2, value2]) => key2.localeCompare(key1));
+let sortedObject = {};
 sortedObjArr.forEach(([key, value]) => (sortedObject[key] = value));
 courses=sortedObject;
 
 function links() {
-  courseTable=courseTable=document.getElementsByTagName('table')[0];
+  let courseTable=document.getElementsByTagName('table')[0];
   Object.entries(courses).forEach(([courseId,courseTitle]) => {
-    var newCourse=courseTable.insertRow(0);
+    let newCourse=courseTable.insertRow(0);
     newCourse.id=courseId;
     newCourse.onclick=function(){window.location=(courseId+'.html')};
-    var cell1=newCourse.insertCell(0);
-    var cell2=newCourse.insertCell(1);
+    let cell1=newCourse.insertCell(0);
+    let cell2=newCourse.insertCell(1);
     cell1.innerHTML=courseId;
-    cell2.innerHTML=courseTitle;});}
+    cell2.innerHTML=courseTitle;
+    if (localStorage.getItem(ibAPTSlastcourseView) !== undefined && localStorage.getItem(ibAPTSlastcourseView) == courseId) {
+      cell1.className='lastCourse';
+      cell2.className='lastCourse';
+    }
+  
+  });}
 
 function aptsLoad() {
   let setFavicon = document.createElement('link');
   setFavicon.setAttribute('rel','shortcut icon');
   setFavicon.setAttribute('href','favicon.ico');
   document.querySelector('head').appendChild(setFavicon);
-  var pageName = window.location.pathname.split('/').pop().split('.')[0];
-  h1='<h1>'+pageName;
+  let pageName = window.location.pathname.split('/').pop().split('.')[0];
+  //Variable locale pour mettre en avant le dernier stage consulté
+  if (localStorage.getItem('ibAPTSlastcourseView') === undefined) localStorage.getItem('ibAPTSlastcourseView',pageName);
+    h1='<h1>'+pageName;
   if (courses[pageName]==undefined) h1+=' - Accompagnement Pédagogique et Technique de stage';
   else h1+=' - '+courses[pageName];
   document.body.innerHTML=h1+'<a href=https://github.com/renaudwangler/ib/edit/master/docs/'+pageName+'.html title="Edition/Suggestion">\

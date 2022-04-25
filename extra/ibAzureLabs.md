@@ -6,6 +6,8 @@ Le présent document explique comment mettre en place quelques ressources dans u
 
 >:arrow_forward: **Nota 2:** Nous vous conseillons de réaliser dès le début de formation (au plus tard avant votre premier atelier) les procédures 0, 1 et 2. Les procédures 3 et 4 seront à suivre uniquement si vous en avez besoin/envie ou si votre formateur/trice vous l'indique.  
 
+>:arrow_forward: **Nota 3:** Nous vous conseillons fortement d'utiliser, pour réaliser vos ateliers, un autre navigateur que celui que vous utilisez habituellement pour bien maitriser avec quel compte vous êtes connecté pour faire chaque action.  
+
 Voici les procédures que nous vous proposons dans ce document:
  - ## [Procédure 0: Passer son compte Azure en anglais.](#proc%C3%A9dure-0-passer-son-compte-azure-en-anglais-1)
  - ## [Procédure 1: Créer quelques ressources génériques dans Azure.](#proc%C3%A9dure-1-cr%C3%A9er-quelques-ressources-g%C3%A9n%C3%A9riques-dans-azure-1)
@@ -16,6 +18,7 @@ Voici les procédures que nous vous proposons dans ce document:
 # Procédure 0: Passer son compte Azure en anglais
 Tous les labs officiels et tutoriels fournis par Microsoft le sont en langue anglaise.  
 Il sera donc plus efficace d'avoir votre portail Azure dans cette même langue anglaise. Ce ne sera pas le cas si vous avez activé votre compte de test depuis un navigateur Internet configuré en Français. Voici donc les quelques étapes pour changer la langue de votre portail Azure :  
+1. Connextez-vous sur le navigateur utilisé pour réaliser vos ateliers, ouvrez le [portail Azure (https://portal.azure.com)](https://portal.azure.com).  
 1. Cliquez sur l'icône des paramètres en haut à droite du portail Azure.  
 ![paramètres Azure](images/azureSettings.png)  
 3. Dans la page **Paramètres du portail** Sélectionnez l'affichage des **langues + région** en sélectionnant cet onglet (dans la liste à gauche)

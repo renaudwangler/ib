@@ -12,10 +12,7 @@ Attention à la gestion du temps : il s'agit d'un stage de 4 jours, avec des pet
   <h3>Module 6</h3>
   La dernière leçon porte sur ATA qui n'existe plus en tant qu'outil à part entière mais a été porté en fonctionnalité dans Defender for Indenttity.
   <h3>Module 10</h3>
-  Démonstration OME :
-  <code>
-    Invoke-Command -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential (Get-Credential) -Authentication Basic -AllowRedirection -ScriptBlock {New-TransportRule -Name 'Seamless Office Message Encription - Outside' -ApplyRightsProtectionTemplate 'Encrypt' -SentToScope NotInOrganization}
-  </code>
+  OME a été remplçé par Purview Message Encryption (< a href="https://docs.microsoft.com/en-us/microsoft-365/compliance/ome-version-comparison?view=o365-worldwide#side-by-side-comparison-of-message-encryption-features-and-capabilities" traget="_blank">comparaison</a>)
   <h3>Exemple de Timing (5 jours)</h3>
   <ul>
     <li>Jour 1 : Intro + modules 1 et 2

@@ -45,7 +45,7 @@ Vous allez maintenant créer un *File Share* dans un *Storage Account*, cible de
     - **Tier :** sélectionnez **Hot**
 1. Cliquez sur **Create**
 1. Sur la page de votre *Storage Account*, cliquez sur **Settings/Acces Keys**
-1. Cliquez sur le bouton **Show keys** et copiez la valeur du champ **Key1** (voius pouvez le faire en utilisant le bouton de copie à droite dudit champ).
+1. Cliquez sur le bouton **Show keys** et copiez la valeur du champ **Key1** (vous pouvez le faire en utilisant le bouton de copie à droite dudit champ).
 ## Etape 3: Créer un *Key vault*
 Vous allez maintenant créer le *Key Vault* dans lequel vous stockerez ensuite le mot de passe de connexion au partage.
 1. Connectez-vous au portail Azure (http://portal.azure.com) et cliquez sur **+ Create a resource**

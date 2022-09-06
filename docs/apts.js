@@ -3,6 +3,7 @@ courses = {
   'm20740c':'Installation de Windows Server 2016, gestion du stockage et de la virtualisation',
   'm20741b':'Les services réseaux Windows Server 2016',
   'm20742b':'Gestion des identités avec Windows Server 2016',
+  'm20345-1':'Administrer Exchange Server 2016/2019',
   'msws011':'Windows Server 2019 Administration',
   'msws012':'Windows Server 2019 hybride et Azure IaaS',
   'msaz104':'Microsoft Azure - Administration',

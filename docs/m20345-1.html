@@ -17,7 +17,12 @@
   </ul>
  <h3>Module 4</h3>
  La cu12 de Exchange 2019 (et la cu16 de Exchange 2016) ont supprimé les paramètres de commandes powershell basées sur des chemins UNC : Dans la foulée, l'import/export et le renouvellement de certificats ne sont plus dans le EAC
-  <h3>Atelier 2</h3>
+ <h3>Module 9</h3>
+ Rappel : l'instance ADLDS sur le serveur Edge est joignable sur le port 50389 ave le DN "ou=msexchangegateway"
+ <h3>Module 11</h3>
+ Editer dans le détail un rôle en Powershell (le reste peut être fait en interface EAC) :
+set-managementroleentry 'Reipients without quotas\set-mailbox' -removeparameter -parameters prohibitsendquota, prohibitSendReceiveQuota,IssueWarningQuota,UseDatabaseQuotaDefaults
+ <h3>Atelier 2</h3>
   la machine lon-ex1 n'ayant pas de lecteur CD, les lettres de lecteur des disques iSCSI sont pas attribuées correctement.
  <h3>Atelier 7</h3>
  Exercice 2, tâche 3, point 1 : Les 2 dernières lignes powershell n'en sont qu'une : la commande {...} doit être collée à la suite de la commande invoke-command

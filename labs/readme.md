@@ -12,3 +12,7 @@
 
 ## [Mise en place d'un test Windows AutoPilot](windowsAutopilot.md#lab--mise-en-place-dun-test-windows-autopilot)  
 > Tester de manière la plus simple et rapide possible la fonctionnalité Windows Autopilot Afin de constater la jonction et la customisation automatique d'un poste Windows 10 dans un tenant Microsoft 365  
+
+## [test de l'environnement de gestion Azure ARC](Aure%20Resource%20Control.md#lab-int%C3%A9gration-de-serveur-avec-azure-arc)
+> Utilisation de l'*Azure Resource Control* pour gérer une machine Windows depuis l'environnement Azure.  
+(L'accès aux resources Azure depuis la machine Windows se fera nativement gràce à une *Managed Identity*)

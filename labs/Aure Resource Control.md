@@ -69,7 +69,7 @@ Notre machine virtuelle simule une machine *on premises* et ne doit, à ce titre
     New-NetFirewallRule -Name BlockAzureIMDS -DisplayName "Block access to Azure IMDS" -Enabled True -Profile Any -Direction Outbound -Action Block -RemoteAddress 169.254.169.254
 ```
 1. Dans **Windows Powershell ISE**, cliquez sur la flèche verte **Run Script (F5)**.
-> **Nota :** Vous pouvez vérifier si vous le souhaitez que, dans le portail azure, la machine virtuelle ne communique plus avec l'environnement Azure car un message apparait sur la resource VM dans le portail indiquant "****"
+> **Nota :** Vous pouvez vérifier si vous le souhaitez que, dans le portail azure, la machine virtuelle ne communique plus avec l'environnement Azure car un message apparait sur la resource VM dans le portail indiquant "**ARC-VM virtual machine agent status is not ready.**"
 
 ## Etape 4: Connecter la machine Windows à Azure
 Vous allez maintenant vous connecter à la machine virtuelle pour y installer le nécessaire de connexion en gestion Azure.

@@ -1,0 +1,57 @@
+<html>
+<head>
+  <style>
+    #disp {height:100%;margin:auto;display:block;}
+    body {background-color:lightgrey;}
+    .circle {position:absolute;top:0;left:0;fill:none;stroke:none;}
+    .path {stroke-width:10px;stroke:green;fill:white;}
+    .remaining {stroke-width:10px;transform:rotate(90deg);transform-origin:center;transition: 1s linear all;stroke:grey;}
+  </style>
+  <script language="javascript">
+//idée originale : https://css-tricks.com/how-to-create-an-animated-countdown-timer-with-html-css-and-javascript/
+    function displayTime(time) {
+      //Retour de l'affichage du temps restant en minutes et secondes
+      let minutes=Math.floor(time/60);
+      if (minutes<10) {minutes=`0${minutes}`;}
+      let seconds=time%60;
+      if (seconds<10) {seconds=`0${seconds}`;}
+      if (time<10) {if(start=='Démarrage') {return'Imminent';} else {return'Imminente';}} else {return`${minutes}:${seconds}`;}}
+
+    function startTimer() {
+      //Démarrage du compte à rebours
+      timerInterval=setInterval(() => {
+      timePassed=timePassed+=1;
+      timeLeft=TIME_LIMIT-timePassed;
+      document.getElementById('timerLabel').childNodes[0].nodeValue=displayTime(timeLeft);setCircleDasharray();}, 1000);}
+
+    function setCircleDasharray() {
+      const circleDasharray = `${(timeLeft / TIME_LIMIT * FULL_DASH_ARRAY).toFixed(0)} 283`;
+      document.getElementById("remaining").setAttribute("stroke-dasharray", circleDasharray);}
+  </script>
+</head>
+<body><div style="position:relative;" onclick="if (!document.fullscreenElement) {document.documentElement.requestFullscreen();} else {document.exitFullscreen();}">
+  <svg xmlns="http://www.w3.org/2000/svg" id="disp" viewBox="0 0 100 100" font-family="Monospace";>
+    <g class="circle">
+      <circle class="path" cx="50%" cy="50%" r="45"/>
+      <path id="remaining" stroke-dasharray="283" class="remaining green" d="M 50, 50 m -45, 0 a 45,45 0 1,0 90,0 a 45,45 0 1,0 -90,0"/>
+      <text x="50%" y="40%" text-anchor="middle" fill="black" id="timerText"> </text>
+      <text x="50%" y="60%" text-anchor="middle" fill="black" id="timerTime" font-size="160%" font-weight="bold">aKelHeure</text>
+      <text x="50%" y="75%" text-anchor="middle"  fill="grey" id ="timerLabel"> </text>
+    </g>
+  </svg>
+  </div>
+<script language="javascript">
+  //Lancement du compteur : A faire = passer d'un décompte de secondes à un décompte après saisie hoiraire.
+  const TIME_LIMIT=240, start='Démarrage', FULL_DASH_ARRAY=283;
+
+  let curDate=new Date();
+  let curTime=curDate.getHours()+":"+curDate.getMinutes();
+  curDate.setSeconds(curDate.getSeconds()+TIME_LIMIT);
+  let staTime=curDate.getHours()+":"+curDate.getMinutes();
+
+  let timePassed=0, timeLeft=TIME_LIMIT;
+  document.getElementById('timerText').childNodes[0].nodeValue=start;
+  document.getElementById('timerTime').childNodes[0].nodeValue=staTime;
+  startTimer();
+</script>
+</body></html>

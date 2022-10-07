@@ -44,7 +44,7 @@ Vous allez maintenant créer un *File Share* dans un *Storage Account*, cible de
     - **Name :** tapez **demoshare**
     - **Tier :** sélectionnez **Hot**
 1. Cliquez sur **Create**
-1. Sur la page de votre *Storage Account*, cliquez sur **Settings/Acces Keys**
+1. Sur la page de votre *Storage Account*, cliquez sur **Settings / Acces Keys**
 1. Cliquez sur le bouton **Show keys** et copiez la valeur du champ **Key1** (vous pouvez le faire en utilisant le bouton de copie à droite dudit champ).
 ## Etape 3: Créer un *Key vault*
 Vous allez maintenant créer le *Key Vault* dans lequel vous stockerez ensuite le mot de passe de connexion au partage.
@@ -59,15 +59,15 @@ Vous allez maintenant créer le *Key Vault* dans lequel vous stockerez ensuite l
 1. Attendez que le *Key Vault* soit créé, puis cliquez sur le bouton **Go to resource**  
 ## Etape 4 : Ajouter un secret dans le *Key Vault*
 Vous allez désormais placer le mot de passe de connexion au partage de fichiers dans le *Key Vault*.  
-1. Sur la page de votre *Key Vault*, cliquez sur **Settings/Secrets**
-1. Cliquez sur le bouton **+ Generate/import**
+1. Sur la page de votre *Key Vault*, cliquez sur **Settings / Secrets**
+1. Cliquez sur le bouton **+ Generate / import**
 1. Utilisez les valeurs suivantes avant de cliquer sur le bouton **Create**  (laissez les paramètres non mentionnés à leur valeur par défaut)
     - **Upload options:** **Manual**
     - **Name:** **sakey**
     - **Value:** Collez la valeur de la clef que vous aviez copié à l'étape 2
 ## Etape 5 : Rendre le *Key Vault* accessible par la VM.
 VOus allez maintenant permettre à la VM de récupérer les informations secretes dans le *Key Vault*, en vous appuyant sur le *RBAC* interne à ce dernier.
-1. Dans la page de votre *Key Vault* , cliquez sur **Settings/Access policies**
+1. Dans la page de votre *Key Vault* , cliquez sur **Settings / Access policies**
 1. Cliquez sur **+ Add Access Policy** et utilisez les valeurs suivantes avant de cliqure sur le bouton **Add** :
     - **Configure from template:** **Secret Management**
     - **Select principal:** Cliquez sur **None selected** et recherchez l'entrée **demoVM** pour la choisir avant de cliquer sur le bouton **Select**  
@@ -75,9 +75,9 @@ VOus allez maintenant permettre à la VM de récupérer les informations secrete
 ## Etape 6 : Vérification du fonctionnement
 Pour finir, vous allez démontrer que le code tournant dans le contexte de la machine virtuelle peut récupérer des informations dans le *Key Vault* afin, dans notre exemple, d'accéder à un partage.
 1. retournez sur la VM que vous avez déployé à l'étape 1 (vous pouvez, par exemple, cliquer sur l'entrée **demoVM** dans la liste **Recent resources** sur la page d'accueil du portail).
-1. dans la fenêtre **demoVM**, dans la barre d'outils supérieure, cliquez sur **Connect/RDP**
+1. dans la fenêtre **demoVM**, dans la barre d'outils supérieure, cliquez sur **Connect / RDP**
     > **Nota :** Si vous avez des problèmes avec la connexion RDP, vous pouvez passer par la mise en place d'un *bastion* (rapprochez-vous de votre formateur/trice si nécessaire pour obtenir de l'aide).  
-1. Dans la fenêtre **demoVM|Connect**, cliquez sur **Download RDP File** 
+1. Dans la fenêtre **demoVM \| Connect**, cliquez sur **Download RDP File** 
 1. Utilisez le fichier **demoVM.rdp** que vous venez de télécharger pour vous connecter avec les identifiants suivants :
     - Nom d'utilisateur : **Student**
     - Mot de passe : **Pa55w.rd1234**

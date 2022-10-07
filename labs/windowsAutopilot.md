@@ -29,9 +29,9 @@ Cette tâche n'est pas directement liée à l'activation de la fonction Windows 
 1. Connectez-vous au [Microsoft 365 admin center](https://admin.microsoft.com) en utilisant le compte *Global Administrator* de votre tenant de test.
 1. Dans le menu de navigation à gauche, cliquer sur "**... Show all**" puis, dans la section "**Admin centers**" sur "**Endpoint Manager**".
 1. Dans le "**Microsoft Endpoint Manager admin center**", cliquez sur "**Devices**" dans le menu de navigation à gauche.
-1. Dans la fenêtre "**Devices | Overview**", dans la section "**By platform**" du menu de navigation, cliquez sur "**Windows**".
-1. Dans la fenêtre "**Windows | Windows Devices**", cliquez sur "**Windows Enrollment**" dans le menu de navigation.
-1. Dans la fenêtre "**Windows | Windows Enrollment**", cliquez sur la tuile "**Automatic Enrollment**".
+1. Dans la fenêtre "**Devices \| Overview**", dans la section "**By platform**" du menu de navigation, cliquez sur "**Windows**".
+1. Dans la fenêtre "**Windows \| Windows Devices**", cliquez sur "**Windows Enrollment**" dans le menu de navigation.
+1. Dans la fenêtre "**Windows \| Windows Enrollment**", cliquez sur la tuile "**Automatic Enrollment**".
 1. Dans la fenêtre "**Configure**" qui s'ouvre, passez le paramètre "**MDM user scope**" sur ```All``` avant de cliquer sur "**Save**"
 ## Tâche 3: Récupérer les informations de la machine de test
 1. Commencez par vous connecter sur la machine (physique ou virtuelle) qui servira de test à la fonction Autopilot avec un compte ayant les privilèges administratif en local.
@@ -50,9 +50,9 @@ Get-WindowsAutoPilotInfo.ps1 -outputFile $env:USERPROFILE\Documents\myVMautopilo
 1. Connectez-vous au [Microsoft 365 admin center](https://admin.microsoft.com) en utilisant le compte *Global Administrator* de votre tenant de test.
 1. Dans le menu de navigation à gauche, cliquer sur "**... Show all**" puis, dans la section "**Admin centers**" sur "**Endpoint Manager**".
 1. Dans le "**Microsoft Endpoint Manager admin center**", cliquez sur "**Devices**" dans le menu de navigation à gauche.
-1. Dans la fenêtre "**Devices | Overview**", dans la section "**By platform**" du menu de navigation, cliquez sur "**Windows**".
-1. Dans la fenêtre "**Windows | Windows Devices**", cliquez sur "**Windows Enrollment**" dans le menu de navigation.
-1. Dans la fenêtre "**Windows | Windows enrollment**", cliquez sur la tuile "**Devices**" de la section "**Windows Autopilot Deployment Program**".
+1. Dans la fenêtre "**Devices \| Overview**", dans la section "**By platform**" du menu de navigation, cliquez sur "**Windows**".
+1. Dans la fenêtre "**Windows \| Windows Devices**", cliquez sur "**Windows Enrollment**" dans le menu de navigation.
+1. Dans la fenêtre "**Windows \| Windows enrollment**", cliquez sur la tuile "**Devices**" de la section "**Windows Autopilot Deployment Program**".
 1. Dans la fenêtre "**Windows Autopilot devices**" cliquez sur "**Import**" dans la barre d'outils.
 1. Dans la fenêtre "**Add Windows Autopilot devices**", cliquez sur le bouton de parcours pour aller chercher le fichier ```Documents\myVMautopilot.csv``` et cliquez sur "**Open**".
 1. Dans la fenêtre "**Add Windows Autopilot devices**", un message devrait vous indiquer que votre fichier contient une ligne d'entrée correctement formattée : cliquez sur "**Import**"

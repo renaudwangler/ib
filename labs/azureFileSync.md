@@ -54,9 +54,9 @@ Vous allez désormais vous connecter à distance sur votre serveur Windows pour 
 1. Retournez à la **Home** page du portail Azure et cliquez sur **Resource groups**
 1. Cliquez sur le *resource group* **demoRG** pour l'ouvrir.
 1. Cliquez sur la *Virtual machine* **demoFiler** pour l'ouvrir
-1. dans la fenêtre **demoFiler**, dans la barre d'outils supérieure, cliquez sur **Connect/RDP**
+1. dans la fenêtre **demoFiler**, dans la barre d'outils supérieure, cliquez sur **Connect / RDP**
     > **Nota :** Si vous avez des problèmes avec la connexion RDP, vous pouvez passer par la mise en place d'un *bastion* (rapprochez-vous de votre formateur/trice si nécessaire pour obtenir de l'aide).  
-1. Dans la fenêtre **demoFiler|Connect**, cliquez sur **Download RDP File** 
+1. Dans la fenêtre **demoFiler \| Connect**, cliquez sur **Download RDP File** 
 1. Utilisez le fichier **demoFiler.rdp** que vous venez de télécharger pour vous connecter avec les identifiants suivants :
     - Nom d'utilisateur : **Student**
     - Mot de passe : **Pa55w.rd1234**
@@ -67,7 +67,7 @@ Vous allez désormais vous connecter à distance sur votre serveur Windows pour 
 1. Dans la fenêtre **Server Manager > File and Storage Services > Volumes**, cliquez sur le lien **Start the Add Roles and Features Wizard** dans la tuile **Shares**
 1. Dans la fenêtre **Add Roles and Features Wizard** qui s'est ouverte, cliquez deux fois sur **Next >** puis sur **Install**
 1. Attendez que l'installation se termine avant de cliquer sur **Close**
-1. De retour dans la fenêtre **Server Manager > File and Storage Services > Volumes**, cliquez sur **TASKS/New Share...** à droite de la tuile **Shares**.
+1. De retour dans la fenêtre **Server Manager > File and Storage Services > Volumes**, cliquez sur **TASKS / New Share...** à droite de la tuile **Shares**.
 1. Dans la fenêtre **New Share Wizard**, vérifiez que **SMB Share - Quick** soit sélectionné avant de cliquer deux fois sur **Next >**.
 1. Dans la page **Specify share name**, tapez **localshare** dans le champ **Share Name** puis cliquez trois fois sur **next >** avant de cliquer sur **Create**.
 1. une fois le partage créé, cliquez sur **Close**.

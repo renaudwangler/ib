@@ -33,13 +33,13 @@ Notre machine virtuelle simule une machine *on premises* et ne doit, à ce titre
 1. Dans la page **Resource Groups**, cliquez sur le *resource group* **demoARC** pour l'ouvrir
 1. Dans la page **demoARC**, cliquez sur votre machine virtuelle **ARC-VM** pour l'ouvrir
 1. Dans la barre d'outils supérieure de la page **ARC-VM**, cliquez sur **Connect / RDP**
-1. Dans la page **ARC-VM|Connect**, cliquez sur le bouton **Download RDP File**
+1. Dans la page **ARC-VM \| Connect**, cliquez sur le bouton **Download RDP File**
 1. Ouvrez le fichier *ARC-VM.rd* téléchargé depuis votre navigateur Internet et connectez-vous avec les informations suivantes :
     - Nom d'utilisateur : **Student**
     - Mot de passe : **Pa55w.rd1234**
 1. Une fois la session ouverte, attendez, si nécessaire, qu'elle s'initialise correctement.
 1. Dans la session distante, si le panneau **Networks** s'affiche, cliquez sur **yes**.
-1. Dans le menu démarrer de la machine virtuelle, faites un clic-droit sur **Windows Powershell ISE** et choisissez **More/Run as administrator**
+1. Dans le menu démarrer de la machine virtuelle, faites un clic-droit sur **Windows Powershell ISE** et choisissez **More / Run as administrator**
 1. Dans **Windows Powershell ISE**, cliquez sur la petite flèche descendante à coté de la mention **Script** pour faire apparaître le panneau **Untitled.ps1**
 1. Dans le panneau **Untitled.ps1**, saisissez les 3 lignes de code suivantes :
 ```powershell
@@ -56,7 +56,7 @@ Vous allez maintenant vous connecter à la machine virtuelle pour y installer le
 1. Dans **Microsoft Edge**, connectez-vous au portail Azure (http://portal.azure.com) avec votre compte d'administrateur
 1. Dans le portail Azure, dans la barre de recherche, commencez à saisir **Azure Arc** et cliquez sur le service **Azure Arc**
 1. Dans la page **Azure Arc**, dans la section **Infrastructure**, cliquez sur **Servers**
-1. Dans la page **Azure Arc|Servers** cliquez sur **+ Add**
+1. Dans la page **Azure Arc \| Servers** cliquez sur **+ Add**
 1. Dans la page **Add servers with Azure Arc**, cliquez sur le bouton **Generate script** sur la tuime **Add a single server**
 1. Sur l'onglet **1. Prerequisites**, cliquez sur **Next**
 1. Sur l'onglet **2. Resource details**, utilisez les informations suivantes avant de cliquer sur **Next** :
@@ -72,8 +72,8 @@ Vous allez maintenant vous connecter à la machine virtuelle pour y installer le
 ## Etape 4: Attribution d'un rôle à la machine Windows
 1. Dans l'onglet du portail Azure, cliquez sur **Home** puis sur votre **Resource groups**
 1. Dans la page **Resource groups**, cliquez sur **demoARC**
-1. Dans la page **demoARC|Resource group**, cliquez sur **Access Control (IAM)**
-1. Dans la page **Access Control (IAM)**, cliquez sur **Add/Add role assignment**
+1. Dans la page **demoARC \| Resource group**, cliquez sur **Access Control (IAM)**
+1. Dans la page **Access Control (IAM)**, cliquez sur **Add / Add role assignment**
 1. Dans la page **Add role assignment**, Sélectionnez le rôle **Contributor**, et cliquez sur **Next**
 1. Dans l'onglet **Members**, selectionnez **Managed Identity** et cliquez sur **+ Select members**
 1. Dans la page **Select managed identities**, sous **Managed Identity**, sélectionnez **Server - Azure Arc**

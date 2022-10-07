@@ -22,7 +22,7 @@ Il sera donc plus efficace d'avoir votre portail Azure dans cette même langue a
 1. Cliquez sur l'icône des paramètres en haut à droite du portail Azure.  
 ![paramètres Azure](images/azureSettings.png)  
 3. Dans la page **Paramètres du portail** Sélectionnez l'affichage des **langues + région** en sélectionnant cet onglet (dans la liste à gauche)
-4. Dans la page **Paramètres du portail|Langue + région**, sélectionnez **English** dans le menu **Langue**
+4. Dans la page **Paramètres du portail \| Langue + région**, sélectionnez **English** dans le menu **Langue**
 5. Cliquez sur **Appliquer** puis sur **OK** dans la fenêtre de confirmation qui indique que le portail sera rechargé.
 6. Vous pouvez fermer la page des paramètres.  
 
@@ -94,7 +94,7 @@ Si vous ne pouvez/souhaitez pas accéder aux VMs Azure directement en RDP ou SSH
 7. Cliquez sur **Go to resource group**.
 1. Dans la liste des ressources (moitié droite de l'écran), cliquez sur le *Virtual Network* **ibLabVnet**
 1. Dans la page **ibLabVnet** Sélectionnez l'affichage des **Properties** en sélectionnant cet onglet (sous **Settings** dans la liste à gauche)  
-1. Dans la page **ibLabVnet|Properties**, copiez la valeur **Resource ID**, vous en aurez besoin dans un instant.
+1. Dans la page **ibLabVnet \| Properties**, copiez la valeur **Resource ID**, vous en aurez besoin dans un instant.
 ![vnet Properties](images/ibLabvNet.png)  
 1. Accédez à la VM à laquelle vous souhaitez vous connecter
 1. Dans la page de la VM, sélectionnez l'affichage **Networking**, en sélectionnant cet onglet (sous **Settings** dans la liste à gauche)
@@ -106,15 +106,15 @@ Si vous ne pouvez/souhaitez pas accéder aux VMs Azure directement en RDP ou SSH
 1. Dans la page **Add peering**, saisissez les informations suivantes :
 ![New peering value](images/peeringById.png)  
    - Laissez chaque bouton radio à sa valeur par défaut.
-   - **This virtual network/Peering link name** : Saisissez un nom unique représentatif (ex : *test-vnet_to_ibLabvNet*)
-   - **Remote virtual network/Peering link name** : Saisissez un nom unique représentatif (ex : *ibLabvNet_to_test-vnet*)
+   - **This virtual network / Peering link name** : Saisissez un nom unique représentatif (ex : *test-vnet_to_ibLabvNet*)
+   - **Remote virtual network / Peering link name** : Saisissez un nom unique représentatif (ex : *ibLabvNet_to_test-vnet*)
    - **I know my resource ID** : Cochez la case
    - **Resource ID** : Coller l'identifiant du vNet copié au point 10 précédent.
  1. Cliquez sur **Add**
  1. Restez sur la page **Peerings**, patientez et utilisez le bouton **Refresh** jusqu'à ce que le **Peering status** soit passé en **Connected**
  1. Retournez à l'affichage de votre machine virtuelle (peut se faire en cliquant sur son nom dans les objets **Home > VM > vNet** au-dessus du titre de page **Peerings**).
  2. Dans la page de la VM, sélectionnez l'affichage **Overview**, en sélectionnant cet onglet (Le premier dans la liste à gauche)
- 3. Cliquez sur le menu **Connect/Bastion**  
+ 3. Cliquez sur le menu **Connect / Bastion**  
 ![Connect/Bastion](images/BastionConnect.png)  
  5. Dans la page **bastion** de votre machine virtuelle, vous devriez pouvoir saisir votre **username** et **Password** de connexion... ***et VOILA!***  
 >:arrow_forward: **Nota** : Si ce n'est pas le cas mais que la création d'un *bastion* vous est proposée à la place, patientez et rafraichissez la page jusque voir apparaitre la mention "*using Bastion: **ibLabBastion**, Provisioning State: **Succeeded**".  

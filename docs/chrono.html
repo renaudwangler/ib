@@ -42,12 +42,13 @@
   </div>
 <script language="javascript">
   //Lancement du compteur : A faire = passer d'un décompte de secondes à un décompte après saisie hoiraire.
+  // https://code-boxx.com/simple-time-picker-javascript-css/
   const TIME_LIMIT=240, start='Démarrage', FULL_DASH_ARRAY=283;
 
   let curDate=new Date();
   let curTime=curDate.getHours()+":"+curDate.getMinutes();
   curDate.setSeconds(curDate.getSeconds()+TIME_LIMIT);
-  let staTime=curDate.getHours()+":"+curDate.getMinutes();
+  let staTime=curDate.getHours()+":"+ (curDate.getMinutes()<10?'0'+curDate.getMinutes():curDate.getMinutes());
 
   let timePassed=0, timeLeft=TIME_LIMIT;
   document.getElementById('timerText').childNodes[0].nodeValue=start;

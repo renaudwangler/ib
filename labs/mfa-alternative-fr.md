@@ -1,17 +1,15 @@
 # Lab: Mise en place de la M.F.A avec une application Windows
 
 **Scenario**
-Dans cet atelier, vous allez utiliser une application sur un poste Windows 10/11 pour implémenter l'authentification multifactorielle. Cette mise en ouevre pourrait, par exemple, être utilisée pour authentifier un utilisateur dans un environnement Azure-AD ou Microsoft 365.
+Dans cet atelier, vous allez utiliser une application sur un poste Windows 10/11 pour implémenter l'authentification multifactorielle. Cette mise en oeuvre pourrait, par exemple, être utilisée pour authentifier un utilisateur dans un environnement Azure-AD ou Microsoft 365.
 
-Cet atelier inclut les tâches suivantes:
-This lab includes the following tasks:
-
+Cet atelier inclut les tâches suivantes :
  - Activer la MFA pour un utilisateur
  - Désactiver la MFA pour un utilisateur
 
 ## Exercice 1: Activer la MFA pour un utilisateur
 
-### Tâche 1: Installer une appplication du Store Microsoft sur Windows 10/11
+### Tâche 1: Installer une application du Store Microsoft sur Windows 10/11
 1. Sur une machine de test, il est conseillé de partir sur un *Microsoft store* vierge.
 1. Cliquer sur le bouton **Démarrer** de Windows 10/11 et taper **Store**
 1. Cliquer sur le raccourci **"Microsoft Store"**
@@ -23,11 +21,11 @@ This lab includes the following tasks:
 1. Saisir le nom de l'utilisateur à utiliser pour cet atelier (n'importe quel compte Microsoft fera l'affaire) et cliquer sur **Next**.
 1. Saisir le mot de passe du compte saisi et cliquer sur **Sign in**.
 1. Sur la fenêtre **"Use this account everywhere on your device"**, cliquer sur **Microsoft apps only**.
-1. dans le champ^**"Search apps, games, movies and more"**, taper **2fast**
+1. Dans le champ **"Search apps, games, movies and more"**, taper **2fast**
 1. Cliquer sur le lien **"2fast - Two factor authenticato[...]"**
 1. Cliquer sur le bouton **Install**.
 1. Attendre que l'application soit installée avant de poursuivre.
-1. sur le **Microsoft Store**, sur la page **"2 fast - Two factor[...]"**, cliquer sur le bouton **Open**
+1. Sur le **Microsoft Store**, sur la page **"2 fast - Two factor[...]"**, cliquer sur le bouton **Open**
 1. Sur la page **Welcome**, cliquer sur le bouton **Create new datafile**.
 1. Dans la fenêtre **Create datafile**, cliquer sur le bouton **Choose local path**.
 1. Dans la fenêtre **Select Folder**, choisir n'importe quel dossier dans lequel vous souhaitez que l'application stocke sa configuration (par exemple le dossier **Documents**) et cliquer sur le bouton **Select Folder**

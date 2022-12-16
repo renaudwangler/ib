@@ -6,9 +6,6 @@
 
 ## [Key Vault et Identité gérée](keyVault%20and%20ManagedId.md#lab-key-Vault-et-Identité-gérée)  
 > Permettre à une VM d'accèder au mot de passe d'un partage dans un *Key Vault*. La VM n'aura pas besoin de s'authentifier car vous utiliserez une *System Assigned Managed Identity*.
- 
-## [Setup Multifactor Authentication with APP on Windows](mfa-alternative.md#lab-setup-multifactor-authentication-with-app-on-windows)  
-> Use an application on a Windows 10/11 workstation to setup multifactor authentication. This setup could be used to authenticate in a m365 or Azure AD environment.  
 
 ## [Mise en place de la MFA avec une application Windows](mfa-alternative-fr.md#lab-mise-en-place-de-la-mfa-avec-une-application-windows)
 > utiliser une application installée sur un poste Windows 10/11 pour réaliser l'authentification multifactorielle (MFA) d'un utilisateur m365 ou Azure AD.

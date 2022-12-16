@@ -4,11 +4,14 @@
 ## [Mise en œuvre Azure File Sync](azureFileSync.md#lab-mise-en-%C5%93uvre-azure-file-sync)  
 > Tester la synchronisation de fichiers entre un serveur SMB Windows Server "classique" et un partage de fichiers "Azure File Share".  
 
-## [Key Vault and managed Identity](keyVault%20and%20ManagedId.md#lab-key-Vault-et-Identité-gérée)  
+## [Key Vault et Identité gérée](keyVault%20and%20ManagedId.md#lab-key-Vault-et-Identité-gérée)  
 > Permettre à une VM d'accèder au mot de passe d'un partage dans un *Key Vault*. La VM n'aura pas besoin de s'authentifier car vous utiliserez une *System Assigned Managed Identity*.
  
 ## [Setup Multifactor Authentication with APP on Windows](mfa-alternative.md#lab-setup-multifactor-authentication-with-app-on-windows)  
 > Use an application on a Windows 10/11 workstation to setup multifactor authentication. This setup could be used to authenticate in a m365 or Azure AD environment.  
+
+## [Mise en place de la MFA avec une application Windows](mfa-alternative-fr.md#lab-mise-en-place-de-la-mfa-avec-une-application-windows)
+> utiliser une application installée sur un poste Windows 10/11 pour réaliser l'authentification multifactorielle (MFA) d'un utilisateur m365 ou Azure AD.
 
 ## [Mise en place d'un test Windows AutoPilot](windowsAutopilot.md#lab--mise-en-place-dun-test-windows-autopilot)  
 > Tester de manière la plus simple et rapide possible la fonctionnalité Windows Autopilot Afin de constater la jonction et la customisation automatique d'un poste Windows 10 dans un tenant Microsoft 365  

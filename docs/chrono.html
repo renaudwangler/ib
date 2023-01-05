@@ -1,39 +1,82 @@
 <html>
 <head>
   <style>
+    :root {--circleColor:green;--circleBackground:grey;}
     #disp {height:100%;margin:auto;display:block;}
-    body {background-color:lightgrey;}
+    body {background-color:black;}
     .circle {position:absolute;top:0;left:0;fill:none;stroke:none;}
-    .path {stroke-width:10px;stroke:green;fill:white;}
-    .remaining {stroke-width:10px;transform:rotate(90deg);transform-origin:center;transition: 1s linear all;stroke:grey;}
+    .path {stroke-width:10px;stroke:var(--circleColor);fill:white;}
+    .remaining {stroke-width:10px;transform:rotate(90deg);transform-origin:center;transition: 1s linear all;stroke:var(--circleBackground);}
+    .bottomButton, .bottomButtonOn {position:absolute;bottom:2px;height:20px;padding:7px;cursor:pointer;background-color:transparent;color:transparent;font-weight:bold;border-radius:5px;cursor:default;}
+    .bottomButtonOn {background-color: crimson;color:white;cursor:pointer;}
+    #parameters {position:absolute;border:ridge gray 6px;background-color:lightgray;margin-left:25%;margin-top:25%;width:calc(50% - 20px);top:0px;left:0px;justify-content:center;padding-left:10px;padding-right:10px;padding-bottom:20px;}
+    #parameters.off {visibility:hidden;}
+    #parameters.on {visibility:visible;}
+    #parameters .close, #parameters .closeOn {display:flex;position:absolute;top:0px;right:0px;padding:0px;background-color:dimgray;color:white;font-weight:bold;height:30px;width:30px;align-items:center;justify-content:center;cursor:pointer;font-size:30px;}
+    #parameters h1 {font-variant-caps: all-small-caps;font-size:26px;width:calc(100% + 20px);margin:0px;margin-left:-10px;text-align:center;background-color:gray;color:white;height:30px;margin-bottom:10px}
+    #parameters .restart, #parameters .restartOn {float:right;display:block;padding:6px;background-color:dimgray;color:white;font-weight:bold;cursor:pointer;font-size:22px;margin-top:10px;margin-right:10px;border-radius:4px;padding-left:12px;padding-right:12px;}
+    #parameters .closeOn {background-color:crimson;}
+    #parameters .restartOn {background-color:greenyellow;color:darkgreen;}
+    #parameters .text {width:100%;text-align:center;margin-bottom: 20px;}
   </style>
   <script language="javascript">
-//id�e originale : https://css-tricks.com/how-to-create-an-animated-countdown-timer-with-html-css-and-javascript/
-    function displayTime(time) {
+     function timerRestart() {
+      document.getElementById('timerText').innerHTML=document.querySelector('input[name="text"]:checked').value;
+      timePassed=0;
+      if (document.getElementById('duree').checked==true) {
+        TIME_LIMIT=document.getElementById('dureeVal').value*60;
+        curDate=new Date();
+        curTime=curDate.getHours()+":"+curDate.getMinutes();
+        curDate.setSeconds(curDate.getSeconds()+TIME_LIMIT);
+        staTime=curDate.getHours()+":"+ (curDate.getMinutes()<10?'0'+curDate.getMinutes():curDate.getMinutes());
+        document.getElementById('timerTime').childNodes[0].nodeValue=staTime;}
+      else {
+        //Mise en place du timer basée sur l'horaire de fin !
+        newDate = new Date();
+        newDate.setHours(document.getElementById('heureVal').value.split(':')[0],document.getElementById('heureVal').value.split(':')[1],0); 
+        staTime=newDate.getHours()+":"+ (newDate.getMinutes()<10?'0'+newDate.getMinutes():newDate.getMinutes());
+        document.getElementById('timerTime').childNodes[0].nodeValue=staTime;
+        TIME_LIMIT=Math.abs(newDate - new Date().setSeconds(0))/1000;
+        console.log(TIME_LIMIT);}
+      document.getElementById('parameters').className='off';}
+
+     function displayTime(time) {
       //Retour de l'affichage du temps restant en minutes et secondes
+      //idée originale : https://css-tricks.com/how-to-create-an-animated-countdown-timer-with-html-css-and-javascript/
       let minutes=Math.floor(time/60);
       if (minutes<10) {minutes=`0${minutes}`;}
       let seconds=time%60;
       if (seconds<10) {seconds=`0${seconds}`;}
-      if (time<10) {if(start=='D�marrage') {return'Imminent';} else {return'Imminente';}} else {return`${minutes}:${seconds}`;}}
+      if (time<10) {
+        document.getElementById('timerLabel').style.fill=circleColor;
+        document.getElementById('timerText').style.color=circleColor;
+        if(start=='Démarrage') {return'Imminent';} else {return'Imminente';}} 
+      else {
+        document.getElementById('timerLabel').style.fill=circleBackground;
+        return`${minutes}:${seconds}`;}}
 
     function startTimer() {
-      //D�marrage du compte � rebours
+      //Démarrage du compte à rebours
       timerInterval=setInterval(() => {
-      timePassed=timePassed+=1;
-      timeLeft=TIME_LIMIT-timePassed;
-      document.getElementById('timerLabel').childNodes[0].nodeValue=displayTime(timeLeft);setCircleDasharray();}, 1000);}
+        timePassed=timePassed+=1;
+        timeLeft=TIME_LIMIT-timePassed;
+        document.getElementById('timerLabel').childNodes[0].nodeValue=displayTime(timeLeft);setCircleDasharray();}, 1000);}
+
 
     function setCircleDasharray() {
       const circleDasharray = `${(timeLeft / TIME_LIMIT * FULL_DASH_ARRAY).toFixed(0)} 283`;
       document.getElementById("remaining").setAttribute("stroke-dasharray", circleDasharray);}
     if (!sessionStorage.getItem("ibTimerStart")) sessionStorage.setItem("ibTimerStart",0);
     if (!sessionStorage.getItem("ibTimeronTime")) sessionStorage.setItem("ibTimeronTime",0);
+
     ibTimerStart=sessionStorage.getItem("ibTimerStart");
     ibTimeronTime=sessionStorage.getItem("ibTimeronTime");
+    var circleColor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--circleColor');
+    var circleBackground = getComputedStyle(document.querySelector(':root')).getPropertyValue('--circleBackground');
   </script>
 </head>
-<body><div style="position:relative;" onclick="if (!document.fullscreenElement) {document.documentElement.requestFullscreen();} else {document.exitFullscreen();}">
+<body>
+<div style="position:relative;">
   <svg xmlns="http://www.w3.org/2000/svg" id="disp" viewBox="0 0 100 100" font-family="Monospace";>
     <g class="circle">
       <circle class="path" cx="50%" cy="50%" r="45"/>
@@ -44,19 +87,32 @@
     </g>
   </svg>
   </div>
-<script language="javascript">
-  //Lancement du compteur : A faire = passer d'un d�compte de secondes � un d�compte apr�s saisie hoiraire.
-  // https://code-boxx.com/simple-time-picker-javascript-css/
-  const TIME_LIMIT=240, start='D�marrage', FULL_DASH_ARRAY=283;
+  <div id="parameters" class="off">
+    <div class="close" onmouseover="this.className='closeOn';" onmouseout="this.className='close';" onclick="document.getElementById('parameters').className='off';">&times;</div>
+    <h1>Paramètrage</h1>
+    <div class="text">
+      Afficher <input type="radio" name="text" id="demarrage" value="Démarrage" checked><label for="demarrage">Démarrage</label> ou <input type="radio" name="text" id="reprise" value="Reprise"><label for="reprise">Reprise</label></div>
+    <table><tr><td><input type="radio" name="mode" id="duree" value="duree" checked>Choisir la durée du minuteur :</td><td><input type="number" id="dureeVal" value="10" min="1" max="120" onfocus="document.getElementById('duree').checked=true;" onkeydown="if(event.keyCode===13) timerRestart();"> minutes</td></tr>
+    <tr><td colspan="2">OU</td></tr>
+    <tr><td><input type="radio" name="mode" id="heure" value="heure">Choisir l'heure de reprise :</td><td><input type="time" id="heureVal" onfocus="document.getElementById('heure').checked=true;"></td></tr></table>
+    <div class="restart" onmouseover="this.className='restartOn';" onmouseleave="this.className='restart';" onclick="timerRestart();">Relancer</div>
 
+  </div>
+  <!-- Bouton plein écran en bas à gauche -->
+  <div class="bottomButton" style="left:2px;" onmouseover="this.className='bottomButtonOn'" onmouseleave="this.className='bottomButton';" onclick="if (!document.fullscreenElement) {document.documentElement.requestFullscreen();} else {document.exitFullscreen();}">Plein écran</div>
+  <!-- Bouton paramètres en bas à droite -->
+  <div class="bottomButton" style="right:2px;" onmouseover="if(document.getElementById('parameters').className=='off') this.className='bottomButtonOn';" onmouseleave="this.className='bottomButton';" onclick="if(document.getElementById('parameters').className=='off') document.getElementById('parameters').className='on';">Paramètres</div>
+
+<script language="javascript">
+  //Lancement du compteur : A faire = passer d'un décompte de secondes à un décompte après saisie hoiraire.
+  var TIME_LIMIT=600, start='Démarrage', FULL_DASH_ARRAY=283;
+  let timePassed=0, timeLeft=TIME_LIMIT;
   let curDate=new Date();
   let curTime=curDate.getHours()+":"+curDate.getMinutes();
   curDate.setSeconds(curDate.getSeconds()+TIME_LIMIT);
   let staTime=curDate.getHours()+":"+ (curDate.getMinutes()<10?'0'+curDate.getMinutes():curDate.getMinutes());
-
-  let timePassed=0, timeLeft=TIME_LIMIT;
-  document.getElementById('timerText').childNodes[0].nodeValue=start;
   document.getElementById('timerTime').childNodes[0].nodeValue=staTime;
+  document.getElementById('timerText').childNodes[0].nodeValue=start;
   startTimer();
 </script>
 </body></html>

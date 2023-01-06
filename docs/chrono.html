@@ -21,7 +21,8 @@
   </style>
   <script language="javascript">
      function timerRestart() {
-      document.getElementById('timerText').innerHTML=document.querySelector('input[name="text"]:checked').value;
+      start=document.querySelector('input[name="text"]:checked').value;
+      document.getElementById('timerText').innerHTML=start;
       timePassed=0;
       if (document.getElementById('duree').checked==true) {
         TIME_LIMIT=document.getElementById('dureeVal').value*60;

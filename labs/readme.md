@@ -16,3 +16,12 @@
 ## [test de l'environnement de gestion Azure ARC](Aure%20Resource%20Control.md#lab-int%C3%A9gration-de-serveur-avec-azure-arc)
 > Utilisation de l'*Azure Resource Control* pour gérer une machine Windows depuis l'environnement Azure.  
 (L'accès aux resources Azure depuis la machine Windows se fera nativement gràce à une *Managed Identity*)
+
+## [Mise en place d'un compte de test Microsoft 365](visual%20studio%20essential%20setup.md)
+> Création d'un compte développeur chez Microsoft et mise en place d'un environnement de test complet Microsoft 365.
+
+## [Création d'un compte de test EMS E5](ems%20e5%20trial%20setup.md)
+> Ouverture d'un compte 365 avec licence de test EMS E5
+
+## [Ateliers MSMS030](msms030/readme.md)
+> Ateliers du stage spécifique MSMS030

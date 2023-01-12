@@ -22,10 +22,6 @@ ___
 ### Exercice 1 - [Deploying Microsoft 365 apps for enterprise](instructions/L05E1.md)
 ### Exercice 2 - [Deploying Microsoft 365 apps for enterprise](instructions/L05E2.md)
 ___
-## Module 06 (prérequis) - Exchange recipients management
-### Exercice 1 - [Managing Exchange Online recipients](instructions/L06E1.md)
-### Exercice 2 - [Configuring Exchange Online permissions](instructions/L06E2.md)
-___
 ## Module 06 - Configuring Exchange Online Services
 ### Exercice 1 - [Configuring message transport settings](instructions/L07E1.md)
 ### Exercice 2 - [Configuring Email Protection](instructions/L07E2.md)

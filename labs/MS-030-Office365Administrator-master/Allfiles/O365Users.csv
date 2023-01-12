@@ -1,0 +1,9 @@
+UPN,FirstName,LastName,DisplayName,AltEmail,BlockCredential,ForceChangePassword,LicenseAssignment,Password,PasswordNeverExpires,Title,Department,Office,PhoneNumber,MobilePhone,Fax,StreetAddress,City,State,PostalCode,Country,UsageLocation
+nona@yourdomain.hostdomain.com,Nona,Snider,Nona Snider,user@alt.none,$False,$False,adatumyyxxxx:ENTERPRISEPACK,Pa55w.rd,$True,Accountant,Accounts,,,,,1 First St.,London,,1211,United Kingdom,GB
+Jessica@yourdomain.hostdomain.com,Jessica ,Jennings,Jessica Jennings,user@alt.none,$False,$False,adatumyyxxxx:ENTERPRISEPACK,Pa55w.rd,$True,Network Manager,Information Technology,,,,,1 First St.,London,,1211,United Kingdom,GB
+Misty@yourdomain.hostdomain.com,Misty,Phillips,Misty Phillips,user@alt.none,$False,$False,adatumyyxxxx:ENTERPRISEPACK,Pa55w.rd,$True,Accounting Manager,Accounts,,,,,1 First St.,London,,1211,United Kingdom,GB
+Elvis@yourdomain.hostdomain.com,Elvis,Cress,Elvis Cress,user@alt.none,$False,$False,adatumyyxxxx:ENTERPRISEPACK,Pa55w.rd,$True,Network Support,Information Technology,,,,,1 First St.,London,,1211,United Kingdom,GB
+Leila@yourdomain.hostdomain.com,Leila,Macdonald,Leila Macdonald,user@alt.none,$False,$False,adatumyyxxxx:ENTERPRISEPACK,Pa55w.rd,$True,Help Desk Support,Information Technology,,,,,1 First St.,London,,1211,United Kingdom,GB
+Sherri@yourdomain.hostdomain.com,Sherri,Harrell,Sherri Harrell,user@alt.none,$False,$False,adatumyyxxxx:ENTERPRISEPACK,Pa55w.rd,$True,Help Desk Support,Information Technology,,,,,1 First St.,London,,1211,United Kingdom,GB
+Mickey@yourdomain.hostdomain.com,Mickey,Earls,Mickey Earls,user@alt.none,$False,$False,adatumyyxxxx:ENTERPRISEPACK,Pa55w.rd,$True,Accounting Manager,Accounts,,,,,1 First St.,London,,1211,United Kingdom,GB
+Leanna@yourdomain.hostdomain.com,Leanna,Goodwin,Leanna Goodwin,user@alt.none,$False,$False,adatumyyxxxx:ENTERPRISEPACK,Pa55w.rd,$True,Accountant,Accounts,,,,,1 First St.,London,,1211,United Kingdom,GB

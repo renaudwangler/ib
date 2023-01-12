@@ -1,7 +1,7 @@
 # Créer un environnement de test Microsoft 365
-[Etape 1 - Création d'un compte Microsoft]()  
-[Etape 2 - Ajout d'un abonnement Visual Studio Essential.]()  
-[Etape 3 - Supprimer le compte développeur.]()  
+[Etape 1 - Création d'un compte Microsoft](#etape-1---cr%C3%A9ation-dun-compte-microsoft)  
+[Etape 2 - Ajout d'un abonnement Visual Studio Essential.](#etape-2---ajout-dun-abonnement-visual-studio-essential)  
+[Etape 3 - Supprimer le compte développeur.](#etape-3---supprimer-le-compte-d%C3%A9veloppeur)  
 ## Etape 1 - Création d'un compte Microsoft.
 Il est très fortement recommandé de vous créer un nouveau compte Microsoft, afin de ne pas risquer de faire des modifications malencontreuses sur un environnment en production.  
 Pour faciliter les manipulations nous vous recommandons (particulièrement sivous utilisez une machine sur laquelle vous travaillez habituellement) d'utiliser/instller un autre navigateur Internet que celui que vous utilisez habituellement (pour éviter tous problèmes de connexion automatique par exemple).  

@@ -6,6 +6,7 @@ courses = {
   'm20345-1':'Administrer Exchange Server 2016/2019',
   'msws011':'Windows Server 2019 Administration',
   'msws012':'Windows Server 2019 hybride et Azure IaaS',
+  'msaz040':'Automatiser les tâches d\'administration Windows avec PowerShell',
   'msaz104':'Microsoft Azure - Administration',
   'msaz303':'Microsoft Azure - Technologies pour les architectes',
   'msaz305':'Microsoft Azure - Conception d\'architectures',

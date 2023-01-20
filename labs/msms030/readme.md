@@ -38,7 +38,6 @@ ___
 ## Module 09 - Other Microsoft 365 tools
 ### Exercice 1 - [Configuring Yammer Enterprise](instructions/L10E1.md)
 ### Exercice 2 - [Configuring OneDrive for Business](instructions/L10E2.md)
-### Exercice 3 - [Configuring Microsoft 365 groups](instructions/L10E3.md)
 ___
 ## Module 10 - Configuring Security and Compliance in Microsoft 365
 ### Exercice 1 - [Creating Sensitivity Labels](instructions/L11E1.md)

@@ -16,6 +16,9 @@
     <li>Jour 4 : Fin du Learning path 7, Learning path 8</li>
     <li>Jour 5 : Learning path 9, 10 et 11</li>
   </ul>
+  <h3></h3>
+  Exemple (a fin de démonstration, sans intérêt terrain) de renommage d'une propriété en sortie :  
+  <span class='code'>Get-ComputerInfo | select @{l='ComputerName';e={$_.CSName}}|Get-Process</span>
   <h3>Tous les labs</h3>
   Les ateliers sur goDeploy sont <b>nécessaires</b> pour ce stage. Cependant, le dépot gitHub contient des ateliers (LAB_XX) et les corrigés d'atelier (LAB_AK_XX).
   Le contenu proposé par goDeploy correspond bien plus aux corrigés. Certains stagiaires préfèreront donc probablement une démarche de recherche personnelle avec les ateliers avant de regarder les corrigés, s'ils ont déjà des connaissances et le temps d'assumer cette démarche.

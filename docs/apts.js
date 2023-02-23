@@ -68,7 +68,7 @@ function aptsLoad() {
 .786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.4\
 23,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.\
 028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg></a>\
-<a href="index.html" title="Retour à la liste." id="back"><img src="logo_ibcegos.png" alt="Retour"></a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
+<a href="index.html" title="Retour à la liste." id="back"><img src="logo_ibcegos.png" alt="Retour" style="width:100px;height:72px;"></a></h1>'+document.body.innerHTML+'<div id="outro"></div>';
   
   if (document.getElementById('conseils')) {document.getElementById('conseils').innerHTML='<h2>Accompagnement Pédagogique et Technique pour le stage '+pageName+'</h2>'+document.getElementById('conseils').innerHTML;}
   if (document.getElementById('goDeploy')) {readFile('goDeploy.html','goDeploy');}

@@ -2,10 +2,10 @@
 body {padding:10px;color:gray;font-family:tahoma;background-color:#F8F8F8;margin-top:100px;font-family: "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;font-size: 14px;}
 h1 {font-family: 'Ryker'; box-shadow: 0 4px 6px rgb(0 0 0 / 10%);height: 90px;width:100%;position: fixed; top: 0px; left:0px;color:#000;text-decoration: underline;display:block;background:white;margin: 0px;padding-left: 10px;padding-top:10px;}
 h1 a:nth-child(2) {display:block; width:100px;height:76px;position:absolute;top:10px;right:20px;background-image:url('logo_ibcegos.png');background-repeat:no-repeat;background-attachment:fixed;}
-h1 a:nth-child(1) {display:block;width:24px;height:24px;position: absolute;top:33px;right:120px;}
+h1 a:nth-child(1) {display:block;width:24px;height:24px;position: absolute;top:33px;right:130px;}
 h1 a:nth-child(1) > svg {display: inline-block;width: 24px;height: 24px;vertical-align: middle;}
 h1 a:nth-child(1) > svg path {fill: #828282 }
-h2{color:#EA690B;text-decoration:underline;margin:0em;display:block;margin-bottom:0.5em;width: 100%;text-align:center;}
+h2{font-family: 'Ryker'; color:#EA690B;text-decoration:underline;margin:0em;display:block;margin-bottom:0.5em;width: 100%;text-align:center;}
 h3{margin-top:1em;margin-bottom:-1em;padding-bottom:0px;}
 h3.plus:before {content: '+ ';}
 h3.moins:before {content: '- ';}

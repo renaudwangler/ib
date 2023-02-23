@@ -12,7 +12,7 @@ courses = {
   'msaz305':'Microsoft Azure - Conception d\'architectures',
   'msaz400':'Concevoir et mettre en oeuvre des solutions Microsoft DevOps',
   'msaz500':'Microsoft Azure - Technologies de sécurité',
-  'msaz800':'Windows Server - Administration de l\'infrastructure de base hybride',
+  'msaz800':'Windows Server - Administration de base de l\'infrastructure hybride',
   'msaz801':'Windows Server - Configuration des services avancés hybrides',
   'msaz900-1j':'Microsoft Azure - Notions fondamentales (1 journée)',
   'msaz900-2j':'Microsoft Azure - Notions fondamentales (2 jours)',

@@ -29,18 +29,18 @@ Il sera donc plus efficace d'avoir votre portail Azure dans cette même langue a
 [(Retour au Sommaire)](#objectifs)  
 # Procédure 1: Créer quelques ressources génériques dans Azure
 1. Cliquez (préférez ouvrir dans un autre onglet pour ne pas quitter le présent document) directement sur le bouton ci-dessous afin d'initialiser le déploiement des ressources dans Azure :  
-[![Deployer Dans Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frenaudwangler%2Fib%2Fmaster%2Fextra%2FarmTemplates%2FibAzureLabEnvironment.json)
+[![Deployer Dans Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frenaudwangler%2Fib%2Fmaster%2Fextra%2FarmTemplates%2FibAzureLabEnvironmentRG.json)
 
 1. Ce bouton, ouvre votre portail Azure.  
 Si vous n'étiez pas encore connecté à votre compte Azure dans le navigateur Internet, procédez à la connexion.
 1. Saisissez les informations suivantes dans la page **Custom Deployment** :  
-   - **Subscription** : Sélectionnez votre abonnement Azure
-   - **Resource group** : Cliquer sur **Create new** puis choisissez un nom (*ibLabs* par exemple) et cliquez sur **OK**
-   - **Region** : Choisissez **East US** (ou tout autre région désignée par votre formateur/trice)
+   - **Subscription** : Sélectionnez votre abonnement Azure  
+   - **Region** : Choisissez **East US** (ou tout autre région désignée par votre formateur/trice)  
+   - **Rg Name** : Choisissez un nom pour le *Resource Group* dans lequel les resources seront déployées (*ibLabs* par exemple)  
    - **Storage Account Name** : Vous pouvez taper un nom mondialement unique. Si vous laissez la formule par défaut, un nom unique sera généré, basé sur la date et l'heure de création.   
      |:warning:| Ce nom ne doit être composé que de minuscules et de chiffres !|
      |-|:-|
-1. Cliquez en dehors du champ **Storage Account Name** pour vérifier que le nom choisi est unique et correct.  
+1. Si vous l'avez modifié, cliquez en dehors du champ **Storage Account Name** pour vérifier que le nom choisi est unique et correct.  
 
 ![Custom Deployment](images/customDeployment.png)  
 1. Cliquez sur **review + Create**

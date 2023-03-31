@@ -1,0 +1,281 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "rgName": {
+             "defaultValue": "ibLabs",
+             "type": "string"
+         },
+         "storageAccountName": {
+            "defaultValue": "[concat('iblabs', '',utcNow('yMMddHHmms'))]",
+            "type": "string",
+            "metadata": {
+                "description": "Choisir un nom unique (minuscules et chiffres) pour le Storage Account du Shell."
+            }
+        }
+     },
+     "variables": {
+        "ipNameSpace":"10.255.0.0",
+        "clientSubnet":"10.255.0.0",
+        "bastionSubnet":"10.255.255.0",
+        "cloudshellShare":"cloudshell",
+        "defaultVMSize":"Standard_DS1_v2",
+        "imageReference": {"publisher": "MicrosoftWindowsServer","offer": "WindowsServer","sku": "2022-datacenter-azure-edition","version": "latest"},
+        "adminUsername": "Student",
+        "defaultPassword": "Pa55w.rd1234"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Resources/resourceGroups",
+        "apiVersion": "2021-04-01",
+        "name": "[parameters('rgName')]",
+        "location": "[deployment().location]",
+        "properties": {}
+      },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2021-04-01",
+        "name": "ibLabsDeployment",
+        "resourceGroup": "[parameters('rgName')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Resources/resourceGroups/', parameters('rgName'))]"
+        ],
+        "properties": {
+          "mode": "Incremental",
+          "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "parameters": {},
+            "variables": {},
+            "resources": [
+                {
+                    "type": "Microsoft.Network/virtualNetworks",
+                    "apiVersion": "2020-11-01",
+                    "name": "ibLabVnet",
+                    "location": "[deployment().location]",
+                    "properties": {
+                        "addressSpace": {
+                            "addressPrefixes": ["[concat(variables('ipNameSpace'),'/16')]"]},
+                        "subnets": [
+                            {"name": "[variables('clientSubnet')]","properties": {"addressPrefix": "[concat(variables('clientSubnet'),'/24')]"}},
+                            {"name": "AzureBastionSubnet","properties": {"addressPrefix": "[concat(variables('bastionSubnet'),'/24')]"}}
+                        ],
+                        "enableDdosProtection": false}
+                },
+                {
+                    "type": "Microsoft.Storage/storageAccounts",
+                    "apiVersion": "2021-08-01",
+                    "name": "[parameters('storageAccountName')]",
+                    "location": "[deployment().location]",
+                    "sku": {"name": "Standard_LRS","tier": "Standard"},
+                    "kind": "StorageV2",
+                    "properties": {
+                        "minimumTlsVersion": "TLS1_2",
+                        "allowBlobPublicAccess": false,
+                        "allowSharedKeyAccess": true,
+                        "networkAcls": {"bypass": "AzureServices","defaultAction": "Allow"},
+                        "supportsHttpsTrafficOnly": true,
+                        "accessTier": "Hot"}
+                },
+                {
+                    "type": "Microsoft.Storage/storageAccounts/fileServices",
+                    "apiVersion": "2021-08-01",
+                    "name": "[concat(parameters('storageAccountName'), '/default')]",
+                    "dependsOn": ["[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"],
+                    "sku": {"name": "Standard_LRS","tier": "Standard"}
+                },
+                {
+                    "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+                    "apiVersion": "2021-08-01",
+                    "name": "[concat(parameters('storageAccountName'),'/default/',variables('cloudshellShare'))]",
+                    "dependsOn": ["[resourceId('Microsoft.Storage/storageAccounts/fileServices', parameters('storageAccountName'), 'default')]","[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"],
+                    "properties": {"accessTier": "Hot","shareQuota": 5120,"enabledProtocols": "SMB"}
+                },
+                {
+                    "type": "Microsoft.Resources/templateSpecs",
+                    "apiVersion": "2021-05-01",
+                    "name": "ibAzureLabBastion",
+                    "location": "[deployment().location]",
+                    "properties": {"description": "Ce modèle crée le nécessaire pour un Bastion pour les ateliers Azure ib.","displayName": "ibAzureLabBastion"}
+                },
+                {
+                    "type": "Microsoft.Resources/templateSpecs/versions",
+                    "apiVersion": "2021-05-01",
+                    "name": "[format('{0}/{1}', 'ibAzureLabBastion', '1.0')]",
+                    "location": "[deployment().location]",
+                    "dependsOn": ["[resourceId('Microsoft.Resources/templateSpecs','ibAzureLabBastion')]"],
+                    "properties": {"mainTemplate": 
+                        {
+                            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                            "contentVersion": "1.0.0.0",
+                            "resources": [
+                                {
+                                    "type": "Microsoft.Network/publicIPAddresses",
+                                    "apiVersion": "2020-08-01",
+                                    "name": "ibLabBastionIp",
+                                    "location": "[[resourceGroup().location]",
+                                    "sku": {"name": "Standard"},
+                                    "properties": {"publicIPAllocationMethod": "Static"}
+                                },
+                                {
+                                    "type": "Microsoft.Network/virtualNetworks/subnets",
+                                    "apiVersion": "2020-11-01",
+                                    "name": "ibLabVnet/AzureBastionSubnet",
+                                    "properties": {"addressPrefix": "[concat(variables('bastionSubnet'),'/24')]"}
+                                },
+                                {
+                                    "type": "Microsoft.Network/bastionHosts",
+                                    "apiVersion": "2020-11-01",
+                                    "name": "ibLabBastion",
+                                    "location": "[[resourceGroup().location]",
+                                    "dependsOn": ["[[resourceId('Microsoft.Network/publicIPAddresses', 'ibLabBastionIp')]","[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]"],
+                                    "sku": {"name": "Basic"},
+                                    "properties": {
+                                        "ipConfigurations": [
+                                            {
+                                                "name": "IpConf",
+                                                "properties": {
+                                                    "publicIPAddress": {"id": "[[resourceId('Microsoft.Network/publicIPAddresses','ibLabBastionIp')]"},
+                                                    "subnet": {"id": "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', 'AzureBastionSubnet')]"}
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        } 
+                    }
+                },
+                {
+                    "type": "Microsoft.Resources/templateSpecs",
+                    "apiVersion": "2021-05-01",
+                    "name": "ibAzureLabVM",
+                    "location": "[deployment().location]",
+                    "properties": {"description": "Ce modèle crée le nécessaire pour une VM administrative pour les ateliers Azure ib.","displayName": "ibAzureLabVM"}
+                },
+                {
+                    "type": "Microsoft.Resources/templateSpecs/versions",
+                    "apiVersion": "2021-05-01",
+                    "name": "[format('{0}/{1}', 'ibAzureLabVM', '1.0')]",
+                    "location": "[deployment().location]",
+                    "dependsOn": ["[resourceId('Microsoft.Resources/templateSpecs','ibAzureLabVM')]"],
+                    "properties": {"mainTemplate":
+                        {
+                            "$schema": "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                            "contentVersion": "1.0.0.0",
+                            "parameters": {
+                                "virtualMachineSize": {"type": "string","defaultValue": "[variables('defaultVMSize')]"},
+                                "adminPassword": {
+                                    "type": "secureString",
+                                    "defaultValue": "[variables('defaultPassword')]",
+                                    "metadata": {"description": "[concat('La valeur par défaut est ',variables('defaultPassword'))]"}
+                                }
+                            },
+                            "variables": {
+                                "clientSubnet":"[variables('clientSubnet')]"},
+                            "resources": [
+                                {
+                                    "name": "ibLabNic",
+                                    "type": "Microsoft.Network/networkInterfaces",
+                                    "apiVersion": "2021-03-01",
+                                    "location": "[[resourceGroup().location]",
+                                    "dependsOn": ["Microsoft.Network/networkSecurityGroups/ibLabNSG","Microsoft.Network/publicIpAddresses/ibLabVmIP"],
+                                    "properties": {
+                                        "ipConfigurations": [
+                                            {
+                                                "name": "ipconfig1",
+                                                "properties": {
+                                                    "subnet": {"id": "[[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ibLabVnet', variables('clientSubnet'))]"},
+                                                    "privateIPAllocationMethod": "Dynamic",
+                                                    "publicIpAddress": {
+                                                        "id": "[[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', 'ibLabVmIP')]",
+                                                        "properties": {"deleteOption": "Delete"}
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "enableAcceleratedNetworking": true,
+                                        "networkSecurityGroup": {"id": "[[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', 'ibLabNSG')]"}
+                                    }
+                                },
+                                {
+                                    "name": "ibLabNSG",
+                                    "type": "Microsoft.Network/networkSecurityGroups",
+                                    "apiVersion": "2019-02-01",
+                                    "location": "[[resourceGroup().location]",
+                                    "properties": {
+                                        "securityRules": [
+                                            {
+                                                "name": "RDPin",
+                                                "properties": {"priority": 300,"protocol": "TCP","access": "Allow","direction": "Inbound","sourceAddressPrefix": "*","sourcePortRange": "*","destinationAddressPrefix": "*","destinationPortRange": "3389"}
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "ibLabVmIP",
+                                    "type": "Microsoft.Network/publicIpAddresses",
+                                    "apiVersion": "2019-02-01",
+                                    "location": "[[resourceGroup().location]",
+                                    "properties": {"publicIpAllocationMethod": "Dynamic"},
+                                    "sku": {"name": "Basic"}
+                                },
+                                {
+                                    "name": "ibLabVM",
+                                    "type": "Microsoft.Compute/virtualMachines",
+                                    "apiVersion": "2021-07-01",
+                                    "location": "[[resourceGroup().location]",
+                                    "dependsOn": ["Microsoft.Network/networkInterfaces/ibLabNic"],
+                                    "properties": {
+                                        "hardwareProfile": {"vmSize": "[[parameters('virtualMachineSize')]"},
+                                        "storageProfile": {
+                                            "osDisk": {
+                                                "name": "ibLabOsDisk",
+                                                "createOption": "fromImage",
+                                                "managedDisk": {"storageAccountType": "Standard_LRS"},
+                                                "deleteOption": "Delete"
+                                            },
+                                            "imageReference": "[variables('imageReference')]"
+                                        },
+                                        "networkProfile": {
+                                            "networkInterfaces": [
+                                                {
+                                                    "id": "[[resourceId('Microsoft.Network/networkInterfaces', 'ibLabNic')]",
+                                                    "properties": {"deleteOption": "Delete"}
+                                                }
+                                            ]
+                                        },
+                                        "osProfile": {
+                                            "computerName": "ibLabVM",
+                                            "adminUsername": "[variables('adminUsername')]",
+                                            "adminPassword": "[[parameters('adminPassword')]",
+                                            "windowsConfiguration": {
+                                                "enableAutomaticUpdates": true,
+                                                "provisionVmAgent": true,
+                                                "patchSettings": {"enableHotpatching": false,"patchMode": "AutomaticByOS"}
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                            }
+                        }
+                },
+                {
+                    "type": "Microsoft.Authorization/locks",
+                    "apiVersion": "2015-01-01",
+                    "name": "ibLabVerrou",
+                    "properties":
+                    {
+                        "level": "CanNotDelete",
+                        "notes": "Ce groupe de ressources est vérouillé afin d'éviter une suppression accidentelle."
+                    }
+                }
+            ],
+            "outputs": {}
+          }
+        }
+      }
+    ],
+    "outputs": {}
+  }

@@ -20,12 +20,12 @@ ___
 ___
 ## Module 05 - Deploying Microsoft 365 Apps
 ### Exercice 1 - [Deploying Microsoft 365 apps for enterprise](instructions/L05E1.md)
-### Exercice 2 - [Deploying Microsoft 365 apps for enterprise](instructions/L05E2.md)
+### Exercice 2 - [Deploying Microsoft 365 apps using MDM](instructions/L05E2.md)
 ___
 ## Module 06 - Configuring Exchange Online Services
 ### Exercice 1 - [Configuring message transport settings](instructions/L07E1.md)
 ### Exercice 2 - [Configuring Email Protection](instructions/L07E2.md)
-### Exercice 3 - [Configuring Email Protection](instructions/L07E3.md)
+### Exercice 3 - [Configuring client access policies](instructions/L07E3.md)
 ___
 ## Module 07 - Deploying Microsoft Teams
 ### Exercice 1 - [Configure Microsoft Teams](instructions/L08E1.md)

@@ -45,3 +45,5 @@ ___
 ## Module 11 - Monitoring and Troubleshooting Microsoft 365
 ### Exercice 1 - [Monitoring Microsoft 365 Service Health](instructions/L12E1.md)
 ### Exercice 2 - [Troubleshooting Mail Flow Issues](instructions/L12E2.md)
+___
+### Cleaning - [Closing your trial tenant](instructions/Suppr.md)

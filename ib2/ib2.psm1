@@ -58,7 +58,6 @@ function invoke-ibNetCommand {
             break}}
     $savedTrustedHosts = set-ibRemoteManagement
     foreach ($computer in get-ibComputers) {
-        $commandError = $false
         try {
             if ($getCred) {$commandOutput=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -Credential $cred -ErrorAction Stop)}
             else {$commandOutput=(invoke-command -ComputerName $computer -ScriptBlock ([scriptBlock]::create($command)) -ErrorAction Stop)}

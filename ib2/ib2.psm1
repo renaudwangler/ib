@@ -40,7 +40,7 @@ function get-ibComputers {
     #lancement des pings des machines en parallèle
     [System.Collections.ArrayList]$pingJobs=@()
     ForEach ($ip in $ipList) {
-    $pingJobs.add((Test-Connection -ComputerName $ip -count 1 -buffersize 8 -asJob))|Out-Null}
+        $pingJobs.add((Test-Connection -ComputerName $ip -count 1 -buffersize 8 -asJob))|Out-Null}
     foreach ($pingJob in $pingJobs) {
         if ($pingJob.state -notlike '*completed*') {Wait-Job $pingJob|out-null}
         $pingResult = Receive-Job $pingJob -Wait -AutoRemoveJob
@@ -72,5 +72,9 @@ function invoke-ibNetCommand {
 
 function set-ibMute {
     param ([switch]$getCred)
+    #Ne marche qu'en local...
     if ($getCred) {invoke-ibNetCommand -command '(new-object -com wscript.shell).sendKeys([char]175);(new-object -com wscript.shell).sendKeys([char]173)' -getCred}
-    else { invoke-ibNetCommand -command '(new-object -com wscript.shell).sendKeys([char]175);(new-object -com wscript.shell).sendKeys([char]173)' }}
+    else { invoke-ibNetCommand -command '(new-object -com wscript.shell).sendKeys([char]175);(new-object -com wscript.shell).sendKeys([char]173)' }
+    #En utilisant le soft "svcl" stocké dans le github
+    C:\svcl.exe /unmute (C:\svcl.exe /scomma|ConvertFrom-Csv|where Default -eq render).name
+    }

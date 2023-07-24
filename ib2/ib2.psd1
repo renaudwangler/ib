@@ -1,9 +1,9 @@
 #
-# Manifeste de module pour le module "PSGet_ib2"
+# Manifeste de module pour le module "ib2"
 #
 # Généré par : Wangler
 #
-# Généré le : 06/07/2023
+# Généré le : 24/07/2023
 #
 
 @{
@@ -12,7 +12,7 @@
 RootModule = 'ib2.psm1'
 
 # Numéro de version de ce module.
-ModuleVersion = '0.1'
+ModuleVersion = '0.2'
 
 # éditions PS prises en charge
 # CompatiblePSEditions = @()
@@ -23,7 +23,8 @@ CompanyName = 'ib'
 Copyright = '(c) 2023 ib. Tous droits réservés.'
 Description = 'Simplification des actions en salle de formation'
 PowerShellVersion = '5.0'
-FunctionsToExport = 'get-ibComputers','invoke-ibNetCommand'
+ScriptsToProcess = '.\moduleImport.ps1'
+FunctionsToExport = 'get-ibComputers','invoke-ibNetCommand','set-ibMute'
 CmdletsToExport = @()
 AliasesToExport = 'ibComputers'
 FileList = ''
@@ -40,7 +41,7 @@ PrivateData = @{
         # A URL to an icon representing this module.
         # IconUri = ''
         # ReleaseNotes of this module
-        ReleaseNotes = '0.1'
+        ReleaseNotes = '0.2'
     }
  }
 }

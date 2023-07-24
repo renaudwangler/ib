@@ -76,5 +76,5 @@ function set-ibMute {
     if ($getCred) {invoke-ibNetCommand -command '(new-object -com wscript.shell).sendKeys([char]175);(new-object -com wscript.shell).sendKeys([char]173)' -getCred}
     else { invoke-ibNetCommand -command '(new-object -com wscript.shell).sendKeys([char]175);(new-object -com wscript.shell).sendKeys([char]173)' }
     #En utilisant le soft "svcl" stocké dans le github
-    C:\svcl.exe /unmute (C:\svcl.exe /scomma|ConvertFrom-Csv|where Default -eq render).name
+    $env:ProgramFiles\WindowsPowerShell\Modules\ib2\svcl.exe /unmute (C:\svcl.exe /scomma|ConvertFrom-Csv|where Default -eq render).name
     }

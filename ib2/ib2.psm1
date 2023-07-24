@@ -72,9 +72,7 @@ function invoke-ibNetCommand {
 
 function set-ibMute {
     param ([switch]$getCred)
-    #Ne marche qu'en local...
-    if ($getCred) {invoke-ibNetCommand -command '(new-object -com wscript.shell).sendKeys([char]175);(new-object -com wscript.shell).sendKeys([char]173)' -getCred}
-    else { invoke-ibNetCommand -command '(new-object -com wscript.shell).sendKeys([char]175);(new-object -com wscript.shell).sendKeys([char]173)' }
-    #En utilisant le soft "svcl" stocké dans le github
-    $env:ProgramFiles\WindowsPowerShell\Modules\ib2\svcl.exe /unmute (C:\svcl.exe /scomma|ConvertFrom-Csv|where Default -eq render).name
-    }
+    #Installe le module ib2 si non présent pour accéder au soft "svcl" présent dedans
+    $muteCommand = 'if (!(get-module -listAvailable ib2)) {install-module ib2 -force -allowClobber};$env:ProgramFiles\WindowsPowerShell\Modules\ib2\svcl.exe /unmute (C:\svcl.exe /scomma|ConvertFrom-Csv|where Default -eq render).name'
+    if ($getCred) {invoke-ibNetCommand -command $muteCommand -getCred}
+    else { invoke-ibNetCommand -command $muteCommand }}

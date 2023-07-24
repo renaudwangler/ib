@@ -76,3 +76,8 @@ function set-ibMute {
     $muteCommand = 'if (!(get-module -listAvailable ib2)) {install-module ib2 -force -allowClobber};$env:ProgramFiles\WindowsPowerShell\Modules\ib2\svcl.exe /unmute (C:\svcl.exe /scomma|ConvertFrom-Csv|where Default -eq render).name'
     if ($getCred) {invoke-ibNetCommand -command $muteCommand -getCred}
     else { invoke-ibNetCommand -command $muteCommand }}
+
+#######################
+#  Gestion du module  #
+#######################
+Export-moduleMember -Function set-ibMute,get-ibComputers,invoke-ibNetCommand

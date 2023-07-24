@@ -1,26 +1,11 @@
-#
-# Manifeste de module pour le module "ib2"
-#
-# Généré par : Wangler
-#
-# Généré le : 24/07/2023
-#
-
 @{
 
-# Module de script ou fichier de module binaire associé à ce manifeste
 RootModule = 'ib2.psm1'
-
-# Numéro de version de ce module.
 ModuleVersion = '0.2'
-
-# éditions PS prises en charge
-# CompatiblePSEditions = @()
-
 GUID = '710f9ad8-405c-421d-ab45-d97f9974da59'
 Author = 'Wangler'
 CompanyName = 'ib'
-Copyright = '(c) 2023 ib. Tous droits réservés.'
+Copyright = '(c) 2023 ib. Tous droits rÃ©servÃ©s.'
 Description = 'Simplification des actions en salle de formation'
 PowerShellVersion = '5.0'
 ScriptsToProcess = '.\moduleImport.ps1'
@@ -28,21 +13,13 @@ FunctionsToExport = 'get-ibComputers','invoke-ibNetCommand','set-ibMute'
 CmdletsToExport = @()
 AliasesToExport = 'ibComputers'
 FileList = ''
-
-# Données privées à transmettre au module spécifié dans RootModule/ModuleToProcess.
 PrivateData = @{
     PSData = @{
-        # Tags applied to this module. These help with module discovery in online galleries.
         Tags = 'ib'
-        # A URL to the license for this module.
         LicenseUri = 'https://github.com/renaudwangler/ib'
-        # A URL to the main website for this project.
         ProjectUri = 'https://github.com/renaudwangler/ib'
-        # A URL to an icon representing this module.
         # IconUri = ''
-        # ReleaseNotes of this module
         ReleaseNotes = '0.2'
     }
  }
 }
-

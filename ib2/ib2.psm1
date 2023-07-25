@@ -70,14 +70,33 @@ function invoke-ibNetCommand {
             else { Write-Host "[$computer] Erreur: $($_.Exception.message)" -ForegroundColor Red }}}
     Set-Item WSMan:\localhost\Client\TrustedHosts -value $savedTrustedHosts -Force}
 
-function set-ibMute {
-    param ([switch]$getCred)
-    #Installe le module ib2 si non présent pour accéder au soft "svcl" présent dedans
-    $muteCommand = 'if (!(get-module -listAvailable ib2)) {install-module ib2 -force -allowClobber};$env:ProgramFiles\WindowsPowerShell\Modules\ib2\svcl.exe /unmute (C:\svcl.exe /scomma|ConvertFrom-Csv|where Default -eq render).name'
-    if ($getCred) {invoke-ibNetCommand -command $muteCommand -getCred}
-    else { invoke-ibNetCommand -command $muteCommand }}
+function invoke-ibMute {
+    #Désactive le son sur toutes les machines du réseau
+    param([switch]$getCred)
+    if ($getCred) {
+        $cred=Get-Credential -Message 'Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour couper le son'
+        if (-not $cred) {
+            Write-Error "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe"
+            break}}
+    $savedTrustedHosts = set-ibRemoteManagement
+    $svclFile = (get-module -listAvailable ib2).path
+    $svclFile = $svclFile.substring(0,$svclFile.LastIndexOf('\')) + '\svcl.exe'
+    foreach ($computer in get-ibComputers) {
+        try {
+            if ($getCred) {$session = New-PSSession -ComputerName $computer -Credential $cred -errorAction Stop}
+            else {$session = New-PSSession -ComputerName $computer -errorAction Stop}
+            if ($session) {
+                $remoteTemp = (Invoke-Command -Session $session -ScriptBlock {$env:Temp})
+                Copy-Item $svclFile -Destination "$remoteTemp\svcl.exe" -ToSession $session
+                invoke-command -session $session -scriptBlock {cd $using:remoteTemp;.\svcl.exe /mute (.\svcl.exe /scomma|ConvertFrom-Csv|where Default -eq render).name}
+                Write-Host "[$computer] OK" -ForegroundColor Green}
+            }
+        catch {
+            if ($_.Exception.message -ilike '*Access is denied*' -or $_.Exception.message -like '*Accès refusé*') { Write-Host "[$computer] Accès refusé." -ForegroundColor Red}
+            else { Write-Host "[$computer] Erreur: $($_.Exception.message)" -ForegroundColor Red }}}
+    Set-Item WSMan:\localhost\Client\TrustedHosts -value $savedTrustedHosts -Force}
 
 #######################
 #  Gestion du module  #
 #######################
-Export-moduleMember -Function set-ibMute,get-ibComputers,invoke-ibNetCommand
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand

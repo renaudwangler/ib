@@ -30,6 +30,10 @@ function get-subNet {
     return ($subList)}
 
 function get-ibComputers {
+<#
+.SYNOPSIS
+Cette commande renvoit un tableau contenant les adresses IP de toutes les machines présentes sur le subnet (dans la salle).
+#>      
     #Récupération des informations sur le subnet
     $netIPConfig = get-NetIPConfiguration|Where-Object {$_.netAdapter.status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*virtual*'}
     $netIpAddress = $netIPConfig|Get-NetIPAddress -AddressFamily ipv4
@@ -49,6 +53,17 @@ function get-ibComputers {
     return($ipList)}
 
 function invoke-ibNetCommand {
+<#
+.SYNOPSIS
+Cette commande permet de lancer une commande sur toutes les machines accessibles sur le subnet (dans la salle).
+.PARAMETER Command
+Syntaxe complète de la commande à lancer
+.PARAMETER getCred
+Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes. S'il est omis, l'utilisateur actuellement connecté sera utilisé.
+.EXAMPLE
+invoke-ibNetCommand -Command {$env:computername}
+Va se connecter à chaque mahcine du réseau (de la salle) pour récupérer son nom d'ordinateur et l'afficher
+#>    
     param([parameter(Mandatory=$true,ValueFromPipeline=$true,HelpMessage='Commande à lancer sur toutes les machines du sous-réseau')][string]$command,
     [switch]$getCred)
     if ($getCred) {
@@ -71,7 +86,17 @@ function invoke-ibNetCommand {
     Set-Item WSMan:\localhost\Client\TrustedHosts -value $savedTrustedHosts -Force}
 
 function invoke-ibMute {
-    #Désactive le son sur toutes les machines du réseau
+<#
+.SYNOPSIS
+Cette commande permet de désactiver le son sur toutes les machines accessibles sur le subnet (dans la salle).
+Pour ce faire, elle tuilise, un freeware (svcl.exe https://www.nirsoft.net/utils/sound_volume_command_line.html) qui sera uploadé dans le répertoire temporaire de chaque machine.
+Ne fonctionnera, à priori, que si un utilisateur est déjà connecté sur la machine...
+.PARAMETER GetCred
+Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes. S'il est omis, l'utilisateur actuellement connecté sera utilisé.
+.EXAMPLE
+invoke-ibMute
+Va couper le son (mute) sur toutes les machines du subnet (de la salle)
+#>
     param([switch]$getCred)
     if ($getCred) {
         $cred=Get-Credential -Message 'Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour couper le son'
@@ -96,7 +121,21 @@ function invoke-ibMute {
             else { Write-Host "[$computer] Erreur: $($_.Exception.message)" -ForegroundColor Red }}}
     Set-Item WSMan:\localhost\Client\TrustedHosts -value $savedTrustedHosts -Force}
 
+function stop-ibNet {
+<#
+.SYNOPSIS
+Cette commande permet d'arrêter toutes les machines du réseau local (de la salle), en terminant par la machine sur laquelle est lançée la commande
+.PARAMETER GetCred
+Si ce switch n'est pas spécifié, l'identité de l'utilisateur actuellement connecté sera utilisé pour stopper les machines.
+#>
+param(
+[string]$Subnet,
+[switch]$GetCred)
+if ($GetCred) {invoke-ibNetCommand -Command 'stop-Computer -Force' -GetCred}
+else {invoke-ibNetCommand 'Stop-Computer -Force' -NoLocal}
+  Stop-Computer -Force}  
+
 #######################
 #  Gestion du module  #
 #######################
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet

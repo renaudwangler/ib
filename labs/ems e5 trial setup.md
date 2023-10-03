@@ -17,7 +17,7 @@ Pour faciliter les manipulations nous vous recommandons (particulièrement sivou
 1. Saisissez l'adresse de messagerie du compte Microsoft créé à l'étape précédente
 1. Cliquez sur **Configurer le compte**
 1. Remplissez les champs **Prénom** **Nom de famille** et **Numéro de téléphone professionnel**
-1. Tapez **ibLabs** dans le champ **Nom de l'entreprise et selectionnez **10 à 24 personnes** comme valeur pour le champ **Taille de l'entreprise**
+1. Tapez **ibLabs** dans le champ **Nom de l'entreprise** et selectionnez **10 à 24 personnes** comme valeur pour le champ **Taille de l'entreprise**
 1. Décochez la case **J'aimerais recevoir des informations[...]**
 1. Cliquez sur **Suivant**
 1. Choisissez de recevoir un SMS et cliquez qur **Envoyer le code de vérification**
@@ -25,4 +25,4 @@ Pour faciliter les manipulations nous vous recommandons (particulièrement sivou
 1. Prenez note du nom de connexion incluant le **Nom d'utilisateur** et le **Nom du domaine**
 1. Choisissez un mot de passe assez complexe avant de cliquer sur **Suivant**
     > **Nota :** L'apparition de la fenêtre suivante peut prendre un moment : patience... Ne touchez à rien...
-1. Sur la fenêtre **Détails de la confirmation**, cliquez sur **Démarrer** et connectez-vous au portail d'administration Microsoft 365 avec le compte utilisateur dont vous avez pris note au point 10..
+1. Sur la fenêtre **Détails de la confirmation**, cliquez sur **Commencez à utiliser En[...]** et connectez-vous au portail d'administration Microsoft 365 avec le compte utilisateur dont vous avez pris note au point 10..

@@ -6,4 +6,5 @@ Puis dans une commande powershell **En administrateur/ExecutionPolicy Bypass**:
 install-module ib1 -force
 (ou update-module ib1 si déja installé)
 
-[Accompagnements Pédagogique et Technique des Stages](https://renaudwangler.github.io/ib-apts/)
+[Accompagnements Pédagogique et Technique des Stages](https://renaudwangler.github.io/ib-apts/)  
+[Ateliers ib](https://renaudwangler.github.io/ib-labs/)

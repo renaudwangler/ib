@@ -1,10 +1,10 @@
-## [Mise en place d'un environnement d'ateliers ib sur un compte Azure](/extra/ibAzureLabs.md#mise-en-place-dun-environnement-dateliers-ib-sur-un-compte-azure)  
+## [Mise en place d'un environnement d'ateliers ib sur un compte Azure](https://renaudwangler.github.io/ib-labs/ibAzureLabs)  
 > Comment mettre en place quelques ressources dans un compte Azure (Azure Pass Sponsorship par exemple). Ces procédures pourront, par exemple, être utilisées en début de formation pour simplifier le déroulement de vos ateliers par la suite...  
  
-## [Mise en œuvre Azure File Sync](azureFileSync.md#lab-mise-en-%C5%93uvre-azure-file-sync)  
+## [Mise en œuvre Azure File Sync](https://renaudwangler.github.io/ib-labs/azureFileSync)  
 > Tester la synchronisation de fichiers entre un serveur SMB Windows Server "classique" et un partage de fichiers "Azure File Share".  
 
-## [Key Vault et Identité gérée](keyVault%20and%20ManagedId.md#lab-key-Vault-et-Identité-gérée)  
+## [Key Vault et Identité gérée](https://renaudwangler.github.io/ib-labs/managedId)  
 > Permettre à une VM d'accèder au mot de passe d'un partage dans un *Key Vault*. La VM n'aura pas besoin de s'authentifier car vous utiliserez une *System Assigned Managed Identity*.
 
 ## [Mise en place de la MFA avec une application Windows](mfa-alternative-fr.md#lab-mise-en-place-de-la-mfa-avec-une-application-windows)
@@ -13,7 +13,7 @@
 ## [Mise en place d'un test Windows AutoPilot](windowsAutopilot.md#lab--mise-en-place-dun-test-windows-autopilot)  
 > Tester de manière la plus simple et rapide possible la fonctionnalité Windows Autopilot Afin de constater la jonction et la customisation automatique d'un poste Windows 10 dans un tenant Microsoft 365  
 
-## [test de l'environnement de gestion Azure ARC](Aure%20Resource%20Control.md#lab-int%C3%A9gration-de-serveur-avec-azure-arc)
+## [test de l'environnement de gestion Azure ARC](https://renaudwangler.github.io/ib-labs/AzureResourceControl)
 > Utilisation de l'*Azure Resource Control* pour gérer une machine Windows depuis l'environnement Azure.  
 (L'accès aux resources Azure depuis la machine Windows se fera nativement gràce à une *Managed Identity*)
 
@@ -23,5 +23,5 @@
 ## [Création d'un compte de test EMS E5](ems%20e5%20trial%20setup.md)
 > Ouverture d'un compte 365 avec licence de test EMS E5
 
-## [Ateliers MSMS030](msms030/readme.md)
+## [Ateliers MSMS030](https://renaudwangler.github.io/ib-labs/msms030fr)
 > Ateliers du stage spécifique MSMS030

@@ -12,7 +12,7 @@ ___
 ### [Key Vault et Identité gérée](https://renaudwangler.github.io/ib-labs/managedId)  
 > Permettre à une VM d'accèder au mot de passe d'un partage dans un *Key Vault*. La VM n'aura pas besoin de s'authentifier car vous utiliserez une *System Assigned Managed Identity*.
 
-### [Mise en place de la MFA avec une application Windows](mhttps://renaudwangler.github.io/ib-labs/alternateMFA)
+### [Mise en place de la MFA avec une application Windows](https://renaudwangler.github.io/ib-labs/alternateMFA)
 > utiliser une application installée sur un poste Windows 10/11 pour réaliser l'authentification multifactorielle (MFA) d'un utilisateur m365 ou Azure AD.
 
 ### [Mise en place d'un test Windows AutoPilot](https://renaudwangler.github.io/ib-labs/autopilot)  

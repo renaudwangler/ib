@@ -1,5 +1,8 @@
 ﻿**Module ib2:**
  - Grand nettoyage de fonctions obsolètes (changement de master ib et fonctions non/plus utilisées)
+
+**Version 2.6:**
+ - Ajout de la commande *new-ibTeamsShortcut*
  
 **Version 2.5.35:**
  - Correction du stage m10997c : passage à goDeploy

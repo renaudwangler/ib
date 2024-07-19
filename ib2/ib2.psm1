@@ -1,3 +1,22 @@
+function new-ibTeamsShortcut {
+    #Installe le nouveau client Teams et pose un raccourci vers la réunion sur le bureau.
+    param( $meetingUrl = 'noUrl')
+    # URL to Teamsbootstrapper.exe from https://learn.microsoft.com/en-us/microsoftteams/new-teams-bulk-install-client
+    $DownloadExeURL='https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409'
+
+    $WebClient=New-Object -TypeName System.Net.WebClient
+    $WebClient.DownloadFile($DownloadExeURL,(Join-Path -Path $env:TEMP -ChildPath 'Teamsbootstrapper.exe'))
+    $WebClient.Dispose()
+    $EXEinfo = Get-ChildItem -Path "$($Env:TEMP)\Teamsbootstrapper.exe"
+    & "$($Env:TEMP)\Teamsbootstrapper.exe" -p >> $null
+    # Création du raccourci sur le bureau
+    if ($meetingUrl -ne 'noUrl') {
+        $Shell = New-Object -ComObject ('WScript.Shell')
+        $allUsersDesktop=[Environment]::GetFolderPath('CommonDesktopDirectory')
+        $ShortCut = $Shell.CreateShortcut("$allUsersDesktop\Réunion Teams de la formation.lnk")
+        $ShortCut.TargetPath=$meetingUrl
+        $ShortCut.Save()}}
+
 function set-ibRemoteManagement {
   Write-Verbose "Vérification/mise en place de la configuration pour le WinRM local"
   Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
@@ -132,10 +151,10 @@ param(
 [string]$Subnet,
 [switch]$GetCred)
 if ($GetCred) {invoke-ibNetCommand -Command 'stop-Computer -Force' -GetCred}
-else {invoke-ibNetCommand 'Stop-Computer -Force' -NoLocal}
+else {invoke-ibNetCommand 'Stop-Computer -Force'}
   Stop-Computer -Force}  
 
 #######################
 #  Gestion du module  #
 #######################
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut

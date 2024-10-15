@@ -1,32 +1,27 @@
 function new-ibTeamsShortcut {
     #Installe le nouveau client Teams et pose un raccourci vers la réunion sur le bureau.
     param( $meetingUrl = 'noUrl')
-    # URL to Teamsbootstrapper.exe from https://learn.microsoft.com/en-us/microsoftteams/new-teams-bulk-install-client
+    # URL vers Teamsbootstrapper.exe depuis https://learn.microsoft.com/en-us/microsoftteams/new-teams-bulk-install-client
     $DownloadExeURL='https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409'
 
     $WebClient=New-Object -TypeName System.Net.WebClient
     $WebClient.DownloadFile($DownloadExeURL,(Join-Path -Path $env:TEMP -ChildPath 'Teamsbootstrapper.exe'))
     $WebClient.Dispose()
-    $EXEinfo = Get-ChildItem -Path "$($Env:TEMP)\Teamsbootstrapper.exe"
     & "$($Env:TEMP)\Teamsbootstrapper.exe" -p >> $null
     # Création du raccourci sur le bureau
-    if ($meetingUrl -ne 'noUrl') {
-        $Shell = New-Object -ComObject ('WScript.Shell')
-        $allUsersDesktop=[Environment]::GetFolderPath('CommonDesktopDirectory')
-        $ShortCut = $Shell.CreateShortcut("$allUsersDesktop\Réunion Teams de la formation.lnk")
-        $ShortCut.TargetPath=$meetingUrl
-        $ShortCut.Save()}}
+    if ($meetingUrl -ne 'noUrl') {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force}}
 
 function set-ibRemoteManagement {
   Write-Verbose "Vérification/mise en place de la configuration pour le WinRM local"
   Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
-  $saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value
+  enable-PSRemoting -Force|out-null
+  try {$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value}
+  catch {$savedTrustedHosts=''}
   Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
   Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
-  Enable-PSRemoting -Force|Out-Null
   return $saveTrustedHosts}
 
-function get-subNet {
+function get-ibSubNet {
     #retourne un tableau des addresses IP du sous-réseau correspondant à l'adresse fournie (mais excluant celle-ci)
     param (
         [ipaddress]$ip,
@@ -57,7 +52,7 @@ Cette commande renvoit un tableau contenant les adresses IP de toutes les machin
     $netIPConfig = get-NetIPConfiguration|Where-Object {$_.netAdapter.status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*virtual*'}
     $netIpAddress = $netIPConfig|Get-NetIPAddress -AddressFamily ipv4
     $localIp = $netIpAddress.IPAddress
-    [System.Collections.ArrayList]$ipList = (get-subNet -ip $netIpAddress.IPAddress -MaskBits $netIpAddress.PrefixLength)
+    [System.Collections.ArrayList]$ipList = (get-ibSubNet -ip $netIpAddress.IPAddress -MaskBits $netIpAddress.PrefixLength)
     #Enlever le routeur de la liste !
     $ipList.Remove([ipaddress]($netIPConfig.ipv4defaultGateway.nextHop))
     #lancement des pings des machines en parallèle

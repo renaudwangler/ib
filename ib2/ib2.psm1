@@ -1,4 +1,4 @@
-#URL du fichier json référeence ib partagé sur OneDrive
+#URL du fichier json reference ib partage sur OneDrive
 $computersInfoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn'
 
 function wait-ibNetwork {
@@ -6,17 +6,17 @@ function wait-ibNetwork {
   until ($nettest) }
 
 function get-ibComputersInfo {
-  #Récupération des informations sur les machines ib depuis référence ib
+  #Recuperation des informations sur les machines ib depuis reference ib
   if (!$script:ibComputersInfo) {
     wait-ibNetwork
-    if (!($script:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récupérer les informations des machines ib depuis le partage oneDrive'}}}
+    if (!($script:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de recuperer les informations des machines ib depuis le partage oneDrive'}}}
 function get-ibComputerInfo {
-  #Récupération des informations sur la machine depuis référence ib
+  #Recuperation des informations sur la machine depuis reference ib
   if (!$script:ibComputersInfo) { get-ibComputersInfo }
   $serialNumber = (Get-CimInstance Win32_BIOS).SerialNumber
   if ($script:ibComputerInfo = $script:ibComputersInfo.($serialNumber)) {
-    Write-Host "Machine trouvée en salle '$($script:ibComputerInfo.salle)'" -ForegroundColor green }
-else { Write-error "Numéro de série '$serialNumber' introuvable dans le fichier de références." -ForegroundColor Red}}
+    Write-Host "Machine trouvee en salle '$($script:ibComputerInfo.salle)'" -ForegroundColor green }
+else { Write-error "Numero de serie '$serialNumber' introuvable dans le fichier de references."}}
 
 function new-ibTeamsShortcut {
     #Installe le nouveau client Teams et pose un raccourci vers la réunion sur le bureau.

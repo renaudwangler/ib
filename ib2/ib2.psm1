@@ -2,8 +2,8 @@
 $computersInfoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn'
 
 function wait-ibNetwork {
-  do { $nettest = Test-NetConnection -InformationLevel Quiet }
-  until ($nettest) }
+  do { $netTest = Test-NetConnection -InformationLevel Quiet }
+  until ($netTest) }
 
 function get-ibComputersInfo {
   #Recuperation des informations sur les machines ib depuis reference ib

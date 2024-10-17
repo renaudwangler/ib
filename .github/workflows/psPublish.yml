@@ -14,7 +14,8 @@ jobs:
         shell: pwsh
         run: |
           $moduleVersion=(import-powershellDataFile -Path ./ib2/ib2.psd1).ModuleVersion
-           if ((Find-Module ib2).version -ne $moduleVersion) {
+          if ((Find-Module ib2).version -ne $moduleVersion) {
               #Nouvelle version : lancer la publication
               update-ModuleManifest -Path ./ib2/ib2.psd1 -ModuleVersion $moduleVersion
               Publish-Module -Path ./ib2 -NuGetApiKey $env:NUGET_KEY -Verbose}
+          else {write-host '::warning La version n''a pas changé, pas de publication'}

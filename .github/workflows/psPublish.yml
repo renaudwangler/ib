@@ -3,7 +3,7 @@ name: Publish ib2 Module
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'ib2/**'
 

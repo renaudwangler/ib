@@ -13,7 +13,6 @@ jobs:
           NUGET_KEY: ${{ secrets.PSGALLERY_NUGET_KEY }}
         shell: pwsh
         run: |
-          ./build.ps1 -Path /tmp/ib2
           $moduleVersion=(import-powershellDataFile -Path /tmp/ib2/ib2.psd1).ModuleVersion
           update-ModuleManifest -Path /tmp/ib2/ib2.psd1 -FileList 'ibInit.ps1' -ModuleVersion $moduleVersion
           Publish-Module -Path /tmp/ib2 -NuGetApiKey $env:NUGET_KEY -Verbose

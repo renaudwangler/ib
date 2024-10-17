@@ -18,4 +18,4 @@ jobs:
               #Nouvelle version : lancer la publication
               update-ModuleManifest -Path ./ib2/ib2.psd1 -ModuleVersion $moduleVersion
               Publish-Module -Path ./ib2 -NuGetApiKey $env:NUGET_KEY -Verbose}
-          else {write-host '::warning La version n''a pas changé, pas de publication'}
+          else {write-host '::warning title=Version identique::La version n''a pas changé, pas de publication'}

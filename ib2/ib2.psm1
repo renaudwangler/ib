@@ -1,3 +1,23 @@
+#URL du fichier json référeence ib partagé sur OneDrive
+$computersInfoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn'
+
+function wait-ibNetwork {
+  do { $nettest = Test-NetConnection -InformationLevel Quiet }
+  until ($nettest) }
+
+function get-ibComputersInfo {
+  #Récupération des informations sur les machines ib depuis référence ib
+  if (!$script:ibComputersInfo) {
+    wait-ibNetwork
+    if (!($script:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récupérer les informations des machines ib depuis le partage oneDrive'}}}
+function get-ibComputerInfo {
+  #Récupération des informations sur la machine depuis référence ib
+  if (!$script:ibComputersInfo) { get-ibComputersInfo }
+  $serialNumber = (Get-CimInstance Win32_BIOS).SerialNumber
+  if ($script:ibComputerInfo = $script:ibComputersInfo.($serialNumber)) {
+    Write-Host "Machine trouvée en salle '$($script:ibComputerInfo.salle)'" -ForegroundColor green }
+else { Write-error "Numéro de série '$serialNumber' introuvable dans le fichier de références." -ForegroundColor Red}}
+
 function new-ibTeamsShortcut {
     #Installe le nouveau client Teams et pose un raccourci vers la réunion sur le bureau.
     param( $meetingUrl = 'noUrl')
@@ -152,4 +172,4 @@ else {invoke-ibNetCommand 'Stop-Computer -Force'}
 #######################
 #  Gestion du module  #
 #######################
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo

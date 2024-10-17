@@ -18,8 +18,8 @@ function set-ibRemoteManagement {
   try {$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value}
   catch {$savedTrustedHosts=''}
   Set-Item WSMan:\localhost\Client\TrustedHosts -value * -Force
-  Set-ItemProperty –Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
-  return $saveTrustedHosts}
+  Set-ItemProperty -Path HKLM:\System\CurrentControlSet\Control\Lsa –Name ForceGuest –Value 0 -Force
+  return $saveTrustedHosts }
 
 function get-ibSubNet {
     #retourne un tableau des addresses IP du sous-réseau correspondant à l'adresse fournie (mais excluant celle-ci)

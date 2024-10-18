@@ -82,16 +82,18 @@ function get-ibComputers {
   Cette commande renvoit un tableau contenant les adresses IP de toutes les machines du sous-reseau de la machine depusis laquelle elle est lancee.
   #>      
 
-  #prérequis
-  if (!(Get-Command Start-ThreadJob)) {Install-Module ThreadJob -Force}
-  #Récupération des informations sur le subnet
+  #prerequis
+  if (!(Get-Command Start-ThreadJob)) {
+    Install-Module -Name ThreadJob -Force -scope allUsers
+    import-module -Name ThreadJob}
+  #Recuperation des informations sur le subnet
   $netIPConfig = get-NetIPConfiguration|Where-Object {$_.netAdapter.status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*virtual*'}
   $netIpAddress = $netIPConfig|Get-NetIPAddress -AddressFamily ipv4
   $localIp = $netIpAddress.IPAddress
   [System.Collections.ArrayList]$ipList = (get-ibSubNet -ip $netIpAddress.IPAddress -MaskBits $netIpAddress.PrefixLength)
   #Enlever le routeur de la liste !
   $ipList.Remove([ipaddress]($netIPConfig.ipv4defaultGateway.nextHop))
-  #lancement des pings des machines en parallèle
+  #lancement des pings des machines en parallele
   $ipLoop = 0
   $ipLength = $ipList.Count
   ForEach ($ip in $ipList) {
@@ -104,11 +106,11 @@ function get-ibComputers {
   $ipLength = $pingJobs.count
   foreach ($pingJob in $pingJobs) {
     $ipLoop ++
-    Write-Progress -Activity "Attente des résultats" -Status "Adresse $($pingJob.name)." -PercentComplete (($ipLoop/$ipLength)*100)
+    Write-Progress -Activity "Attente des resultats" -Status "Adresse $($pingJob.name)." -PercentComplete (($ipLoop/$ipLength)*100)
     $pingResult = Receive-Job $pingJob -Wait -AutoRemoveJob
-    #Enlever l'adresse de la liste si pas de réponse au ping
+    #Enlever l'adresse de la liste si pas de reponse au ping
     if (!$pingResult) {$ipList.Remove($pingJob.name)}}
-    Write-Progress -Activity "Attente des résultats" -Completed
+    Write-Progress -Activity "Attente des resultats" -Completed
   return($ipList)}
 
 function invoke-ibNetCommand {

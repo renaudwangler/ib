@@ -21,20 +21,30 @@ function get-ibComputersInfo {
   <#
   .DESCRIPTION
   Cette commande recupere les informations techniques/d'installation depuis le fichier de reference ib (sur oneDrive).
+  .PARAMETER force
+  Si ce parametre n'est pas mentionne, la machine pourra conserver les informations deja recuperees depuis le reseau
   #>
-  if (!$script:ibComputersInfo) {
+  param ([switch]$force)
+  if (!$global:ibComputersInfo -or $force) {
     wait-ibNetwork
-    if (!($script:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de recuperer les informations des machines ib depuis le partage oneDrive'}}}
+    if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de recuperer les informations des machines ib depuis le partage oneDrive'}}}
 function get-ibComputerInfo {
   <#
   .DESCRIPTION
   Cette commande recupere les informations techniques/d'installation sur la machine en cours depuis la reference ib.
+  .PARAMETER force
+  Si ce parametre n'est pas mentionne, la machine pourra conserver les informations deja recuperees depuis le reseau
   #> 
-  if (!$script:ibComputersInfo) { get-ibComputersInfo }
+  param ([switch]$force)
+  if (!$global:ibComputersInfo -or $force) { get-ibComputersInfo -force}
   $serialNumber = (Get-CimInstance Win32_BIOS).SerialNumber
-  if ($script:ibComputerInfo = $script:ibComputersInfo.($serialNumber)) {
-    Write-Host "Machine trouvee en salle '$($script:ibComputerInfo.salle)'" -ForegroundColor green }
-else { Write-error "Numero de serie '$serialNumber' introuvable dans le fichier de references."}}
+  if ($global:ibComputerInfo = $global:ibComputersInfo.($serialNumber)) {
+    Write-Debug "Machine trouvee en salle'"
+    if ($global:ibComputerInfo.salle -ne $null) {
+      if ($global:ibComputersInfo.Salles.($global:ibComputerInfo.salle) -ne $null) {
+        $global:ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $global:ibComputersInfo.Salles.($global:ibComputerInfo.salle).teamsMeeting
+        $global:ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $global:ibComputersInfo.Salles.($global:ibComputerInfo.salle).share}}
+else { Write-error "Numero de serie '$serialNumber' introuvable dans le fichier de references."}}}
 
 function new-ibTeamsShortcut {
   <#
@@ -51,7 +61,7 @@ function new-ibTeamsShortcut {
   $WebClient.Dispose()
   & "$($Env:TEMP)\Teamsbootstrapper.exe" -p >> $null
   # Création du raccourci sur le bureau
-  if ($meetingUrl -ne 'noUrl') {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force}}
+  if ($meetingUrl -ne 'noUrl') {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force|out-null}}
 
 function set-ibRemoteManagement {
   <#

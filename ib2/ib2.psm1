@@ -32,7 +32,7 @@ function new-ibTeamsShortcut {
     if ($meetingUrl -ne 'noUrl') {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force}}
 
 function set-ibRemoteManagement {
-  Write-Verbose "Vérification/mise en place de la configuration pour le WinRM local"
+  Write-Debug "Vérification/mise en place de la configuration pour le WinRM local"
   Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
   enable-PSRemoting -Force|out-null
   try {$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value}
@@ -68,6 +68,8 @@ function get-ibComputers {
 .SYNOPSIS
 Cette commande renvoit un tableau contenant les adresses IP de toutes les machines présentes sur le subnet (dans la salle).
 #>      
+    #prérequis
+    if (!(Get-Command Start-ThreadJob)) {Install-Module ThreadJob -Force}
     #Récupération des informations sur le subnet
     $netIPConfig = get-NetIPConfiguration|Where-Object {$_.netAdapter.status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*virtual*'}
     $netIpAddress = $netIPConfig|Get-NetIPAddress -AddressFamily ipv4
@@ -76,14 +78,23 @@ Cette commande renvoit un tableau contenant les adresses IP de toutes les machin
     #Enlever le routeur de la liste !
     $ipList.Remove([ipaddress]($netIPConfig.ipv4defaultGateway.nextHop))
     #lancement des pings des machines en parallèle
-    [System.Collections.ArrayList]$pingJobs=@()
+    $ipLoop = 0
+    $ipLength = $ipList.Count
     ForEach ($ip in $ipList) {
-        $pingJobs.add((Test-Connection -ComputerName $ip -count 1 -buffersize 8 -asJob))|Out-Null}
+      $ipLoop ++
+      Write-Progress -Activity "Tentatives de connexion" -Status "Machine $ip." -PercentComplete (($ipLoop/$ipLength)*100)
+      Start-ThreadJob -ScriptBlock {Test-Connection -ComputerName $using:ip -count 1 -buffersize 8 -Quiet} -ThrottleLimit 50 -Name $ip|Out-Null }
+      Write-Progress -Activity "Tentatives de connexion" -Completed
+    $ipLoop = 0
+    $pingJobs = Get-Job
+    $ipLength = $pingJobs.count
     foreach ($pingJob in $pingJobs) {
-        if ($pingJob.state -notlike '*completed*') {Wait-Job $pingJob|out-null}
-        $pingResult = Receive-Job $pingJob -Wait -AutoRemoveJob
-        #Enlever l'adresse de la liste si pas de réponse au ping
-        if ($pingResult.statusCode -ne 0) {$ipList.Remove($pingResult.address)}}
+      $ipLoop ++
+      Write-Progress -Activity "Attente des résultats" -Status "Adresse $($pingJob.name)." -PercentComplete (($ipLoop/$ipLength)*100)
+      $pingResult = Receive-Job $pingJob -Wait -AutoRemoveJob
+      #Enlever l'adresse de la liste si pas de réponse au ping
+      if (!$pingResult) {$ipList.Remove($pingJob.name)}}
+      Write-Progress -Activity "Attente des résultats" -Completed
     return($ipList)}
 
 function invoke-ibNetCommand {

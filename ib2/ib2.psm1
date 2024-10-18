@@ -1,6 +1,18 @@
 #URL du fichier json reference ib partage sur OneDrive
 $computersInfoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn'
 
+function optimize-ibStudentComputer {
+  <#
+  .DESCRIPTION
+  Cette commande est faite pour etre lancee au demarrage de la machine de formation et optimiser son fonctionnement pour la formation en cours.
+  #>
+  get-ibComputerInfo -force
+  if ($global:ibComputerInfo) {
+    if ($global:ibComputerInfo.teamsMeeting -ne $null) {new-ibTeamsShortcut -meetingUrl $global:ibComputerInfo.teamsMeeting}
+    else {new-ibTeamsShortcut}
+    if ($global:ibComputerInfo.share -ne $null) {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Partage de la salle.url' -ItemType File -Value "[InternetShortcut]`nURL=$($global:ibComputerInfo.share)" -Force|out-null}
+  }}
+
 function wait-ibNetwork {
   do { $netTest = Test-NetConnection -InformationLevel Quiet }
   until ($netTest) }
@@ -197,4 +209,4 @@ else {invoke-ibNetCommand 'Stop-Computer -Force'}
 #######################
 #  Gestion du module  #
 #######################
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibStudentComputer

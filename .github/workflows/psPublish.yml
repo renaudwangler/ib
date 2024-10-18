@@ -21,7 +21,6 @@ jobs:
           $moduleVersion=(import-powershellDataFile -Path ./ib2/ib2.psd1).ModuleVersion
           if ((Find-Module ib2).version -ne $moduleVersion) {
               #Nouvelle version : lancer la publication
-              update-ModuleManifest -Path ./ib2/ib2.psd1 -ModuleVersion $moduleVersion
               Publish-Module -Path ./ib2 -NuGetApiKey $env:NUGET_KEY -Verbose
               write-host "::notice title=Publication réussie::Publication de la version $moduleVersion vers la gallerie Powershell"}
           else {write-host '::warning title=Version identique::La version n''a pas changé, pas de publication'}

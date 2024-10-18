@@ -6,12 +6,18 @@ function wait-ibNetwork {
   until ($netTest) }
 
 function get-ibComputersInfo {
-  #Recuperation des informations sur les machines ib depuis reference ib
+  <#
+  .DESCRIPTION
+  Cette commande recupere les informations techniques/d'installation depuis le fichier de reference ib (sur oneDrive).
+  #>
   if (!$script:ibComputersInfo) {
     wait-ibNetwork
     if (!($script:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de recuperer les informations des machines ib depuis le partage oneDrive'}}}
 function get-ibComputerInfo {
-  #Recuperation des informations sur la machine depuis reference ib
+  <#
+  .DESCRIPTION
+  Cette commande recupere les informations techniques/d'installation sur la machine en cours depuis la reference ib.
+  #> 
   if (!$script:ibComputersInfo) { get-ibComputersInfo }
   $serialNumber = (Get-CimInstance Win32_BIOS).SerialNumber
   if ($script:ibComputerInfo = $script:ibComputersInfo.($serialNumber)) {
@@ -19,20 +25,27 @@ function get-ibComputerInfo {
 else { Write-error "Numero de serie '$serialNumber' introuvable dans le fichier de references."}}
 
 function new-ibTeamsShortcut {
-    #Installe le nouveau client Teams et pose un raccourci vers la réunion sur le bureau.
-    param( $meetingUrl = 'noUrl')
-    # URL vers Teamsbootstrapper.exe depuis https://learn.microsoft.com/en-us/microsoftteams/new-teams-bulk-install-client
-    $DownloadExeURL='https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409'
-
-    $WebClient=New-Object -TypeName System.Net.WebClient
-    $WebClient.DownloadFile($DownloadExeURL,(Join-Path -Path $env:TEMP -ChildPath 'Teamsbootstrapper.exe'))
-    $WebClient.Dispose()
-    & "$($Env:TEMP)\Teamsbootstrapper.exe" -p >> $null
-    # Création du raccourci sur le bureau
-    if ($meetingUrl -ne 'noUrl') {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force}}
+  <#
+  .DESCRIPTION
+  Cette commande Installe le nouveau client Teams et pose un raccourci pour la reunion sur le bureau le cas echeant.
+  .PARAMETER meetingUrl
+  Si ce parametre est renseigne, un raccourci sera pose sur le bureau (de tous les utilisateurs de la machine) qui pointera sur l'adresse fournie et s'appelera 'Reunion Teams'.
+  #> 
+  param( $meetingUrl = 'noUrl')
+  # URL vers Teamsbootstrapper.exe depuis https://learn.microsoft.com/en-us/microsoftteams/new-teams-bulk-install-client
+  $DownloadExeURL='https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409'
+  $WebClient=New-Object -TypeName System.Net.WebClient
+  $WebClient.DownloadFile($DownloadExeURL,(Join-Path -Path $env:TEMP -ChildPath 'Teamsbootstrapper.exe'))
+  $WebClient.Dispose()
+  & "$($Env:TEMP)\Teamsbootstrapper.exe" -p >> $null
+  # Création du raccourci sur le bureau
+  if ($meetingUrl -ne 'noUrl') {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force}}
 
 function set-ibRemoteManagement {
-  Write-Debug "Vérification/mise en place de la configuration pour le WinRM local"
+  <#
+  .DESCRIPTION
+  Cette commande verifie et/ou met en place la configuration necessaire pour utiliser le service WinRM en local.
+  #> 
   Get-NetConnectionProfile|where {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
   enable-PSRemoting -Force|out-null
   try {$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value}
@@ -64,50 +77,52 @@ function get-ibSubNet {
     return ($subList)}
 
 function get-ibComputers {
-<#
-.SYNOPSIS
-Cette commande renvoit un tableau contenant les adresses IP de toutes les machines présentes sur le subnet (dans la salle).
-#>      
-    #prérequis
-    if (!(Get-Command Start-ThreadJob)) {Install-Module ThreadJob -Force}
-    #Récupération des informations sur le subnet
-    $netIPConfig = get-NetIPConfiguration|Where-Object {$_.netAdapter.status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*virtual*'}
-    $netIpAddress = $netIPConfig|Get-NetIPAddress -AddressFamily ipv4
-    $localIp = $netIpAddress.IPAddress
-    [System.Collections.ArrayList]$ipList = (get-ibSubNet -ip $netIpAddress.IPAddress -MaskBits $netIpAddress.PrefixLength)
-    #Enlever le routeur de la liste !
-    $ipList.Remove([ipaddress]($netIPConfig.ipv4defaultGateway.nextHop))
-    #lancement des pings des machines en parallèle
-    $ipLoop = 0
-    $ipLength = $ipList.Count
-    ForEach ($ip in $ipList) {
-      $ipLoop ++
-      Write-Progress -Activity "Tentatives de connexion" -Status "Machine $ip." -PercentComplete (($ipLoop/$ipLength)*100)
-      Start-ThreadJob -ScriptBlock {Test-Connection -ComputerName $using:ip -count 1 -buffersize 8 -Quiet} -ThrottleLimit 50 -Name $ip|Out-Null }
-      Write-Progress -Activity "Tentatives de connexion" -Completed
-    $ipLoop = 0
-    $pingJobs = Get-Job
-    $ipLength = $pingJobs.count
-    foreach ($pingJob in $pingJobs) {
-      $ipLoop ++
-      Write-Progress -Activity "Attente des résultats" -Status "Adresse $($pingJob.name)." -PercentComplete (($ipLoop/$ipLength)*100)
-      $pingResult = Receive-Job $pingJob -Wait -AutoRemoveJob
-      #Enlever l'adresse de la liste si pas de réponse au ping
-      if (!$pingResult) {$ipList.Remove($pingJob.name)}}
-      Write-Progress -Activity "Attente des résultats" -Completed
-    return($ipList)}
+  <#
+  .DESCRIPTION
+  Cette commande renvoit un tableau contenant les adresses IP de toutes les machines du sous-reseau de la machine depusis laquelle elle est lancee.
+  #>      
+
+  #prérequis
+  if (!(Get-Command Start-ThreadJob)) {Install-Module ThreadJob -Force}
+  #Récupération des informations sur le subnet
+  $netIPConfig = get-NetIPConfiguration|Where-Object {$_.netAdapter.status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*virtual*'}
+  $netIpAddress = $netIPConfig|Get-NetIPAddress -AddressFamily ipv4
+  $localIp = $netIpAddress.IPAddress
+  [System.Collections.ArrayList]$ipList = (get-ibSubNet -ip $netIpAddress.IPAddress -MaskBits $netIpAddress.PrefixLength)
+  #Enlever le routeur de la liste !
+  $ipList.Remove([ipaddress]($netIPConfig.ipv4defaultGateway.nextHop))
+  #lancement des pings des machines en parallèle
+  $ipLoop = 0
+  $ipLength = $ipList.Count
+  ForEach ($ip in $ipList) {
+    $ipLoop ++
+    Write-Progress -Activity "Tentatives de connexion" -Status "Machine $ip." -PercentComplete (($ipLoop/$ipLength)*100)
+    Start-ThreadJob -ScriptBlock {Test-Connection -ComputerName $using:ip -count 1 -buffersize 8 -Quiet} -ThrottleLimit 50 -Name $ip|Out-Null }
+    Write-Progress -Activity "Tentatives de connexion" -Completed
+  $ipLoop = 0
+  $pingJobs = Get-Job
+  $ipLength = $pingJobs.count
+  foreach ($pingJob in $pingJobs) {
+    $ipLoop ++
+    Write-Progress -Activity "Attente des résultats" -Status "Adresse $($pingJob.name)." -PercentComplete (($ipLoop/$ipLength)*100)
+    $pingResult = Receive-Job $pingJob -Wait -AutoRemoveJob
+    #Enlever l'adresse de la liste si pas de réponse au ping
+    if (!$pingResult) {$ipList.Remove($pingJob.name)}}
+    Write-Progress -Activity "Attente des résultats" -Completed
+  return($ipList)}
 
 function invoke-ibNetCommand {
 <#
-.SYNOPSIS
-Cette commande permet de lancer une commande sur toutes les machines accessibles sur le subnet (dans la salle).
+.DESCRIPTION
+Cette commande permet de lancer une commande sur toutes les machines accessibles sur le subnet.
 .PARAMETER Command
-Syntaxe complète de la commande à lancer
+Syntaxe complète de la commande à lancer (chaine de caracteres)
 .PARAMETER getCred
-Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes. S'il est omis, l'utilisateur actuellement connecté sera utilisé.
+Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes.
+S'il est omis, l'utilisateur actuellement connecte sera utilise.
 .EXAMPLE
 invoke-ibNetCommand -Command {$env:computername}
-Va se connecter à chaque mahcine du réseau (de la salle) pour récupérer son nom d'ordinateur et l'afficher
+Va se connecter à chaque mahcine du reseau pour recuperer son nom d'ordinateur et l'afficher
 #>    
     param([parameter(Mandatory=$true,ValueFromPipeline=$true,HelpMessage='Commande à lancer sur toutes les machines du sous-réseau')][string]$command,
     [switch]$getCred)
@@ -131,17 +146,14 @@ Va se connecter à chaque mahcine du réseau (de la salle) pour récupérer son 
     Set-Item WSMan:\localhost\Client\TrustedHosts -value $savedTrustedHosts -Force}
 
 function invoke-ibMute {
-<#
-.SYNOPSIS
-Cette commande permet de désactiver le son sur toutes les machines accessibles sur le subnet (dans la salle).
-Pour ce faire, elle tuilise, un freeware (svcl.exe https://www.nirsoft.net/utils/sound_volume_command_line.html) qui sera uploadé dans le répertoire temporaire de chaque machine.
-Ne fonctionnera, à priori, que si un utilisateur est déjà connecté sur la machine...
-.PARAMETER GetCred
-Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes. S'il est omis, l'utilisateur actuellement connecté sera utilisé.
-.EXAMPLE
-invoke-ibMute
-Va couper le son (mute) sur toutes les machines du subnet (de la salle)
-#>
+  <#
+  .DESCRIPTION
+  Cette commande permet de desactiver le son sur toutes les machines accessibles sur le subnet (dans la salle).
+  Pour ce faire, elle tuilise, un freeware (svcl.exe https://www.nirsoft.net/utils/sound_volume_command_line.html) qui sera uploade dans le répertoire temporaire de chaque machine.
+  Ne fonctionnera, à priori, que si un utilisateur est deja connecte sur la machine...
+  .PARAMETER GetCred
+  Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes. S'il est omis, l'utilisateur actuellement connecte sera utilisé.
+  #>
     param([switch]$getCred)
     if ($getCred) {
         $cred=Get-Credential -Message 'Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour couper le son'
@@ -168,10 +180,10 @@ Va couper le son (mute) sur toutes les machines du subnet (de la salle)
 
 function stop-ibNet {
 <#
-.SYNOPSIS
-Cette commande permet d'arrêter toutes les machines du réseau local (de la salle), en terminant par la machine sur laquelle est lançée la commande
+.DESCRIPTION
+Cette commande permet d'arreter toutes les machines du reseau local, en terminant par la machine sur laquelle est lançee la commande
 .PARAMETER GetCred
-Si ce switch n'est pas spécifié, l'identité de l'utilisateur actuellement connecté sera utilisé pour stopper les machines.
+Si ce switch n'est pas specifie, l'identite de l'utilisateur actuellement connecte sera utilisee pour stopper les machines.
 #>
 param(
 [string]$Subnet,

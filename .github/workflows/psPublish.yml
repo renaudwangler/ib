@@ -24,4 +24,4 @@ jobs:
               #Nouvelle version : lancer la publication
               Publish-Module -Path ./ib2 -NuGetApiKey $env:NUGET_KEY -tag 'PSEdition_Desktop','PSEdition_Core','Windows' -iconUri 'https://raw.githubusercontent.com/renaudwangler/ib/refs/heads/master/extra/logo-ib.png -Verbose
               write-host "::notice title=Publication réussie::Publication de la version $moduleVersion vers la gallerie Powershell"}
-          else {write-host '::warning title=Version identique::La version n''a pas changé, pas de publication'}
+          else {write-host "::warning title=Version identique::La version n'a pas changé, pas de publication"}

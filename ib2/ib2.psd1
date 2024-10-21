@@ -20,7 +20,7 @@ AliasesToExport = @('ibComputers')
 FileList = @('svcl.exe')
 PrivateData = @{
     PSData = @{
-         Tags = @('ib','PSEdition_Desktop','PSEdition_Core','Windows')
+         Tags = @('ib')
          LicenseUri = 'https://www.powershellgallery.com/policies/Terms'
          ProjectUri = 'https://github.com/renaudwangler/ib'
          # URL vers une icône représentant ce module.

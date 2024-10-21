@@ -43,8 +43,8 @@ function get-ibComputerInfo {
     if ($global:ibComputerInfo.salle -ne $null) {
       if ($global:ibComputersInfo.Salles.($global:ibComputerInfo.salle) -ne $null) {
         $global:ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $global:ibComputersInfo.Salles.($global:ibComputerInfo.salle).teamsMeeting
-        $global:ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $global:ibComputersInfo.Salles.($global:ibComputerInfo.salle).share}}
-else { Write-error "Numero de serie '$serialNumber' introuvable dans le fichier de references."}}}
+        $global:ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $global:ibComputersInfo.Salles.($global:ibComputerInfo.salle).share}}}
+else { Write-error "Numero de serie '$serialNumber' introuvable dans le fichier de references."}}
 
 function new-ibTeamsShortcut {
   <#

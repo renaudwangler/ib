@@ -1,11 +1,11 @@
-# Manifeste de module pour le module « ib2 »
+﻿# Manifeste de module pour le module « ib2 »
 # Généré par : Renaud
 # Généré le : 19/07/2024
 
 @{
 
 RootModule = 'ib2.psm1'
-ModuleVersion = '2.7.5'
+ModuleVersion = '2.7.6'
 GUID = '8afa264f-71b6-4f7c-b16b-36463742660c'
 Author = 'Renaud WANGLER'
 CompanyName = 'ib'

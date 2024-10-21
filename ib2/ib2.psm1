@@ -45,13 +45,13 @@ function get-ibComputerInfo {
       if ($ibComputersInfo.Sessions.($ibComputerInfo.session) -ne $null) {
         if ($ibComputersInfo.Sessions.($ibComputerInfo.session).salle -ne $null -and $ibComputersInfo.Salles.($ibComputersInfo.Sessions.($ibComputerInfo.session).salle).share -ne $null) { $ibComputersInfo.Sessions.($ibComputerInfo.session)|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Salles.($ibComputersInfo.Sessions.($ibComputerInfo.session).salle).share }}
         if ($ibComputersInfo.Sessions.($ibComputerInfo.session).teamsMeeting -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $ibComputersInfo.Sessions.($ibComputerInfo.session).teamsMeeting}
-        if ($ibComputersInfo.Sessions.($ibComputerInfo.session).share -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Sessions.($ibComputerInfo.session).share}}}
+        if ($ibComputersInfo.Sessions.($ibComputerInfo.session).share -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Sessions.($ibComputerInfo.session).share}}
     if ($ibComputerInfo.salle -ne $null) {
       if ($ibComputersInfo.Salles.($ibComputerInfo.salle) -ne $null) {
         if ($ibComputersInfo.Salles.($ibComputerInfo.Salle).teamsMeeting -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $ibComputersInfo.Salles.($ibComputerInfo.salle).teamsMeeting}
         if ($ibComputersInfo.Salles.($ibComputerInfo.Salle).share -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Salles.($ibComputerInfo.salle).share}}}
     $global:ibComputerInfo = $ibComputerInfo}
-else { Write-error "Numero de serie '$serialNumber' introuvable dans le fichier de references."}}
+else { Write-error "Numéro de série '$serialNumber' introuvable dans le fichier de références."}}
 
 function new-ibTeamsShortcut {
   <#

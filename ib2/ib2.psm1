@@ -4,7 +4,7 @@ $computersInfoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/dist
 function optimize-ibStudentComputer {
   <#
   .DESCRIPTION
-  Cette commande est faite pour etre lancee au demarrage de la machine de formation et optimiser son fonctionnement pour la formation en cours.
+  Cette commande est faite pour etre lancée au démarrage de la machine de formation et optimiser son fonctionnement pour la formation en cours.
   #>
   get-ibComputerInfo -force
   if ($global:ibComputerInfo) {
@@ -20,38 +20,45 @@ function wait-ibNetwork {
 function get-ibComputersInfo {
   <#
   .DESCRIPTION
-  Cette commande recupere les informations techniques/d'installation depuis le fichier de reference ib (sur oneDrive).
+  Cette commande récupère les informations techniques/d'installation depuis le fichier de réference ib (sur oneDrive).
   .PARAMETER force
-  Si ce parametre n'est pas mentionne, la machine pourra conserver les informations deja recuperees depuis le reseau
+  Si ce paramètre n'est pas mentionné, la machine pourra conserver les informations déjà récupérées depuis le réseau
   #>
   param ([switch]$force)
   if (!$global:ibComputersInfo -or $force) {
     wait-ibNetwork
-    if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de recuperer les informations des machines ib depuis le partage oneDrive'}}}
+    if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des machines ib depuis le partage oneDrive'}}}
 function get-ibComputerInfo {
   <#
   .DESCRIPTION
-  Cette commande recupere les informations techniques/d'installation sur la machine en cours depuis la reference ib.
+  Cette commande récupere les informations techniques/d'installation sur la machine en cours depuis la réference ib.
   .PARAMETER force
-  Si ce parametre n'est pas mentionne, la machine pourra conserver les informations deja recuperees depuis le reseau
+  Si ce paramètre n'est pas mentionné, la machine pourra conserver les informations déjà recupérées depuis le réseau
   #>
   param ([switch]$force)
   if (!$global:ibComputersInfo -or $force) { get-ibComputersInfo -force}
+  $ibComputersInfo = $global:ibComputersInfo
   $serialNumber = (Get-CimInstance Win32_BIOS).SerialNumber
-  if ($global:ibComputerInfo -eq $global:ibComputersInfo.($serialNumber)) {
-    Write-Debug "Machine trouvee en salle'"
-    if ($global:ibComputerInfo.salle -ne $null) {
-      if ($global:ibComputersInfo.Salles.($global:ibComputerInfo.salle) -ne $null) {
-        $global:ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $global:ibComputersInfo.Salles.($global:ibComputerInfo.salle).teamsMeeting
-        $global:ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $global:ibComputersInfo.Salles.($global:ibComputerInfo.salle).share}}}
+  if ($ibComputerInfo -eq $ibComputersInfo.($serialNumber)) {
+    Write-Debug "Machine trouvée"
+    if ($ibComputerInfo.session -ne $null) {
+      if ($ibComputersInfo.Sessions.($ibComputerInfo.session) -ne $null) {
+        if ($ibComputersInfo.Sessions.($ibComputerInfo.session).salle -ne $null -and $ibComputersInfo.Salles.($ibComputersInfo.Sessions.($ibComputerInfo.session).salle).share -ne $null) { $ibComputersInfo.Sessions.($ibComputerInfo.session)|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Salles.($ibComputersInfo.Sessions.($ibComputerInfo.session).salle).share }}
+        if ($ibComputersInfo.Sessions.($ibComputerInfo.session).teamsMeeting -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $ibComputersInfo.Sessions.($ibComputerInfo.session).teamsMeeting}
+        if ($ibComputersInfo.Sessions.($ibComputerInfo.session).share -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Sessions.($ibComputerInfo.session).share}}}
+    if ($ibComputerInfo.salle -ne $null) {
+      if ($ibComputersInfo.Salles.($ibComputerInfo.salle) -ne $null) {
+        if ($ibComputersInfo.Salles.($ibComputerInfo.Salle).teamsMeeting -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $ibComputersInfo.Salles.($ibComputerInfo.salle).teamsMeeting}
+        if ($ibComputersInfo.Salles.($ibComputerInfo.Salle).share -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Salles.($ibComputerInfo.salle).share}}}
+    $global:ibComputerInfo = $ibComputerInfo}
 else { Write-error "Numero de serie '$serialNumber' introuvable dans le fichier de references."}}
 
 function new-ibTeamsShortcut {
   <#
   .DESCRIPTION
-  Cette commande Installe le nouveau client Teams et pose un raccourci pour la reunion sur le bureau le cas echeant.
+  Cette commande Installe le nouveau client Teams et pose un raccourci pour la réunion sur le bureau le cas échéant.
   .PARAMETER meetingUrl
-  Si ce parametre est renseigne, un raccourci sera pose sur le bureau (de tous les utilisateurs de la machine) qui pointera sur l'adresse fournie et s'appelera 'Reunion Teams'.
+  Si ce paramètre est renseigné, un raccourci sera posé sur le bureau (de tous les utilisateurs de la machine) qui pointera sur l'adresse fournie et s'appelera 'Réunion Teams'.
   #>
   param( $meetingUrl = 'noUrl')
   # URL vers Teamsbootstrapper.exe depuis https://learn.microsoft.com/en-us/microsoftteams/new-teams-bulk-install-client
@@ -66,7 +73,7 @@ function new-ibTeamsShortcut {
 function set-ibRemoteManagement {
   <#
   .DESCRIPTION
-  Cette commande verifie et/ou met en place la configuration necessaire pour utiliser le service WinRM en local.
+  Cette commande vérifie et/ou met en place la configuration nécessaire pour utiliser le service WinRM en local.
   #>
   Get-NetConnectionProfile|where-object {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
   enable-PSRemoting -Force|out-null
@@ -101,20 +108,20 @@ function get-ibSubNet {
 function get-ibComputers {
   <#
   .DESCRIPTION
-  Cette commande renvoit un tableau contenant les adresses IP de toutes les machines du sous-reseau de la machine depusis laquelle elle est lancee.
+  Cette commande renvoit un tableau contenant les adresses IP de toutes les machines du sous-réseau de la machine depuis laquelle elle est lancée.
   #>
 
-  #prerequis
+  #prérequis
   if (!(Get-Command Start-ThreadJob)) {
     Install-Module -Name ThreadJob -Force -scope allUsers
     import-module -Name ThreadJob}
-  #Recuperation des informations sur le subnet
+  #Récuperation des informations sur le subnet
   $netIPConfig = get-NetIPConfiguration|Where-Object {$_.netAdapter.status -like 'up' -and $_.InterfaceDescription -notlike '*VirtualBox*' -and $_.InterfaceDescription -notlike '*vmware*' -and $_.InterfaceDescription -notlike '*virtual*'}
   $netIpAddress = $netIPConfig|Get-NetIPAddress -AddressFamily ipv4
   [System.Collections.ArrayList]$ipList = (get-ibSubNet -ip $netIpAddress.IPAddress -MaskBits $netIpAddress.PrefixLength)
   #Enlever le routeur de la liste !
   $ipList.Remove([ipaddress]($netIPConfig.ipv4defaultGateway.nextHop))
-  #lancement des pings des machines en parallele
+  #lancement des pings des machines en parallèle
   $ipLoop = 0
   $ipLength = $ipList.Count
   ForEach ($ip in $ipList) {
@@ -127,11 +134,11 @@ function get-ibComputers {
   $ipLength = $pingJobs.count
   foreach ($pingJob in $pingJobs) {
     $ipLoop ++
-    Write-Progress -Activity "Attente des resultats" -Status "Adresse $($pingJob.name)." -PercentComplete (($ipLoop/$ipLength)*100)
+    Write-Progress -Activity "Attente des résultats" -Status "Adresse $($pingJob.name)." -PercentComplete (($ipLoop/$ipLength)*100)
     $pingResult = Receive-Job $pingJob -Wait -AutoRemoveJob
-    #Enlever l'adresse de la liste si pas de reponse au ping
+    #Enlever l'adresse de la liste si pas de réponse au ping
     if (!$pingResult) {$ipList.Remove($pingJob.name)}}
-    Write-Progress -Activity "Attente des resultats" -Completed
+    Write-Progress -Activity "Attente des résultats" -Completed
   return($ipList)}
 
 function invoke-ibNetCommand {
@@ -139,13 +146,13 @@ function invoke-ibNetCommand {
 .DESCRIPTION
 Cette commande permet de lancer une commande sur toutes les machines accessibles sur le subnet.
 .PARAMETER Command
-Syntaxe complète de la commande à lancer (chaine de caracteres)
+Syntaxe complète de la commande à lancer (dans une chaine de caracteres)
 .PARAMETER getCred
 Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes.
-S'il est omis, l'utilisateur actuellement connecte sera utilise.
+S'il est omis, l'utilisateur actuellement connecté sera utilisé.
 .EXAMPLE
 invoke-ibNetCommand -Command {$env:computername}
-Va se connecter à chaque mahcine du reseau pour recuperer son nom d'ordinateur et l'afficher
+Va se connecter à chaque machine du réseau pour récupérer son nom d'ordinateur et l'afficher
 #>
     param([parameter(Mandatory=$true,HelpMessage='Commande à lancer sur toutes les machines du sous-réseau')][string]$command,[switch]$getCred)
     if ($getCred) {
@@ -170,11 +177,11 @@ Va se connecter à chaque mahcine du reseau pour recuperer son nom d'ordinateur 
 function invoke-ibMute {
   <#
   .DESCRIPTION
-  Cette commande permet de desactiver le son sur toutes les machines accessibles sur le subnet (dans la salle).
-  Pour ce faire, elle tuilise, un freeware (svcl.exe https://www.nirsoft.net/utils/sound_volume_command_line.html) qui sera uploade dans le répertoire temporaire de chaque machine.
-  Ne fonctionnera, à priori, que si un utilisateur est deja connecte sur la machine...
+  Cette commande permet de désactiver le son sur toutes les machines accessibles sur le subnet (dans la salle).
+  Pour ce faire, elle utilise, un freeware (svcl.exe https://www.nirsoft.net/utils/sound_volume_command_line.html) qui sera uploadé dans le répertoire temporaire de chaque machine.
+  Ne fonctionnera, à priori, que si un utilisateur est deja connecté sur la machine...
   .PARAMETER GetCred
-  Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes. S'il est omis, l'utilisateur actuellement connecte sera utilisé.
+  Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes. S'il est omis, l'utilisateur actuellement connecté sera utilisé.
   #>
     param([switch]$getCred)
     if ($getCred) {
@@ -203,9 +210,9 @@ function invoke-ibMute {
 function stop-ibNet {
 <#
 .DESCRIPTION
-Cette commande permet d'arreter toutes les machines du reseau local, en terminant par la machine sur laquelle est lançee la commande
+Cette commande permet d'arrêter toutes les machines du réseau local, en terminant par la machine sur laquelle est lançée la commande
 .PARAMETER GetCred
-Si ce switch n'est pas specifie, l'identite de l'utilisateur actuellement connecte sera utilisee pour stopper les machines.
+Si ce switch n'est pas spécifié, l'identité de l'utilisateur actuellement connecté sera utilisée pour stopper les machines.
 #>
 param(
 [switch]$GetCred)

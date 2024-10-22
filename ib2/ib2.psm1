@@ -8,10 +8,17 @@ function optimize-ibStudentComputer {
   #>
   get-ibComputerInfo -force
   if ($global:ibComputerInfo) {
-    if ($global:ibComputerInfo.teamsMeeting -ne $null) {new-ibTeamsShortcut -meetingUrl $global:ibComputerInfo.teamsMeeting}
-    else {new-ibTeamsShortcut}
-    if ($global:ibComputerInfo.share -ne $null) {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Partage de la salle.url' -ItemType File -Value "[InternetShortcut]`nURL=$($global:ibComputerInfo.share)" -Force|out-null}
-  }}
+    if ($global:ibComputerInfo.teamsMeeting -ne $null) { new-ibTeamsShortcut -meetingUrl $global:ibComputerInfo.teamsMeeting }
+    else { new-ibTeamsShortcut }
+    if ($global:ibComputerInfo.share -ne $null) {
+      Write-Debug 'Raccourci sur le bureau vers le partage de salle.'
+      New-Item -Path "$env:PUBLIC\Desktop" -Name 'Partage de la salle.url' -ItemType File -Value "[InternetShortcut]`nURL=$($global:ibComputerInfo.share)" -Force|out-null}
+    if ($global:ibComputerInfo.commands -ne $null) {
+      Write-Debug 'lancement des commandes trouvées dans le fichier de référence.'
+      foreach ($com in $global:ibComputerInfo.Commands) {
+        write-debug "  Lancement de la commande '$com'."
+        try { Invoke-Expression $com }
+        catch {Write-Host "    Erreur d'execution : $($error[0].Exception)"  -ForegroundColor red }}}}}
 
 function wait-ibNetwork {
   do { $netTest = Test-NetConnection -InformationLevel Quiet }
@@ -39,17 +46,37 @@ function get-ibComputerInfo {
   if (!$global:ibComputersInfo -or $force) { get-ibComputersInfo -force}
   $ibComputersInfo = $global:ibComputersInfo
   $serialNumber = (Get-CimInstance Win32_BIOS).SerialNumber
-  if ($ibComputerInfo -eq $ibComputersInfo.($serialNumber)) {
-    Write-Debug "Machine trouvée"
-    if ($ibComputerInfo.session -ne $null) {
-      if ($ibComputersInfo.Sessions.($ibComputerInfo.session) -ne $null) {
-        if ($ibComputersInfo.Sessions.($ibComputerInfo.session).salle -ne $null -and $ibComputersInfo.Salles.($ibComputersInfo.Sessions.($ibComputerInfo.session).salle).share -ne $null) { $ibComputersInfo.Sessions.($ibComputerInfo.session)|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Salles.($ibComputersInfo.Sessions.($ibComputerInfo.session).salle).share }}
-        if ($ibComputersInfo.Sessions.($ibComputerInfo.session).teamsMeeting -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $ibComputersInfo.Sessions.($ibComputerInfo.session).teamsMeeting}
-        if ($ibComputersInfo.Sessions.($ibComputerInfo.session).share -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Sessions.($ibComputerInfo.session).share}}
-    if ($ibComputerInfo.salle -ne $null) {
-      if ($ibComputersInfo.Salles.($ibComputerInfo.salle) -ne $null) {
-        if ($ibComputersInfo.Salles.($ibComputerInfo.Salle).teamsMeeting -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $ibComputersInfo.Salles.($ibComputerInfo.salle).teamsMeeting}
-        if ($ibComputersInfo.Salles.($ibComputerInfo.Salle).share -ne $null) {$ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $ibComputersInfo.Salles.($ibComputerInfo.salle).share}}}
+  if ($ibComputerInfo = $ibComputersInfo.($serialNumber)) {
+    Write-Debug 'Numéro de série de la machine trouvé.'
+    if ($sessionNumber = $ibComputerInfo.session) {
+      write-debug 'Numéro de session renseigné sur la machine'
+      if ($session=$ibComputersInfo.Sessions.$sessionNumber) {
+        write-debug 'Numéro de session trouvé dans la référence.'
+        if ($session.salle -ne $null -and ($salle=$ibComputersInfo.Salles.($session.salle))) {
+          Write-Debug '  Informations de salle pour la session trouvées dans la référence.'
+          if ($ibComputerInfo.salle -eq $null) {
+            Write-Debug '  Ajout de la salle aux informations de la machine'
+            $ibComputerInfo|Add-Member -NotePropertyName salle -NotePropertyValue $session.salle}
+          if ($salle.share -ne $null -and $session.share -eq $null) {
+            Write-Debug '  Ajout du partage de la salle à la session.'
+            $ibComputersInfo.Sessions.$sessionNumber|Add-Member -NotePropertyName share -NotePropertyValue $salle.share}
+          if ($salle.teamsMeeting -ne $null -and $session.teamsMeeting -eq $null) {
+            Write-Debug '  Ajout du raccourci de réunion à la session depuis les informations de salle'
+            $ibComputersInfo.Sessions.$sessionNumber|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $salle.teamsMeeting}}
+        if ($session.teamsMeeting -ne $null -and $ibComputerInfo.teamsMeeting -eq $null) {
+          Write-Debug '  Ajout du raccourci de réunion depuis la session.'
+          $ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $session.teamsMeeting}
+        if ($session.share -ne $null -and $ibComputerInfo.share -eq $null) {
+          Write-Debug '  Ajout du partage de la salle depuis la session.'
+          $ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $session.share}}
+      else { Write-Warning "  Numéro de session ($($ibComputerInfo.session)) trouvé sur la machine mais pas dans la référence des sessions."}}
+    if ($ibComputerInfo.salle -ne $null -and ($salle=$ibComputersInfo.Salles.($ibComputerInfo.salle))) {
+      if ($ibComputerInfo.teamsMeeting -eq $null -and $salle.teamsMeeting -ne $null) {
+        Write-Debug '  Ajout du raccourci de réunion depuis la salle.'
+        $ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $salle.teamsMeeting}
+      if ($ibComputerInfo.share -eq $null -and $salle.share -ne $null) {
+        Write-Debug '  Ajout du partage depuis la salle.'
+        $ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $salle.share}}
     $global:ibComputerInfo = $ibComputerInfo}
 else { Write-error "Numéro de série '$serialNumber' introuvable dans le fichier de références."}}
 
@@ -62,20 +89,26 @@ function new-ibTeamsShortcut {
   #>
   param( $meetingUrl = 'noUrl')
   # URL vers Teamsbootstrapper.exe depuis https://learn.microsoft.com/en-us/microsoftteams/new-teams-bulk-install-client
+  Write-Debug 'Installation automatisée du client Teams.'
   $DownloadExeURL='https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409'
   $WebClient=New-Object -TypeName System.Net.WebClient
+  write-debug '  Téléchargement du client Teams.'
   $WebClient.DownloadFile($DownloadExeURL,(Join-Path -Path $env:TEMP -ChildPath 'Teamsbootstrapper.exe'))
   $WebClient.Dispose()
+  Write-Debug '  Installation du client Teams.'
   & "$($Env:TEMP)\Teamsbootstrapper.exe" -p >> $null
-  # Création du raccourci sur le bureau
-  if ($meetingUrl -ne 'noUrl') {New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force|out-null}}
+  if ($meetingUrl -ne 'noUrl') {
+    Write-debug '  Création du raccourci vers la réunion sur le bureau.'
+    New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force|out-null}}
 
 function set-ibRemoteManagement {
   <#
   .DESCRIPTION
   Cette commande vérifie et/ou met en place la configuration nécessaire pour utiliser le service WinRM en local.
   #>
+  Write-Debug 'Passage du profil des cartes réseau en "Privé" si elles sont en "Public".'
   Get-NetConnectionProfile|where-object {$_.NetworkCategory -notlike '*Domain*'}|Set-NetConnectionProfile -NetworkCategory Private
+  Write-Debug 'Activation du Powershell Remoting.'
   enable-PSRemoting -Force|out-null
   try {$saveTrustedHosts=(Get-Item WSMan:\localhost\Client\TrustedHosts).value}
   catch {$saveTrustedHosts=''}
@@ -88,9 +121,11 @@ function get-ibSubNet {
     param (
         [ipaddress]$ip,
         [ValidateRange(1,31)][int]$MaskBits)
+    Write-Debug "Création d'un tableau de toutes les adresses IP du sous-réseau pour l'adresse $ip"
     $mask = ([Math]::Pow(2,$MaskBits)-1)*[Math]::Pow(2,(32-$MaskBits))
     $maskbytes = [BitConverter]::GetBytes([UInt32] $mask)
     $DottedMask = [IPAddress]((3..0 | ForEach-Object { [String] $maskbytes[$_] }) -join '.')
+    write-debug "  Utilisation du masque de sous-réseau $DottedMask."
     [ipaddress]$subnetId = $ip.Address -band $DottedMask.Address
     $LowerBytes = [BitConverter]::GetBytes([UInt32] $subnetId.Address)
     [IPAddress]$broadcast = (0..3 | ForEach-object{$LowerBytes[$_] + ($maskbytes[(3-$_)] -bxor 255)}) -join '.'
@@ -113,6 +148,7 @@ function get-ibComputers {
 
   #prérequis
   if (!(Get-Command Start-ThreadJob)) {
+    Write-Debug 'Installation du module "ThreadJob".'
     Install-Module -Name ThreadJob -Force -scope allUsers
     import-module -Name ThreadJob}
   #Récuperation des informations sur le subnet
@@ -121,7 +157,7 @@ function get-ibComputers {
   [System.Collections.ArrayList]$ipList = (get-ibSubNet -ip $netIpAddress.IPAddress -MaskBits $netIpAddress.PrefixLength)
   #Enlever le routeur de la liste !
   $ipList.Remove([ipaddress]($netIPConfig.ipv4defaultGateway.nextHop))
-  #lancement des pings des machines en parallèle
+  write-debug 'Lancement des Ping des machines du sous-réseau.'
   $ipLoop = 0
   $ipLength = $ipList.Count
   ForEach ($ip in $ipList) {
@@ -190,8 +226,10 @@ function invoke-ibMute {
             Write-Error "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe"
             break}}
     $savedTrustedHosts = set-ibRemoteManagement
+    Write-Debug 'Récupération de l''executable svcl.exe'
     $svclFile = (get-module -listAvailable ib2).path
     $svclFile = $svclFile.substring(0,$svclFile.LastIndexOf('\')) + '\svcl.exe'
+    Write-Debug 'Dépot de l''outil svcl et lancement sur les machines du sous-réseau.'
     foreach ($computer in get-ibComputers) {
         try {
             if ($getCred) {$session = New-PSSession -ComputerName $computer -Credential $cred -errorAction Stop}

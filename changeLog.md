@@ -1,4 +1,7 @@
-﻿**Version 2.8:**
+﻿**Version 2.9:**
+ - Commande **optimize-ibComputer** plus fluide : refonte et amélioration.
+ - Nouveaux alias de commande : 'oic' et 'optib'
+**Version 2.8:**
  - optimizeibStudentComputer peut se baser sur la session de la formation.
  - Retour des accents suite à publication correctement formattée
 **Version 2.7.2:**

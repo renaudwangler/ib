@@ -1,7 +1,9 @@
-﻿#URL du fichier json reference ib partage sur OneDrive
-$computersInfoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn'
+﻿#URL des fichiers json de référence ib partagés sur OneDrive
+$infoUrl = 'https://ibgroupecegos-my.sharepoint.com/'
+$computersInfoUrl = "$($infoUrl):u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn"
+$sessionsInfoUrl = "$($infoUrl):u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn"
 
-function optimize-ibStudentComputer {
+function optimize-ibComputer {
   <#
   .DESCRIPTION
   Cette commande est faite pour etre lancée au démarrage de la machine de formation et optimiser son fonctionnement pour la formation en cours.
@@ -10,31 +12,48 @@ function optimize-ibStudentComputer {
   if ($global:ibComputerInfo) {
     if ($global:ibComputerInfo.teamsMeeting -ne $null) { new-ibTeamsShortcut -meetingUrl $global:ibComputerInfo.teamsMeeting }
     else { new-ibTeamsShortcut }
-    if ($global:ibComputerInfo.share -ne $null) {
-      Write-Debug 'Raccourci sur le bureau vers le partage de salle.'
-      New-Item -Path "$env:PUBLIC\Desktop" -Name 'Partage de la salle.url' -ItemType File -Value "[InternetShortcut]`nURL=$($global:ibComputerInfo.share)" -Force|out-null}
-    if ($global:ibComputerInfo.commands -ne $null) {
-      Write-Debug 'lancement des commandes trouvées dans le fichier de référence.'
-      foreach ($com in $global:ibComputerInfo.Commands) {
-        write-debug "  Lancement de la commande '$com'."
-        try { Invoke-Expression $com }
-        catch {Write-Host "    Erreur d'execution : $($error[0].Exception)"  -ForegroundColor red }}}}}
+    ForEach ($shortcut in $global:ibComputerInfo.shortcuts) {
+      Write-Debug "Placement du raccourci '$($shortcut.name)' sur le bureau."
+      New-Item -Path "$env:PUBLIC\Desktop" -Name "$($shortcut.name).url" -ItemType File -Value "[InternetShortcut]`nURL=$($shortcut.url)" -Force|Out-Null}
+    ForEach ($command in $global:ibComputerInfo.commands) {
+      Write-Debug "lancement de la commande '$command'."
+      try { Invoke-Expression $command }
+      catch {Write-Host "    Erreur d'execution : $($error[0].Exception)"  -ForegroundColor red }}}}
+
 
 function wait-ibNetwork {
-  do { $netTest = Test-NetConnection -InformationLevel Quiet }
-  until ($netTest) }
+if (!$global:ibNetOk) {
+    do { $netTest = Test-NetConnection -InformationLevel Quiet }
+    until ($netTest)
+  $global:ibNetOk = $true}}
 
 function get-ibComputersInfo {
   <#
   .DESCRIPTION
-  Cette commande récupère les informations techniques/d'installation depuis le fichier de réference ib (sur oneDrive).
+  Cette commande récupère les informations techniques/d'installation depuis les fichiers de réference ib (sur oneDrive).
   .PARAMETER force
   Si ce paramètre n'est pas mentionné, la machine pourra conserver les informations déjà récupérées depuis le réseau
   #>
   param ([switch]$force)
-  if (!$global:ibComputersInfo -or $force) {
+  if (!$global:ibComputersInfo -or !$global:ibSessionsInfo -or $force) {
     wait-ibNetwork
-    if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des machines ib depuis le partage oneDrive'}}}
+    if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des machines ib depuis le partage oneDrive'}
+    if (!($global:ibSessionsInfo = ((invoke-WebRequest -Uri "$sessionsInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des sessions ib depuis le partage oneDrive'}
+    }}
+
+function add-ibComputerInfo {
+#Fonction facilitant le peuplement de la variable $global:ibComputerInfo (utilisation interne)
+  param ($Names,$Value,[switch]$Add)
+  foreach ($Name in $Names) {
+    if ($Value.($Name) -ne $null) {
+      if ($Add) {
+        Write-Debug "  Ajout de valeur(s) '$Name' aux informations de la machine."
+        if ($global:ibComputerInfo.($name) -eq $null) {$global:ibComputerInfo|Add-Member -NotePropertyName $Name -NotePropertyValue $Value.($Name)}
+        else {$global:ibComputerInfo.($Name) += $value.($Name) }}
+      elseif ($global:ibComputerInfo.($Name) -eq $null) {
+        Write-Debug "  Ajout de la valeur '$Name' aux informations de la machine."
+        $global:ibComputerInfo|Add-Member -NotePropertyName $Name -NotePropertyValue $Value.($Name) }}}}
+
 function get-ibComputerInfo {
   <#
   .DESCRIPTION
@@ -46,38 +65,35 @@ function get-ibComputerInfo {
   if (!$global:ibComputersInfo -or $force) { get-ibComputersInfo -force}
   $ibComputersInfo = $global:ibComputersInfo
   $serialNumber = (Get-CimInstance Win32_BIOS).SerialNumber
-  if ($ibComputerInfo = $ibComputersInfo.($serialNumber)) {
+  if ($global:ibComputerInfo = $ibComputersInfo.($serialNumber)) {
     Write-Debug 'Numéro de série de la machine trouvé.'
-    if ($sessionNumber = $ibComputerInfo.session) {
-      write-debug 'Numéro de session renseigné sur la machine'
-      if ($session=$ibComputersInfo.Sessions.$sessionNumber) {
-        write-debug 'Numéro de session trouvé dans la référence.'
-        if ($session.salle -ne $null -and ($salle=$ibComputersInfo.Salles.($session.salle))) {
-          Write-Debug '  Informations de salle pour la session trouvées dans la référence.'
-          if ($ibComputerInfo.salle -eq $null) {
-            Write-Debug '  Ajout de la salle aux informations de la machine'
-            $ibComputerInfo|Add-Member -NotePropertyName salle -NotePropertyValue $session.salle}
-          if ($salle.share -ne $null -and $session.share -eq $null) {
-            Write-Debug '  Ajout du partage de la salle à la session.'
-            $ibComputersInfo.Sessions.$sessionNumber|Add-Member -NotePropertyName share -NotePropertyValue $salle.share}
-          if ($salle.teamsMeeting -ne $null -and $session.teamsMeeting -eq $null) {
-            Write-Debug '  Ajout du raccourci de réunion à la session depuis les informations de salle'
-            $ibComputersInfo.Sessions.$sessionNumber|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $salle.teamsMeeting}}
-        if ($session.teamsMeeting -ne $null -and $ibComputerInfo.teamsMeeting -eq $null) {
-          Write-Debug '  Ajout du raccourci de réunion depuis la session.'
-          $ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $session.teamsMeeting}
-        if ($session.share -ne $null -and $ibComputerInfo.share -eq $null) {
-          Write-Debug '  Ajout du partage de la salle depuis la session.'
-          $ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $session.share}}
-      else { Write-Warning "  Numéro de session ($($ibComputerInfo.session)) trouvé sur la machine mais pas dans la référence des sessions."}}
-    if ($ibComputerInfo.salle -ne $null -and ($salle=$ibComputersInfo.Salles.($ibComputerInfo.salle))) {
-      if ($ibComputerInfo.teamsMeeting -eq $null -and $salle.teamsMeeting -ne $null) {
-        Write-Debug '  Ajout du raccourci de réunion depuis la salle.'
-        $ibComputerInfo|Add-Member -NotePropertyName teamsMeeting -NotePropertyValue $salle.teamsMeeting}
-      if ($ibComputerInfo.share -eq $null -and $salle.share -ne $null) {
-        Write-Debug '  Ajout du partage depuis la salle.'
-        $ibComputerInfo|Add-Member -NotePropertyName share -NotePropertyValue $salle.share}}
-    $global:ibComputerInfo = $ibComputerInfo}
+    if ($sessionNumber = $global:ibComputerInfo.session) {
+      write-debug '  Numéro de session trouvé sur les informations de machine.'
+      if ($session=$global:ibSessionsInfo.Sessions.$sessionNumber) {
+        write-debug '  Numéro de session trouvé dans la référence ib.'
+        add-ibComputerInfo -Names stage,salle,formateur,debut,fin,teamsMeeting -Value $session
+        add-ibComputerInfo -Names shortcuts,commands -Value $session.shortcuts -Add}
+        else { Write-Warning "  Numéro de session ($($global:ibComputerInfo.session)) trouvé sur la machine mais pas dans la référence des sessions."}}
+    if ($salleNumber = $global:ibComputerInfo.salle) {
+      Write-Debug '  Référence de la salle trouvée les informations de machine.'
+      if ($salle=$global:ibComputersInfo.Salles.$salleNumber) {
+        write-debug '  Salle trouvée dans la référence ib.'
+        add-ibComputerInfo -Names teamsMeeting -Value $salle
+        add-ibComputerInfo -Names shortcuts,commands -Value $salle -Add }}
+      else { Write-Warning "  Salle '($($global:ibComputerInfo.salle))' trouvé sur la machine mais pas dans la référence."}
+    if ($formateurTRG = $global:ibComputerInfo.formateur) {
+      Write-Debug '  Formateur trouvé sur la machine.'
+      if ($formateur = $global:ibComputersInfo.Formateurs.$formateurTRG) {
+        write-debug '  Formateur trouvé dans la référence ib.'
+        add-ibComputerInfo -Names shortcuts,commands -value $formateur -Add }
+      else { Write-Warning "  Formateur '($($global:ibComputerInfo.formateur))' trouvé sur la machine mais pas dans la référence."}}
+    if ($stageRef = $global:ibComputerInfo.stage) {
+      Write-Debug '  Stage trouvé sur les informations de machine.'
+      if ($stage = $global:ibComputersInfo.Stages.$stageRef) {
+        write-debug '  Stage trouvé dans la référence ib.'
+        add-ibComputerInfo -Names shortcuts,commands -value $stage -Add }
+      else { Write-Warning "  Stage '($($global:ibComputerInfo.stage))' trouvé sur la machine mais pas dans la référence."}
+        }}
 else { Write-error "Numéro de série '$serialNumber' introuvable dans le fichier de références."}}
 
 function new-ibTeamsShortcut {
@@ -261,4 +277,4 @@ else {invoke-ibNetCommand 'Stop-Computer -Force'}
 #######################
 #  Gestion du module  #
 #######################
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibStudentComputer
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer

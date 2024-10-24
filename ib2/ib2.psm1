@@ -1,7 +1,7 @@
 ﻿#URL des fichiers json de référence ib partagés sur OneDrive
-$infoUrl = 'https://ibgroupecegos-my.sharepoint.com/'
-$computersInfoUrl = "$($infoUrl):u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn"
-$sessionsInfoUrl = "$($infoUrl):u:/g/personal/distanciel_ib_cegos_fr/EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn"
+$infoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/distanciel_ib_cegos_fr/'
+$computersInfoUrl = "$($infoUrl)EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn"
+$sessionsInfoUrl = "$($infoUrl)EbJVsXJh_AVFjvbwxH-wHBoBhswZAG2O8wHXCJ6guXBk3w?e=1mvGBN"
 
 function optimize-ibComputer {
   <#
@@ -19,7 +19,6 @@ function optimize-ibComputer {
       Write-Debug "lancement de la commande '$command'."
       try { Invoke-Expression $command }
       catch {Write-Host "    Erreur d'execution : $($error[0].Exception)"  -ForegroundColor red }}}}
-
 
 function wait-ibNetwork {
 if (!$global:ibNetOk) {
@@ -39,7 +38,8 @@ function get-ibComputersInfo {
     wait-ibNetwork
     if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des machines ib depuis le partage oneDrive'}
     if (!($global:ibSessionsInfo = ((invoke-WebRequest -Uri "$sessionsInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des sessions ib depuis le partage oneDrive'}
-    }}
+    Write-Debug 'Stockage des informations de connexion'
+    $global:ibAdminAccount = New-Object pscredential ($global:ibComputersInfo.Account.name, ($global:ibComputersInfo.Account.password|ConvertTo-SecureString))}}
 
 function add-ibComputerInfo {
 #Fonction facilitant le peuplement de la variable $global:ibComputerInfo (utilisation interne)
@@ -202,16 +202,23 @@ Syntaxe complète de la commande à lancer (dans une chaine de caracteres)
 .PARAMETER getCred
 Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes.
 S'il est omis, l'utilisateur actuellement connecté sera utilisé.
+.PARAMETER autoCred
+Ce switch permet de spécifier automatiquement le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes depuis la référence ib.
+S'il est omis, l'utilisateur actuellement connecté sera utilisé.
 .EXAMPLE
 invoke-ibNetCommand -Command {$env:computername}
 Va se connecter à chaque machine du réseau pour récupérer son nom d'ordinateur et l'afficher
 #>
-    param([parameter(Mandatory=$true,HelpMessage='Commande à lancer sur toutes les machines du sous-réseau')][string]$command,[switch]$getCred)
+    param([parameter(Mandatory=$true,HelpMessage='Commande à lancer sur toutes les machines du sous-réseau')][string]$command,[switch]$getCred,[switch]$autoCred)
     if ($getCred) {
         $cred=Get-Credential -Message "Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour éxecuter la commande '$Command'"
         if (-not $cred) {
             Write-Error "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe"
             break}}
+    elseif ($autoCred) {
+      if (!$global:ibComputersInfo) { get-ibComputersInfo }
+      $cred = $global:ibAdminAccount
+      $getCred = $true }
     $savedTrustedHosts = set-ibRemoteManagement
     foreach ($computer in get-ibComputers) {
         try {
@@ -232,15 +239,23 @@ function invoke-ibMute {
   Cette commande permet de désactiver le son sur toutes les machines accessibles sur le subnet (dans la salle).
   Pour ce faire, elle utilise, un freeware (svcl.exe https://www.nirsoft.net/utils/sound_volume_command_line.html) qui sera uploadé dans le répertoire temporaire de chaque machine.
   Ne fonctionnera, à priori, que si un utilisateur est deja connecté sur la machine...
-  .PARAMETER GetCred
-  Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes. S'il est omis, l'utilisateur actuellement connecté sera utilisé.
+  .PARAMETER getCred
+  Ce switch permet de demander le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes.
+  S'il est omis, l'utilisateur actuellement connecté sera utilisé.
+  .PARAMETER autoCred
+  Ce switch permet de spécifier automatiquement le nom et mot de passe de l'utilisateur à utiliser sur les machines distantes depuis la référence ib.
+  S'il est omis, l'utilisateur actuellement connecté sera utilisé.
   #>
-    param([switch]$getCred)
+    param([switch]$getCred,[switch]$autoCred)
     if ($getCred) {
         $cred=Get-Credential -Message 'Merci de saisir le nom et mot de passe du compte administrateur WinRM à utiliser pour couper le son'
         if (-not $cred) {
             Write-Error "Arrêt suite à interruption utilisateur lors de la saisie du Nom/Mot de passe"
             break}}
+    elseif ($autoCred) {
+      if (!$global:ibComputersInfo) { get-ibComputersInfo }
+      $cred = $global:ibAdminAccount
+      $getCred = $true }
     $savedTrustedHosts = set-ibRemoteManagement
     Write-Debug 'Récupération de l''executable svcl.exe'
     $svclFile = (get-module -listAvailable ib2).path
@@ -271,10 +286,13 @@ Si ce switch n'est pas spécifié, l'identité de l'utilisateur actuellement con
 param(
 [switch]$GetCred)
 if ($GetCred) {invoke-ibNetCommand -Command 'stop-Computer -Force' -GetCred}
+elseif ($autoCred) { invoke-ibNetCommand 'stop-computer -Force' -autoCred }
 else {invoke-ibNetCommand 'Stop-Computer -Force'}
   Stop-Computer -Force}
 
 #######################
 #  Gestion du module  #
 #######################
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer
+New-Alias -Name oic -Value optimize-ibComputer
+New-Alias -Name optib -Value optimize-ibComputer
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer -Alias oic,optib

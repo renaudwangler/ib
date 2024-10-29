@@ -1,4 +1,6 @@
-﻿**Version 2.9.2:**
+﻿**Version 2.10:**
+ - Affectation des informations de salle pour les machines (au lieu de session)
+**Version 2.9.2:**
  - Correction stockage/récupération du mot de passe 
 **Version 2.9.1:**
  - Nouvelle option -autoCred pour les commandes invoke-ibNetCommand, invoke-ibMute et stop-ibNet

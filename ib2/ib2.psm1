@@ -13,12 +13,12 @@ function optimize-ibComputer {
   Write-Debug 'Vérification de la version du module.'
   $oldDebug = $global:DebugPreference
   $global:DebugPreference = 'silentlyContinue'
-  if ((Find-Module -Name ib2).Version -gt (Get-Module -Name ib2 -ListAvailable).Version) {
+  if ( [version](Find-Module -Name ib2).Version -gt (Get-Module -Name ib2 -ListAvailable).Version ) {
     $global:DebugPreference = $oldDebug
     write-debug '  Mise à jour du module.'
     $global:DebugPreference = 'silentlycontinue'
     Remove-Module -Name ib2 -Force
-    Update-Module -Name -Force 
+    Update-Module -Name ib2 -Force 
     Import-Module -Name ib2}
   $global:DebugPreference = $oldDebug
   get-ibComputerInfo -force
@@ -348,6 +348,6 @@ else {invoke-ibNetCommand 'Stop-Computer -Force'}
 #######################
 #  Gestion du module  #
 #######################
-New-Alias -Name oic -Value optimize-ibComputer
-New-Alias -Name optib -Value optimize-ibComputer
+New-Alias -Name oic -Value optimize-ibComputer -ErrorAction SilentlyContinue
+New-Alias -Name optib -Value optimize-ibComputer -ErrorAction SilentlyContinue
 Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer,get-ibPassword -Alias oic,optib

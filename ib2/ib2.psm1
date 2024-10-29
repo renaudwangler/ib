@@ -2,6 +2,7 @@
 $infoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/distanciel_ib_cegos_fr/'
 $computersInfoUrl = "$($infoUrl)EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn"
 $sessionsInfoUrl = "$($infoUrl)EbJVsXJh_AVFjvbwxH-wHBoBhswZAG2O8wHXCJ6guXBk3w?e=1mvGBN"
+$ibPassKey = (83,124,0,8,91,12,213,127,158,123,148,248,53,200,192,219,165,223,105,253,73,86,183,226,187,204,21,4,115,230,153,114)
 
 function optimize-ibComputer {
   <#
@@ -19,6 +20,15 @@ function optimize-ibComputer {
       Write-Debug "lancement de la commande '$command'."
       try { Invoke-Expression $command }
       catch {Write-Host "    Erreur d'execution : $($error[0].Exception)"  -ForegroundColor red }}}}
+
+function get-ibPassword {
+  param ([parameter(Mandatory=$true)][string]$password)
+  $key = 0..255 | Get-Random -Count 32 |ForEach-Object {[byte]$_}
+  Write-Output "En tête du module :`n`$ibPassKey = ($($key -join ','))"
+  $SecurePassword = ConvertTo-SecureString $password -AsPlainText -Force
+  $encryptedPass = ($SecurePassword | ConvertFrom-SecureString -Key $key)
+  Write-Output "Dans le fichier JSON :`n""password"" : ""$encryptedPass"""
+  }
 
 function wait-ibNetwork {
 if (!$global:ibNetOk) {
@@ -39,7 +49,7 @@ function get-ibComputersInfo {
     if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des machines ib depuis le partage oneDrive'}
     if (!($global:ibSessionsInfo = ((invoke-WebRequest -Uri "$sessionsInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des sessions ib depuis le partage oneDrive'}
     Write-Debug 'Stockage des informations de connexion'
-    $global:ibAdminAccount = New-Object pscredential ($global:ibComputersInfo.Account.name, ($global:ibComputersInfo.Account.password|ConvertTo-SecureString))}}
+    $global:ibAdminAccount = New-Object pscredential ($global:ibComputersInfo.Account.name, ($global:ibComputersInfo.Account.password|ConvertTo-SecureString -Key $ibPassKey))}}
 
 function add-ibComputerInfo {
 #Fonction facilitant le peuplement de la variable $global:ibComputerInfo (utilisation interne)
@@ -295,4 +305,4 @@ else {invoke-ibNetCommand 'Stop-Computer -Force'}
 #######################
 New-Alias -Name oic -Value optimize-ibComputer
 New-Alias -Name optib -Value optimize-ibComputer
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer -Alias oic,optib
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer,get-ibPassword -Alias oic,optib

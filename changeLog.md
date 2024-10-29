@@ -1,4 +1,6 @@
-﻿**Version 2.9.1:**
+﻿**Version 2.9.2:**
+ - Correction stockage/récupération du mot de passe 
+**Version 2.9.1:**
  - Nouvelle option -autoCred pour les commandes invoke-ibNetCommand, invoke-ibMute et stop-ibNet
 **Version 2.9:**
  - Commande **optimize-ibComputer** plus fluide : refonte et amélioration.

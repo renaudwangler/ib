@@ -350,4 +350,4 @@ else {invoke-ibNetCommand 'Stop-Computer -Force'}
 #######################
 New-Alias -Name oic -Value optimize-ibComputer -ErrorAction SilentlyContinue
 New-Alias -Name optib -Value optimize-ibComputer -ErrorAction SilentlyContinue
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer,get-ibPassword -Alias oic,optib
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer,get-ibPassword,wait-ibNetwork -Alias oic,optib

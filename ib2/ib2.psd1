@@ -5,7 +5,7 @@
 @{
 
 RootModule = 'ib2.psm1'
-ModuleVersion = '2.10.1'
+ModuleVersion = '2.10.2'
 GUID = '8afa264f-71b6-4f7c-b16b-36463742660c'
 Author = 'Renaud WANGLER'
 CompanyName = 'ib'
@@ -13,7 +13,16 @@ Copyright = '(c) 2024 ib. Tous droits réservés.'
 Description = 'Simplification des actions en salle de formation'
 PowerShellVersion = '5.0'
 ScriptsToProcess = @('.\moduleImport.ps1')
-FunctionsToExport = @('get-ibComputers','invoke-ibNetCommand','invoke-ibMute','stop-ibNet','new-ibTeamsShortcut','get-ibComputerInfo','optimize-ibComputer','get-ibPassword')
+FunctionsToExport = @(
+'get-ibComputers',
+'invoke-ibNetCommand',
+'invoke-ibMute',
+'stop-ibNet',
+'new-ibTeamsShortcut',
+'get-ibComputerInfo',
+'optimize-ibComputer',
+'get-ibPassword',
+'wait-ibNetwork')
 CmdletsToExport = @()
 VariablesToExport = '*'
 AliasesToExport = @('oic','optib')

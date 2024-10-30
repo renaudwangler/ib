@@ -99,8 +99,12 @@ function get-ibPassword {
 function wait-ibNetwork {
   if (!$global:ibNetOk) {
     Write-Debug 'Vérification du réseau.'
+    $netCount = 0
     do {
-      write-ibLog 'Attente d''une réponse réseau.'
+      $netCount ++
+      if ($netCount -eq 10) { write-ibLog 'Attente longue (10 essais) du réseau.' -warning}
+      elseif ($netCount -eq 100) {write-ibLog 'Attente du réseau en vain.' -error -stop}
+      write-debug 'Attente d''une réponse réseau.'
       $netTest = Test-NetConnection -InformationLevel Quiet }
     until ($netTest)
   $global:ibNetOk = $true}}

@@ -58,7 +58,7 @@ function optimize-ibComputer {
   Write-Debug 'Vérification de la version du module.'
   $oldDebug = $global:DebugPreference
   $global:DebugPreference = 'silentlyContinue'
-  if ( [version](Find-Module -Name ib2).Version -gt (Get-Module -Name ib2 -ListAvailable).Version ) {
+  if ( [version](Find-Module -Name ib2).Version -gt (Get-Module -Name ib2 -ListAvailable|sort-object -property Version | select-object -Last 1).Version ) {
     $global:DebugPreference = $oldDebug
     write-ibLog 'Mise à jour du module.' -warning
     Remove-Module -Name ib2 -Force

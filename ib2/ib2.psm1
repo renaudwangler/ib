@@ -32,7 +32,7 @@ function write-ibLog {
     elseif ($warning) { Write-Warning -Message $eventContent.title }
     elseif ($out) { Write-Output -Message $eventContent.title }
     else { Write-debug $eventContent.title }
-    if ($stop) {exit} }
+    if ($stop) { break } }
 
 function get-ibLog {
   param (

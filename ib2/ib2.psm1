@@ -28,7 +28,7 @@ function write-ibLog {
       else {$eventContent = @{title = $message } }}}
     if ($session -ne '') { $eventContent.add('session',$session) }
     $eventObject.WriteEvent($eventId,@($eventContent.title,(ConvertTo-Json -InputObject $eventContent)))
-    if ($error) { Write-Error -Message $eventContent.title -ErrorId $id -Category $eventSource }
+    if ($error) { Write-Error -Message $eventContent.title -ErrorId $id }
     elseif ($warning) { Write-Warning -Message $eventContent.title }
     elseif ($out) { Write-Output -Message $eventContent.title }
     else { Write-debug $eventContent.title }

@@ -61,9 +61,9 @@ function optimize-ibComputer {
   if ( [version](Find-Module -Name ib2).Version -gt (Get-Module -Name ib2 -ListAvailable|sort-object -property Version | select-object -Last 1).Version ) {
     $global:DebugPreference = $oldDebug
     write-ibLog 'Mise à jour du module.' -warning
-    try { Remove-Module -Name ib2 -Force }
+    try { Remove-Module -Name ib2 -Force -ErrorAction stop}
     catch { write-ibLog 'Erreur lors de la libération du module actuel pour mise à jour.' -command 'Remove-Module -Name ib2 -Force' -message $error[0].Exception -error }
-    try { Update-Module -Name ib2 -Force }
+    try { Update-Module -Name ib2 -Force -ErrorAction stop}
     catch { write-ibLog 'Erreur lors de la mise à jour du module.' -command 'Update-Module -Name ib2 -Force' -message $error[0].Exception -error }
     Import-Module -Name ib2}
   $global:DebugPreference = $oldDebug

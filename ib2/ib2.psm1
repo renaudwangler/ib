@@ -3,6 +3,51 @@ $infoUrl = 'https://ibgroupecegos-my.sharepoint.com/:u:/g/personal/distanciel_ib
 $computersInfoUrl = "$($infoUrl)EZu4bAqgln5PlEwkMPtryEcB8UL-RJvUxig2GfHESWQjeQ?e=UMd3jn"
 $sessionsInfoUrl = "$($infoUrl)EbJVsXJh_AVFjvbwxH-wHBoBhswZAG2O8wHXCJ6guXBk3w?e=1mvGBN"
 $ibPassKey = (83,124,0,8,91,12,213,127,158,123,148,248,53,200,192,219,165,223,105,253,73,86,183,226,187,204,21,4,115,230,153,114)
+$eventSource = 'ibPowershellModule'
+
+function write-ibLog {
+  param (
+    [int32]$id = 0, [parameter(Position = 0)][string]$message, [string]$session = '', [string]$command, [switch]$warning, [switch]$error, [switch]$out, [switch]$stop )
+  if (-not ([System.Diagnostics.EventLog]::SourceExists($eventSource))) {
+    Write-Warning "Création de la source d'évènements '$eventSource' et attente de sa disponibilité."
+    [System.Diagnostics.EventLog]::CreateEventSource($eventSource,'Application') }
+  while (-not [System.Diagnostics.EventLog]::SourceExists($eventSource)) { Start-Sleep -Seconds 10 }
+  if ($warning) { $eventId = New-Object System.Diagnostics.EventInstance($id,1,2) }
+  elseif ($error) { $eventId = New-Object System.Diagnostics.EventInstance($id,1,1) }
+  else { $eventId = New-Object System.Diagnostics.EventInstance($id,1) }
+  $eventObject = New-Object System.Diagnostics.EventLog
+  $eventObject.Log = 'Application'; $eventObject.Source = $eventSource
+  switch ($id) {
+    1 { #La cible du raccourci est passée dans $message, son nom dans $command
+        $eventContent = @{title = 'Création d''un raccourci sur le bureau.'; name = $command; shortcut = $message } }
+    2 { #La commande passée est dans $command, son résultat (ou erreur) dans $message
+        $eventContent = @{title = 'Lancement d''une commande.'; command = $command; result = $message } }
+    3 { $eventContent = @{title = 'Installation automatique du client Teams.' } }
+    default {
+      if ($message -eq '') {$eventContent = @{title = 'Message d''évènement manquant.'} }
+      else {$eventContent = @{title = $message } }}}
+    if ($session -ne '') { $eventContent.add('session',$session) }
+    $eventObject.WriteEvent($eventId,@($eventContent.title,(ConvertTo-Json -InputObject $eventContent)))
+    if ($error) { Write-Error -Message $eventContent.title -ErrorId $id -Category $eventSource }
+    elseif ($warning) { Write-Warning -Message $eventContent.title }
+    elseif ($out) { Write-Output -Message $eventContent.title }
+    else { Write-debug $eventContent.title }
+    if ($stop) {exit} }
+
+function get-ibLog {
+  param (
+  [int32]$id = -1,
+  [string]$session = '')
+  $eventObject = New-Object System.Diagnostics.EventLog
+  $eventObject.Source = $eventSource
+  $eventResult = @()
+  foreach ($event in $eventObject.Entries) {
+    if ($event.Source -eq $eventSource) {
+      $eventContent = ($event.replacementStrings[1]|ConvertFrom-Json)
+      $eventContent|Add-Member -NotePropertyName Date -NotePropertyValue $event.TimeGenerated
+      if (($id -eq -1 -or ($event.eventId -eq $id)) -and ($session -eq '' -or $eventContent.session -eq $session)) {
+        $eventResult += $eventContent } } }
+  return ($eventResult) }
 
 function optimize-ibComputer {
   <#
@@ -15,8 +60,7 @@ function optimize-ibComputer {
   $global:DebugPreference = 'silentlyContinue'
   if ( [version](Find-Module -Name ib2).Version -gt (Get-Module -Name ib2 -ListAvailable).Version ) {
     $global:DebugPreference = $oldDebug
-    write-debug '  Mise à jour du module.'
-    $global:DebugPreference = 'silentlycontinue'
+    write-ibLog 'Mise à jour du module.' -warning
     Remove-Module -Name ib2 -Force
     Update-Module -Name ib2 -Force 
     Import-Module -Name ib2}
@@ -28,30 +72,36 @@ function optimize-ibComputer {
   elseif ($ibComputerInfo.nextSession) {
     $todoMessage = "Optimisation de la machine pour la prochaine session $($ibComputerInfo.nextSession)."
     $sessionToSetup = $ibComputerInfo.nextSession }
-    else { throw 'Aucune session trouvée pour cette machine' }
+    else { write-ibLog 'Aucune session trouvée pour cette machine.' -warning -stop}
   if ($global:ibComputerInfo) {
-    $todoMessage
+    write-ibLog $todoMessage -session $sessionToSetup
     if ($global:ibComputerInfo.teamsMeeting -ne $null) { new-ibTeamsShortcut -meetingUrl $global:ibComputerInfo.teamsMeeting }
     else { new-ibTeamsShortcut }
     ForEach ($shortcut in $global:ibComputerInfo.shortcuts) {
-      Write-Debug "Placement du raccourci '$($shortcut.name)' sur le bureau."
+      write-ibLog -id 1 -command $shortcut.name -message $shortcut.url -session $sessionToSetup
       New-Item -Path "$env:PUBLIC\Desktop" -Name "$($shortcut.name).url" -ItemType File -Value "[InternetShortcut]`nURL=$($shortcut.url)" -Force|Out-Null}
     ForEach ($command in $global:ibComputerInfo.commands) {
       Write-Debug "lancement de la commande '$command'."
-      try { Invoke-Expression $command }
-      catch {Write-Host "    Erreur d'execution : $($error[0].Exception)"  -ForegroundColor red }}}}
+      try { 
+        Invoke-Expression $command |Tee-Object -Variable $commandResult
+        write-ibLog -id 2 -command $command -message $commandResult }
+      catch { write-ibLog -id 2 -command $command -message $error[0].Exception -error }}}}
 
 function get-ibPassword {
   param ([parameter(Mandatory=$true)][string]$password)
   $key = 0..255 | Get-Random -Count 32 |ForEach-Object {[byte]$_}
+  write-ibLog 'Utilisation de la commande get-ibPassword pour générer de nouvelles informations de sécurité' -warning
   Write-Output "En tête du module :`n`$ibPassKey = ($($key -join ','))"
   $SecurePassword = ConvertTo-SecureString $password -AsPlainText -Force
   $encryptedPass = ($SecurePassword | ConvertFrom-SecureString -Key $key)
   Write-Output "Dans le fichier JSON :`n""password"" : ""$encryptedPass""" }
 
 function wait-ibNetwork {
-if (!$global:ibNetOk) {
-    do { $netTest = Test-NetConnection -InformationLevel Quiet }
+  if (!$global:ibNetOk) {
+    Write-Debug 'Vérification du réseau.'
+    do {
+      write-ibLog 'Attente d''une réponse réseau.'
+      $netTest = Test-NetConnection -InformationLevel Quiet }
     until ($netTest)
   $global:ibNetOk = $true}}
 
@@ -65,19 +115,19 @@ function get-ibComputersInfo {
   param ([switch]$force)
   if (!$global:ibComputersInfo -or !$global:ibSessionsInfo -or $force) {
     wait-ibNetwork
-    if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-error -message 'Impossible de récuperer les informations des machines ib depuis le partage oneDrive'}
+    if (!($global:ibComputersInfo = ((invoke-WebRequest -Uri "$computersInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) { write-ibLog 'Impossible de récuperer les informations des machines ib depuis le partage oneDrive' -error -stop}
     if (($global:ibSessionsInfo = ((invoke-WebRequest -Uri "$sessionsInfoUrl&download=1" -UseBasicParsing).content|ConvertFrom-Json))) {
-      Write-Debug 'Enrichissement du tableau des salles occupées par les sessions.'
+      write-ibLog 'Récupération des informations de référence et de sessions.'
       foreach ($session in $global:ibSessionsInfo.Sessions.psObject.Properties) {
         if ($session.Value.salle -ne $null -and $global:ibComputersInfo.salles.($session.Value.salle) -eq $null) {
-          Write-Debug "  Ajout de la salle '$($session.value.salle)' pour la session '$($session.Name)'."
+          write-debug "Ajout de la salle '$($session.value.salle)' pour la session '$($session.Name)'."
           $global:ibComputersInfo.Salles|add-member -NotePropertyName $session.Value.salle -NotePropertyValue @{sessions=@($session.Name)}}
           #$global:ibSallesInfo.add($session.Value.salle, @($session.Name))}
         elseif ($session.Value.salle -ne $null) {
           write-debug "  Ajout de la session '$($session.Name)' à la salle '$($session.value.salle)'."
           if ($global:ibComputersInfo.Salles.($session.Value.salle).sessions -eq $null) { $global:ibComputersInfo.Salles.($session.Value.salle)|Add-Member -NotePropertyName sessions -NotePropertyValue @($session.Name)}
           else { $global:ibComputersInfo.Salles.($session.Value.salle) += $session.Name }}}}
-    else { write-error -message 'Impossible de récuperer les informations des sessions ib depuis le partage oneDrive'}
+    else { write-ibLog 'Impossible de récuperer les informations des sessions ib depuis le partage oneDrive' -error -stop}
     Write-Debug 'Stockage des informations de connexion'
     $global:ibAdminAccount = New-Object pscredential ($global:ibComputersInfo.Account.name, ($global:ibComputersInfo.Account.password|ConvertTo-SecureString -Key $ibPassKey))}}
 
@@ -113,7 +163,7 @@ function get-ibComputerInfo {
         write-debug '  Salle trouvée dans la référence ib.'
         add-ibComputerInfo -Names teamsMeeting -Value $salle
         add-ibComputerInfo -Names shortcuts,commands,sessions -Value $salle -Add }}
-      else { Write-Warning "  Salle '($($global:ibComputerInfo.salle))' trouvée sur la machine mais pas dans la référence."}
+      else { write-ibLog "  Salle '($($global:ibComputerInfo.salle))' trouvée sur la machine mais pas dans la référence." -warning}
     $currentDate = (Get-Date).ToString('yyyyMMdd')
     $nextSession = @{'name'='init';'date'='99999999'}
     foreach ($session in $global:ibComputerInfo.sessions) {
@@ -125,14 +175,14 @@ function get-ibComputerInfo {
       else {
         $sessionMessage += ' qui est en cours.'
         $currentSession = $session }
-      write-debug $sessionMessage}
+      write-debug $sessionMessage }
     if ($currentSession -ne $null) {
-      Write-Debug "  Inscription des informations de la session en cours ($currentSession)."
+      write-ibLog "Inscription des informations de la session en cours ($currentSession)." -session $currentSession
       add-ibComputerInfo -Names stage,salle,formateur,debut,fin,teamsMeeting -Value $ibSessionsInfo.Sessions.$currentSession
       add-ibComputerInfo -Names shortcuts,commands -Value $ibSessionsInfo.Sessions.$currentSession -Add
       $global:ibComputerInfo|Add-Member -NotePropertyName currentSession -NotePropertyValue $currentSession }
     elseif ($nextSession.name -ne 'init') {
-      Write-Debug "  Inscription des informations de la prochaine session ($($nextSession.name))."
+      Write-ibLog "Inscription des informations de la prochaine session ($($nextSession.name))." -session $nextSession.name
       add-ibComputerInfo -Names stage,salle,formateur,debut,fin,teamsMeeting -Value $ibSessionsInfo.Sessions.($nextSession.name)
       add-ibComputerInfo -Names shortcuts,commands -Value $ibSessionsInfo.Sessions.($nextSession.name) -Add
       $global:ibComputerInfo|Add-Member -NotePropertyName nextSession -NotePropertyValue $nextSession.name}
@@ -141,15 +191,15 @@ function get-ibComputerInfo {
       if ($formateur = $global:ibComputersInfo.Formateurs.$formateurTRG) {
         write-debug '  Formateur trouvé dans la référence ib.'
         add-ibComputerInfo -Names shortcuts,commands -value $formateur -Add }
-      else { Write-Warning "  Formateur '($($global:ibComputerInfo.formateur))' trouvé sur la machine mais pas dans la référence."}}
+      else { write-ibLog "  Formateur '($($global:ibComputerInfo.formateur))' trouvé sur la machine mais pas dans la référence." -warning}}
     if ($stageRef = $global:ibComputerInfo.stage) {
       Write-Debug '  Stage trouvé sur les informations de machine.'
       if ($stage = $global:ibComputersInfo.Stages.$stageRef) {
         write-debug '  Stage trouvé dans la référence ib.'
         add-ibComputerInfo -Names shortcuts,commands -value $stage -Add }
-      else { Write-Warning "  Stage '($($global:ibComputerInfo.stage))' trouvé sur la machine mais pas dans la référence."}
+      else { write-ibLog "  Stage '($($global:ibComputerInfo.stage))' trouvé sur la machine mais pas dans la référence." -warning}
         }}
-else { Write-error "Numéro de série '$serialNumber' introuvable dans le fichier de références."}}
+else { write-ibLog "Numéro de série '$serialNumber' introuvable dans le fichier de références." -error -stop}}
 
 function new-ibTeamsShortcut {
   <#
@@ -160,7 +210,7 @@ function new-ibTeamsShortcut {
   #>
   param( $meetingUrl = 'noUrl')
   # URL vers Teamsbootstrapper.exe depuis https://learn.microsoft.com/en-us/microsoftteams/new-teams-bulk-install-client
-  Write-Debug 'Installation automatisée du client Teams.'
+  write-ibLog -id 3
   $DownloadExeURL='https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409'
   $WebClient=New-Object -TypeName System.Net.WebClient
   write-debug '  Téléchargement du client Teams.'
@@ -169,7 +219,7 @@ function new-ibTeamsShortcut {
   Write-Debug '  Installation du client Teams.'
   & "$($Env:TEMP)\Teamsbootstrapper.exe" -p >> $null
   if ($meetingUrl -ne 'noUrl') {
-    Write-debug '  Création du raccourci vers la réunion sur le bureau.'
+    write-ibLog -id 1 -command 'Réunion Teams' -message $meetingUrl
     New-Item -Path "$env:PUBLIC\Desktop" -Name 'Réunion Teams.url' -ItemType File -Value "[InternetShortcut]`nURL=$meetingUrl" -Force|out-null}}
 
 function set-ibRemoteManagement {
@@ -350,4 +400,4 @@ else {invoke-ibNetCommand 'Stop-Computer -Force'}
 #######################
 New-Alias -Name oic -Value optimize-ibComputer -ErrorAction SilentlyContinue
 New-Alias -Name optib -Value optimize-ibComputer -ErrorAction SilentlyContinue
-Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer,get-ibPassword,wait-ibNetwork -Alias oic,optib
+Export-moduleMember -Function invoke-ibMute,get-ibComputers,invoke-ibNetCommand,stop-ibNet,new-ibTeamsShortcut,get-ibComputerInfo,optimize-ibComputer,get-ibPassword,wait-ibNetwork,write-ibLog,get-ibLog -Alias oic,optib

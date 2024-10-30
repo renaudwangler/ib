@@ -1,4 +1,6 @@
-﻿**Version 2.10:**
+﻿**Version 2.11:**
+ - Nouvvelles fonction pour gestion des informations dans le journal Application (source 'ibPowershellModule')
+**Version 2.10:**
  - Affectation des informations de salle pour les machines (au lieu de session)
 **Version 2.9.2:**
  - Correction stockage/récupération du mot de passe 

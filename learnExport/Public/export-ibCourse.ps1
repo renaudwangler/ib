@@ -17,7 +17,6 @@ function Export-ibCourse {
             if ($tool.Key -eq 'xelatex') { Write-Warning "Installation de Xelatex : tout accepter (y compris au premier lancement ensuite)..."}
             winget install --id $tool.Value --accept-package-agreements --accept-source-agreements -e }}
     python -m pip install --upgrade --quiet pip
-    python -m pip install --quiet requests beautifulsoup4 pyyaml
     python -m pip install --quiet -r ( Join-Path $PSScriptRoot '..\requirements.txt' )
     $env:Path = [System.Environment]::GetEnvironmentVariable( "Path", "Machine" ) + ";" + [System.Environment]::GetEnvironmentVariable( "Path", "User")
     $PythonScript = Join-Path $PSScriptRoot "..\Private\export-course.py"

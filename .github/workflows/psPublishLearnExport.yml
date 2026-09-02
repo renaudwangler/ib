@@ -23,6 +23,6 @@ jobs:
           $PublishedModule = Find-Module learnExport -ErrorAction SilentlyContinue
           if(-not $PublishedModule -or [version]$PublishedModule.Version -lt [version]$moduleVersion) {
               #Nouvelle version : lancer la publication
-              Publish-Module -Path ./learnExport -NuGetApiKey $env:NUGET_KEY -tag 'PSEdition_Desktop','PSEdition_Core','MicrosoftLearn','Pandoc','Training' -iconUri 'https://raw.githubusercontent.com/renaudwangler/ib/master/extra/logo-ib.png' -Verbose
+              Publish-Module -Path ./learnExport -NuGetApiKey $env:NUGET_KEY -Verbose
               write-host "::notice title=Publication réussie::Publication de la version $moduleVersion vers la gallerie Powershell"}
           else {write-host "::warning title=Version identique::La version n'a pas changé, pas de publication"}

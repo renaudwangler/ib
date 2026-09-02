@@ -14,14 +14,6 @@ GUID = '8d41dc31-5591-4bec-8dbf-991d4ba6f1de'
 Author      = 'Renaud Wangler'
 Description = 'Export Microsoft Learn courses to Markdown, EPUB and PDF.'
 CompanyName = 'ib Cegos'
-ProjectUri = 'https://github.com/renaudwangler/ib'
-IconUri = 'https://raw.githubusercontent.com/renaudwangler/ib/master/extra/logo-ib.png'
-Tags = @(
-'MicrosoftLearn'
-'Training'
-'EPUB'
-'PDF'
-'Pandoc')
 Copyright = '(c) Renaud Wangler. All rights reserved.'
 FunctionsToExport = @( 'Export-ibCourse' )
 CmdletsToExport = '*'
@@ -30,13 +22,18 @@ AliasesToExport = '*'
 PrivateData = @{
     PSData = @{
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @(
+            'MicrosoftLearn'
+            'Training'
+            'EPUB'
+            'PDF'
+            'Pandoc')
         # A URL to the license for this module.
         # LicenseUri = ''
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/renaudwangler/ib'
         # A URL to an icon representing this module.
-        # IconUri = ''
+        IconUri = 'https://raw.githubusercontent.com/renaudwangler/ib/master/extra/logo-ib.png'
         # ReleaseNotes of this module
         # ReleaseNotes = ''
         # Prerelease string of this module

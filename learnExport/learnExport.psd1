@@ -8,7 +8,7 @@
 
 @{
 RootModule = 'learnExport.psm1'
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.2.0'
 # ID used to uniquely identify this module
 GUID = '8d41dc31-5591-4bec-8dbf-991d4ba6f1de'
 Author      = 'Renaud Wangler'

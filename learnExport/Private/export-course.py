@@ -128,14 +128,11 @@ def process_images(markdown, module_soup):
         local_file = IMAGE_FOLDER / image_filename
         raw_url = ( f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{module_folder}/media/{image_filename}" )
         if not local_file.exists():
-            print( f"              image : {image_filename}" )
-            print( f"                 => {raw_url}" )
             try:
                 response = SESSION.get( raw_url, timeout=30 )
                 if response.status_code == 200:
                     with open( local_file, "wb" ) as f:
                         f.write( response.content )
-                else: print( f"                 ECHEC {response.status_code}" )
             except Exception as e: print( f"                 ERREUR {e}" )
         if local_file.exists():
             markdown = markdown.replace( image_path, str(local_file).replace( "\\", "/" ))

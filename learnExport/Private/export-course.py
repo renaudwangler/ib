@@ -10,21 +10,19 @@ import sys
 # Paramètres Modifiables
 COURSE_CODE = ( sys.argv[1] if len(sys.argv) > 1 else "SC-500T00" )
 OUTPUT_PROFILE = ( sys.argv[2] if len(sys.argv) > 2 else "Lecture" )
+# TODO V2 : supprimée quand tous les téléchargements seront gérés par PowerShell
 COURSE_URL = (f"https://learn.microsoft.com/en-us/training/courses/{COURSE_CODE}")
-GENERATE_EPUB = True
-GENERATE_PDF = True
 
 # Paramètres du script
 SCRIPT_FOLDER = Path(__file__).parent
-CACHE_FOLDER = SCRIPT_FOLDER.parent / "cache"
+CACHE_FOLDER = Path("./cache")
 EXPORT_FOLDER = Path("./exports")
 IMAGE_FOLDER = Path(f"./{COURSE_CODE}-images")
 CACHE_FOLDER.mkdir(exist_ok=True)
 EXPORT_FOLDER.mkdir(exist_ok=True)
 IMAGE_FOLDER.mkdir(exist_ok=True)
 OUTPUT_MD = CACHE_FOLDER / f"{COURSE_CODE}-{OUTPUT_PROFILE}.md"
-OUTPUT_EPUB = EXPORT_FOLDER / f"{COURSE_CODE}-{OUTPUT_PROFILE}.epub"
-OUTPUT_PDF = EXPORT_FOLDER / f"{COURSE_CODE}-{OUTPUT_PROFILE}.pdf"
+OUTPUT_HTML = EXPORT_FOLDER / f"{COURSE_CODE}-{OUTPUT_PROFILE}.html"
 if OUTPUT_PROFILE == "Lecture":
     KEEP_INTRODUCTION = False
     KEEP_SUMMARY = False
@@ -147,13 +145,9 @@ def process_images(markdown, module_soup):
             markdown )
     return markdown
 
-COURSE_HTML_FILE = CACHE_FOLDER / "course.html"
-if COURSE_HTML_FILE.exists():
-    print("Lecture du cours depuis le cache...")
-    course_html = COURSE_HTML_FILE.read_text(encoding="utf-8")
-else:
-    print("Téléchargement du cours...")
-    course_html = get_html(COURSE_URL)
+COURSE_HTML_FILE = (CACHE_FOLDER / f"{COURSE_CODE}.html")
+print("Lecture du cours depuis le cache...")
+course_html = COURSE_HTML_FILE.read_text(encoding="utf-8")
 course_soup = BeautifulSoup(course_html, "html.parser")
 learning_paths = []
 for tag in course_soup.find_all( "meta", attrs={"name": "learn_item"}):
@@ -169,8 +163,10 @@ for lp_index, lp in enumerate( learning_paths, start=1):
     print()
     print( f"[LP {lp_index}/{len(learning_paths)}] {lp['title']}" )
     try:
-        lp_html = get_html(lp["url"])
-        lp_soup = BeautifulSoup( lp_html, "html.parser" )
+        lp_file = (CACHE_FOLDER / "learning-paths" / f"{lp['title']}.html")
+        print(f"Lecture cache LP : {lp_file}")
+        lp_html = lp_file.read_text(encoding="utf-8")
+        lp_soup = BeautifulSoup(lp_html, "html.parser")
     except Exception as e:
         print( f"    ERREUR Learning Path : {e}" )
         continue
@@ -195,8 +191,11 @@ for lp_index, lp in enumerate( learning_paths, start=1):
         if (mod_index > 1): all_content.append( "\n\n\\newpage\n\n" )
         all_content.append( f"## {module['title']}\n\n" )
         try:
-            module_html = get_html( module["url"] )
-            module_soup = BeautifulSoup( module_html, "html.parser" )
+            module_slug = (module["url"].rstrip("/").split("/")[-1])
+            module_file = (CACHE_FOLDER / "modules" / f"{module_slug}.html")
+            print(f"Lecture cache module : {module_file}")
+            module_html = module_file.read_text(encoding="utf-8")
+            module_soup = BeautifulSoup(module_html,"html.parser")
         except Exception as e:
             print( f"         ERREUR module : {e}" )
             continue
@@ -250,15 +249,10 @@ with open( OUTPUT_MD, "w", encoding="utf-8" ) as f:
 print( f"Markdown créé : {OUTPUT_MD}")
 print()
 print(f"Images téléchargées dans : {IMAGE_FOLDER}")
-if GENERATE_EPUB:
-    print()
-    print("Création de l'EPUB...")
-    result = subprocess.run( [ "pandoc", OUTPUT_MD, "-o", OUTPUT_EPUB ])
-    if result.returncode == 0: print(f"Fichier EPUB créé : {OUTPUT_EPUB}")
-    else: print("ERREUR lors de la création du fichier EPUB.")
-if GENERATE_PDF:
-    print()
-    print("Création du PDF...")
-    result = subprocess.run( [ "pandoc", OUTPUT_MD, "-o", OUTPUT_PDF, "--pdf-engine=xelatex" ])
-    if result.returncode == 0: print(f"Fcihier PDF créé : {OUTPUT_PDF}")
-    else: print("ERREUR lors de la création du fichier PDF")
+print()
+print("Création du HTML...")
+result = subprocess.run(["pandoc", OUTPUT_MD, "-s", "-o", OUTPUT_HTML])
+if result.returncode == 0:
+    print(f"Fichier HTML créé : {OUTPUT_HTML}")
+else:
+    print("ERREUR lors de la création du fichier HTML")

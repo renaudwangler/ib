@@ -16,6 +16,13 @@ function Export-ibCourse {
             write-Warning "$($tool.Key) introuvable : Installation"
             if ($tool.Key -eq 'xelatex') { Write-Warning "Installation de Xelatex : tout accepter (y compris au premier lancement ensuite)..."}
             winget install --id $tool.Value --accept-package-agreements --accept-source-agreements -e }}
+
+    $CacheFolder = Join-Path $PSScriptRoot "..\cache"
+    if (-not (Test-Path $CacheFolder)) { New-Item -ItemType Directory -Path $CacheFolder | Out-Null }
+    $CourseUrl = "https://learn.microsoft.com/en-us/training/courses/$CourseCode"
+    $CourseFile = Join-Path $CacheFolder "course.html"
+    Invoke-WebRequest -Uri $CourseUrl -OutFile $CourseFile
+    
     python -m pip install --upgrade --quiet pip
     python -m pip install --quiet -r ( Join-Path $PSScriptRoot '..\requirements.txt' )
     $env:Path = [System.Environment]::GetEnvironmentVariable( "Path", "Machine" ) + ";" + [System.Environment]::GetEnvironmentVariable( "Path", "User")

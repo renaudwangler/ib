@@ -15,7 +15,8 @@ GENERATE_EPUB = True
 GENERATE_PDF = True
 
 # Paramètres du script
-CACHE_FOLDER = Path("./cache")
+SCRIPT_FOLDER = Path(__file__).parent
+CACHE_FOLDER = SCRIPT_FOLDER.parent / "cache"
 EXPORT_FOLDER = Path("./exports")
 IMAGE_FOLDER = Path(f"./{COURSE_CODE}-images")
 CACHE_FOLDER.mkdir(exist_ok=True)
@@ -48,12 +49,19 @@ def get_source_path(md):
     if match: return match.group(1).strip()
     return None
 
+def get_yaml(url):
+    response = SESSION.get(url, timeout=30)
+    response.raise_for_status()
+    return response.text
+
 def get_knowledge_check(source_path):
     repos = [ "learn", "learn-m365-pr" ]
     for repo in repos:
         yaml_url = ( f"https://raw.githubusercontent.com/MicrosoftDocs/{repo}/main/{source_path}" )
-        response = requests.get(yaml_url)
-        if response.status_code == 200: return yaml.safe_load(response.text)
+        try:
+            return yaml.safe_load(get_yaml(yaml_url))
+        except Exception:
+            pass
     raise Exception( f"Knowledge Check introuvable : {source_path}" )
 
 def knowledge_check_to_markdown(source_path):
@@ -84,22 +92,21 @@ def get_html(url):
     response.raise_for_status()
     return response.text
 
+def get_markdown(url):
+    response = SESSION.get(url, timeout=30)
+    response.raise_for_status()
+    return response.text    
+
 def clean_markdown(md):
     if md.startswith("---"):
         parts = md.split("---", 2)
         if len(parts) >= 3: md = parts[2]
     return md.strip()
 
-
-def download_image(url, local_file):
-    try:
-        response = SESSION.get(url, timeout=30)
-        if response.status_code == 200:
-            with open(local_file, "wb") as f: f.write(response.content)
-            return True
-    except Exception: pass
-    return False
-
+def get_binary(url):
+    response = SESSION.get(url, timeout=30)
+    response.raise_for_status()
+    return response.content
 
 def process_images(markdown, module_soup):
     source_meta = module_soup.find( "meta", attrs={"name": "source_path"} )
@@ -129,10 +136,8 @@ def process_images(markdown, module_soup):
         raw_url = ( f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{module_folder}/media/{image_filename}" )
         if not local_file.exists():
             try:
-                response = SESSION.get( raw_url, timeout=30 )
-                if response.status_code == 200:
-                    with open( local_file, "wb" ) as f:
-                        f.write( response.content )
+                with open(local_file, "wb") as f:
+                    f.write(get_binary(raw_url))
             except Exception as e: print( f"                 ERREUR {e}" )
         if local_file.exists():
             markdown = markdown.replace( image_path, str(local_file).replace( "\\", "/" ))
@@ -142,9 +147,13 @@ def process_images(markdown, module_soup):
             markdown )
     return markdown
 
-
-print("Téléchargement du cours...")
-course_html = get_html(COURSE_URL)
+COURSE_HTML_FILE = CACHE_FOLDER / "course.html"
+if COURSE_HTML_FILE.exists():
+    print("Lecture du cours depuis le cache...")
+    course_html = COURSE_HTML_FILE.read_text(encoding="utf-8")
+else:
+    print("Téléchargement du cours...")
+    course_html = get_html(COURSE_URL)
 course_soup = BeautifulSoup(course_html, "html.parser")
 learning_paths = []
 for tag in course_soup.find_all( "meta", attrs={"name": "learn_item"}):
@@ -210,13 +219,11 @@ for lp_index, lp in enumerate( learning_paths, start=1):
             markdown_url = ( unit_url + "?accept=text/markdown" )
             print( f"           - {unit_title}" )
             try:
-                md = SESSION.get( markdown_url, timeout=30 ).text
+                md = get_markdown(markdown_url)
                 if is_knowledge_check(md):
                     if KEEP_KNOWLEDGE_CHECK:
                         print("             Knowledge Check enrichi")
                         source_path = get_source_path(md)
-                        if ( SHOW_KNOWLEDGE_CHECK_ANSWERS and source_path ):
-                            md = knowledge_check_to_markdown( source_path )
                         if SHOW_KNOWLEDGE_CHECK_ANSWERS and source_path:
                             try:
                                 md = knowledge_check_to_markdown( source_path )

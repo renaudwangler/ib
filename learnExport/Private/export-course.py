@@ -6,6 +6,7 @@ import subprocess
 import re
 import yaml
 import sys
+import json
 
 # Paramètres Modifiables
 COURSE_CODE = ( sys.argv[1] if len(sys.argv) > 1 else "SC-500T00" )
@@ -146,33 +147,25 @@ def process_images(markdown, module_soup):
     return markdown
 
 COURSE_HTML_FILE = (CACHE_FOLDER / f"{COURSE_CODE}.html")
+STRUCTURE_FILE = (CACHE_FOLDER / COURSE_CODE / "structure.json")
+with open(STRUCTURE_FILE, "r", encoding="utf-8-sig") as f: course_structure = json.load(f)
 print("Lecture du cours depuis le cache...")
 course_html = COURSE_HTML_FILE.read_text(encoding="utf-8")
-course_soup = BeautifulSoup(course_html, "html.parser")
-learning_paths = []
-for tag in course_soup.find_all( "meta", attrs={"name": "learn_item"}):
-    content = tag.get("content", "")
-    if not content.startswith("learn.wwl."): continue
-    slug = content.replace( "learn.wwl.", "" )
-    learning_paths.append({ "title": slug, "url": f"https://learn.microsoft.com/en-us/training/paths/{slug}/" })
-print()
+learning_paths = (course_structure["LearningPaths"])
 print(f"{len(learning_paths)} Learning Paths trouvés")
 all_content = []
 first_learning_path = True
 for lp_index, lp in enumerate( learning_paths, start=1):
-    print()
-    print( f"[LP {lp_index}/{len(learning_paths)}] {lp['title']}" )
+    lp_file = Path(lp["File"])
+    print(f"[LP {lp_index}/{len(learning_paths)}] {lp_file.stem}")
     try:
-        lp_file = (CACHE_FOLDER / "learning-paths" / f"{lp['title']}.html")
-        print(f"Lecture cache LP : {lp_file}")
-        lp_html = lp_file.read_text(encoding="utf-8")
-        lp_soup = BeautifulSoup(lp_html, "html.parser")
+        modules = lp['Modules']
     except Exception as e:
         print( f"    ERREUR Learning Path : {e}" )
         continue
     if not first_learning_path: all_content.append("\n\n\\newpage\n\n")
     first_learning_path = False
-    all_content.append( f"# {lp['title']}\n\n" )
+    all_content.append( f"# {lp['Title']}\n\n" )
     modules = []
     for link in lp_soup.find_all( "a", href=True ):
         href = link["href"]

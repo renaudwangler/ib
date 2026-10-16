@@ -53,6 +53,7 @@ function get-ibGlobalCache {
             #Analyse du module pour trouver les unités
             $UnitStructure = @()
             $UnitLines = $ModuleContent -split "`n" | Where-Object { $_ -like '*unit-title*' }
+            $firstUnit = $true
             foreach ($Line in $UnitLines) {
                 if ($Line -match 'href="([^"]+)"') {
                     $UnitUrl = "$ModuleUrl$($Matches[1])?accept=text/markdown"
@@ -60,6 +61,10 @@ function get-ibGlobalCache {
                     $UnitFile = Get-ibWebCache -SourceUrl $UnitUrl -DestinationFolder $UnitsFolder -Extension "md"
                     if (-not $KnownFiles.Add($UnitFile)) {continue}
                     $UnitContent = Get-Content $UnitFile -Raw
+                    #Suppression du FrontMatter YAML
+                    if ($UnitContent -match '(?s)^---\s*\r?\n.*?\r?\n---\s*\r?\n') {$UnitContent = "`r`n`r`n" + $UnitContent.Substring($Matches[0].Length)}
+                    if (-not $FirstUnit) {$UnitContent = "`r`n`r`n\newpage" + $UnitContent}
+                    $FirstUnit = $false
                     $UnitTitle = ($UnitContent -split "`n" | Where-Object { $_ -like '## *' } | Select-Object -First 1)
                     $UnitTitle = $UnitTitle -replace '^##\s+', ''
                     #Récupération éventuelle des images de l'unité

@@ -9,18 +9,20 @@ function Get-ibWebCache {
         Write-Debug "Téléchargement de '$SourceUrl'"
         Invoke-WebRequest -Uri $SourceUrl -OutFile $DestinationFile}
     return $DestinationFile}
+
 function get-ibGlobalCache {
 [CmdletBinding()]param([Parameter(Mandatory)][string]$CourseCode,[Parameter(Mandatory)][string]$CacheFolder)
     $learnPath = 'https://learn.microsoft.com/en-us/training'
     $KnownFiles = [System.Collections.Generic.HashSet[string]]::new()
     $LearningPathFolder = Join-Path $CacheFolder $CourseCode
+    $ImagesFolder = Join-Path $LearningPathFolder "images"
     $CourseUrl = "$learnPath/courses/$CourseCode"
     $CourseFile = Get-ibWebCache -SourceUrl $CourseUrl -DestinationFolder $CacheFolder
     $CourseContent = Get-Content $CourseFile -Raw
     #Analyse de l'accueil pour trouver les Learning Path
     $LPMatches = [regex]::Matches($CourseContent, '<meta[^>]*name="learn_item"[^>]*content="([^"]+)"')
     $lpStructure = @()
-    foreach ($LPMatch in $LPMatches) {
+    foreach ($LPMatch in $LPMatches)  {
         $Content = $LPMatch.Groups[1].Value
         if ($Content -notlike 'learn.wwl.*') {continue}
         $LpUrl = "$learnPath/paths/$($Content -replace '^learn\.wwl\.', '')/"
@@ -38,20 +40,43 @@ function get-ibGlobalCache {
             $ModuleFile = Get-ibWebCache -SourceUrl $ModuleUrl -DestinationFolder $ModuleFolder
             if (-not $KnownFiles.Add($ModuleFile)) {continue}
             $ModuleContent = Get-Content $ModuleFile -Raw
+            if ($ModuleContent -match 'property="og:title"[^\>]*content="([^"]+)"') {
+            $ModuleTitle = $Matches[1] -replace '\s*-\s*Training$'}
+            #Récupération des informations pour les urls
+            if ($ModuleContent -match 'name="source_path"[^"]*content="([^"]+)"') {$SourcePath = $Matches[1]}
+            if ($ModuleContent -match 'name="github_feedback_content_git_url"[^"]*content="([^"]+)"') {$GitHubUrl = $Matches[1]}
+            if ($GitHubUrl -match 'github\.com/([^/]+)/([^/]+)/blob/([^/]+)/') {
+                $Owner = $Matches[1]
+                $Repo = $Matches[2]
+                $Branch = $Matches[3]}
+            $GitHubModuleFolder = ($SourcePath -replace '/index\.yml$','')
             #Analyse du module pour trouver les unités
             $UnitStructure = @()
             $UnitLines = $ModuleContent -split "`n" | Where-Object { $_ -like '*unit-title*' }
             foreach ($Line in $UnitLines) {
                 if ($Line -match 'href="([^"]+)"') {
-                  $UnitUrl = "$ModuleUrl$($Matches[1])?accept=text/markdown"
-                  $UnitsFolder = Join-Path $ModuleFolder ([System.IO.Path]::GetFileNameWithoutExtension($ModuleFile))
-                  $UnitFile = Get-ibWebCache -SourceUrl $UnitUrl -DestinationFolder $UnitsFolder -Extension "md"
-                  if (-not $KnownFiles.Add($UnitFile)) {continue}
-                  $UnitStructure += $UnitFile }}
-            $ModuleStructure += @{File = $ModuleFile;Units = $UnitStructure}}
+                    $UnitUrl = "$ModuleUrl$($Matches[1])?accept=text/markdown"
+                    $UnitsFolder = Join-Path $ModuleFolder ([System.IO.Path]::GetFileNameWithoutExtension($ModuleFile))
+                    $UnitFile = Get-ibWebCache -SourceUrl $UnitUrl -DestinationFolder $UnitsFolder -Extension "md"
+                    if (-not $KnownFiles.Add($UnitFile)) {continue}
+                    $UnitContent = Get-Content $UnitFile -Raw
+                    $UnitTitle = ($UnitContent -split "`n" | Where-Object { $_ -like '## *' } | Select-Object -First 1)
+                    $UnitTitle = $UnitTitle -replace '^##\s+', ''
+                    #Récupération éventuelle des images de l'unité
+                    $ImageMatches = [regex]::Matches($UnitContent, '\(([^)]*/media/[^)]+)\)')
+                    foreach ($ImageMatch in $ImageMatches) {
+                        $OriginalImagePath = $ImageMatch.Groups[1].Value
+                        $ImageFile = Split-Path $OriginalImagePath -Leaf
+                        $RawUrl = "https://raw.githubusercontent.com/$Owner/$Repo/$Branch/$GitHubModuleFolder/media/$ImageFile"
+                        $Extension = [System.IO.Path]::GetExtension($ImageFile).TrimStart('.')
+                        $LocalImageFile = Get-ibWebCache -SourceUrl $RawUrl -DestinationFolder $ImagesFolder -Extension $Extension
+                        $UnitContent = $UnitContent.Replace($OriginalImagePath, $LocalImageFile)}
+                    Set-Content -Path $UnitFile -Value $UnitContent -Encoding UTF8
+                    $UnitStructure += @{Title = $UnitTitle; File  = $UnitFile}}}
+            $ModuleStructure += @{File = $ModuleFile;Title = $ModuleTitle; Units = $UnitStructure}}
         $lpStructure += @{File = $LpFile;Title = $LpTitle ;Modules = $ModuleStructure}}
     $courseStructure = @{Course = $CourseCode; LearningPaths = $lpStructure}
-    $courseStructure | ConvertTo-Json -Depth 5 | out-File "$LearningPathFolder\structure.json" -Encoding utf8} 
+    $courseStructure | ConvertTo-Json -Depth 6 | out-File "$LearningPathFolder\structure.json" -Encoding utf8} 
 
 function Export-ibCourse {
     [CmdletBinding()]

@@ -1,6 +1,4 @@
 import requests
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 from pathlib import Path
 import subprocess
 import re
@@ -14,7 +12,6 @@ OUTPUT_PROFILE = ( sys.argv[2] if len(sys.argv) > 2 else "Lecture" )
 
 
 # Paramètres du script
-SCRIPT_FOLDER = Path(__file__).parent
 CACHE_FOLDER = Path("./cache")
 EXPORT_FOLDER = Path("./exports")
 IMAGE_FOLDER = Path(f"./{COURSE_CODE}-images")
@@ -91,50 +88,6 @@ def clean_markdown(md):
         if len(parts) >= 3: md = parts[2]
     return md.strip()
 
-def get_binary(url):
-    response = SESSION.get(url, timeout=30)
-    response.raise_for_status()
-    return response.content
-
-def process_images(markdown, module_soup):
-    source_meta = module_soup.find( "meta", attrs={"name": "source_path"} )
-    repo_meta = module_soup.find( "meta", attrs={"name": "github_feedback_content_git_url"} )
-    if not source_meta or not repo_meta: return markdown
-    source_path = source_meta["content"]
-    repo_url = repo_meta["content"]
-    repo_match = re.search( r"github\.com/([^/]+)/([^/]+)/blob/([^/]+)/", repo_url )
-    if not repo_match: return markdown
-    owner = repo_match.group(1)
-    repo = repo_match.group(2)
-    branch = repo_match.group(3)
-    repo_prefix = repo + "/"
-    if source_path.startswith(repo_prefix): source_path = source_path[len(repo_prefix):]
-    module_folder = source_path.rsplit("/", 1)[0]
-    pattern = r'!\[(.*?)\]\((.*?)\)'
-    matches = re.findall(pattern, markdown)
-    for alt_text, image_path in matches:
-        if image_path.startswith("http"): continue
-        if "media/" not in image_path:  continue
-        image_filename = image_path.split("/")[-1]
-        if image_filename.lower().endswith(".svg"):
-            print( f"              SVG supprimé : {image_filename}" )
-            markdown = re.sub( rf'!\[.*?\]\({re.escape(image_path)}\)','', markdown )
-            continue
-        local_file = IMAGE_FOLDER / image_filename
-        raw_url = ( f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{module_folder}/media/{image_filename}" )
-        if not local_file.exists():
-            try:
-                with open(local_file, "wb") as f:
-                    f.write(get_binary(raw_url))
-            except Exception as e: print( f"                 ERREUR {e}" )
-        if local_file.exists():
-            markdown = markdown.replace( image_path, str(local_file).replace( "\\", "/" ))
-        else: 
-            print( f"              IMAGE INACCESSIBLE : {image_filename}" )
-            markdown = re.sub( rf'!\[.*?\]\({re.escape(image_path)}\)', f'> *Image manquante à l\'impression : {image_filename}*',
-            markdown )
-    return markdown
-
 STRUCTURE_FILE = (CACHE_FOLDER / COURSE_CODE / "structure.json")
 with open(STRUCTURE_FILE, "r", encoding="utf-8-sig") as f: course_structure = json.load(f)
 learning_paths = (course_structure["LearningPaths"])
@@ -142,13 +95,8 @@ print(f"{len(learning_paths)} Learning Paths trouvés")
 all_content = []
 first_learning_path = True
 for lp_index, lp in enumerate( learning_paths, start=1):
-    lp_file = Path(lp["File"])
     print(f"[LP {lp_index}/{len(learning_paths)}] {lp['Title']}")
-    try:
-        modules = lp['Modules']
-    except Exception as e:
-        print( f"    ERREUR Learning Path : {e}" )
-        continue
+    modules = lp['Modules']
     if not first_learning_path: all_content.append("\n\n\\newpage\n\n")
     first_learning_path = False
     all_content.append( f"# {lp['Title']}\n\n" )
@@ -156,18 +104,11 @@ for lp_index, lp in enumerate( learning_paths, start=1):
         print( f"    [{mod_index}/{len(modules)}] {module['Title']}" )
         if (mod_index > 1): all_content.append( "\n\n\\newpage\n\n" )
         all_content.append( f"## {module['Title']}\n\n" )
-        try:
-            module_file = Path(module["File"])
-            print(f"Lecture cache module : {module_file}")
-            module_html = module_file.read_text(encoding="utf-8")
-            module_soup = BeautifulSoup(module_html,"html.parser")
-        except Exception as e:
-            print( f"         ERREUR module : {e}" )
-            continue
-        units = module["Units"]
-        for unit_file in units:
-            unit_file = Path(unit_file)
-            unit_title = unit_file.stem
+        module_file = Path(module["File"])
+        print(f"Lecture cache module : {module_file}")
+        for unit in module["Units"]:
+            unit_file = Path(unit["File"])
+            unit_title = unit["Title"]
             if unit_title.lower() == "introduction":
                 if not KEEP_INTRODUCTION:
                     print("             [Introduction ignorée]")
@@ -203,7 +144,6 @@ for lp_index, lp in enumerate( learning_paths, start=1):
                 else:
                     md = clean_markdown(md)
                     md = cleanup_learn_content(md)
-                md = process_images( md, module_soup )
                 all_content.append(md)
             except Exception as e: print( f"             ERREUR unité : {e}" )
 print()

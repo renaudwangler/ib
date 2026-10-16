@@ -11,9 +11,10 @@ function Get-ibWebCache {
     return $DestinationFile}
 function get-ibGlobalCache {
 [CmdletBinding()]param([Parameter(Mandatory)][string]$CourseCode,[Parameter(Mandatory)][string]$CacheFolder)
+    $learnPath = 'https://learn.microsoft.com/en-us/training'
     $KnownFiles = [System.Collections.Generic.HashSet[string]]::new()
     $LearningPathFolder = Join-Path $CacheFolder $CourseCode
-    $CourseUrl = "https://learn.microsoft.com/en-us/training/courses/$CourseCode"
+    $CourseUrl = "$learnPath/courses/$CourseCode"
     $CourseFile = Get-ibWebCache -SourceUrl $CourseUrl -DestinationFolder $CacheFolder
     $CourseContent = Get-Content $CourseFile -Raw
     #Analyse de l'accueil pour trouver les Learning Path
@@ -22,7 +23,7 @@ function get-ibGlobalCache {
     foreach ($LPMatch in $LPMatches) {
         $Content = $LPMatch.Groups[1].Value
         if ($Content -notlike 'learn.wwl.*') {continue}
-        $LpUrl = "https://learn.microsoft.com/en-us/training/paths/$($Content -replace '^learn\.wwl\.', '')/"
+        $LpUrl = "$learnPath/paths/$($Content -replace '^learn\.wwl\.', '')/"
         $LpFile = Get-ibWebCache -SourceUrl $LpUrl -DestinationFolder $LearningPathFolder
         if (-not $KnownFiles.Add($LPFile)) {continue}
         $LpContent = Get-Content $LpFile -Raw
@@ -32,7 +33,7 @@ function get-ibGlobalCache {
         $ModuleMatches = [regex]::Matches($LpContent,'href="\.\./\.\./modules/([^/]+)/"')
         $ModuleStructure = @()
         foreach ($ModuleMatch in $ModuleMatches) {
-            $ModuleUrl = "https://learn.microsoft.com/en-us/training/modules/$($ModuleMatch.Groups[1].Value)/"
+            $ModuleUrl = "$learnPath/modules/$($ModuleMatch.Groups[1].Value)/"
             $ModuleFolder = join-path $LearningPathFolder ([System.IO.Path]::GetFileNameWithoutExtension($lpFile))
             $ModuleFile = Get-ibWebCache -SourceUrl $ModuleUrl -DestinationFolder $ModuleFolder
             if (-not $KnownFiles.Add($ModuleFile)) {continue}
